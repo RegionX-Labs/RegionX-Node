@@ -6,26 +6,32 @@ use super::{
 use core::marker::PhantomData;
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ConstU32, ContainsPair, Everything, Get, Nothing},
+	traits::{ConstU32, Contains, ContainsPair, Equals, Everything, Get, Nothing},
 	weights::Weight,
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
+use parachains_common::xcm_config::{
+	AllSiblingSystemParachains, ParentRelayOrSiblingParachains, RelayOrOtherSystemParachains,
+};
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
 use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	ConvertedConcreteId, CurrencyAdapter, DenyReserveTransferToRelayChain, DenyThenTry,
-	EnsureXcmOrigin, FixedWeightBounds, IsConcrete, NativeAsset, NoChecking, NonFungiblesAdapter,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowSubscriptionsFrom,
+	AllowTopLevelPaidExecutionFrom, AllowUnpaidExecutionFrom, ConvertedConcreteId, CurrencyAdapter,
+	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds, IsConcrete,
+	NativeAsset, NoChecking, NonFungiblesAdapter, ParentAsSuperuser, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	XcmFeeManagerFromComponents, XcmFeeToAccount, AllowKnownQueryResponses,
 };
 use xcm_executor::{traits::JustTry, XcmExecutor};
 
 parameter_types! {
+	pub const HereLocation: MultiLocation = MultiLocation::here();
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
 	pub const RelayNetwork: Option<NetworkId> = None;
 	pub const CoretimeParaId: u32 = 1005;
@@ -63,7 +69,7 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
-	IsConcrete<RelayLocation>,
+	IsConcrete<HereLocation>,
 	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
@@ -159,12 +165,22 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognized.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
+	// Superuser converter for the Relay-chain (Parent) location. This will allow it to issue a
+	// transaction from the Root origin.
+	ParentAsSuperuser<RuntimeOrigin>,
 	// Native signed account converter; this just converts an `AccountId32` origin into a normal
 	// `RuntimeOrigin::Signed` origin of the same 32-byte value.
 	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
 	// Xcm origins can be represented natively under the Xcm pallet's Xcm origin.
 	XcmPassthrough<RuntimeOrigin>,
 );
+
+match_types! {
+	pub type ParentOrParentsPlurality: impl Contains<MultiLocation> = {
+		MultiLocation { parents: 1, interior: Here } |
+		MultiLocation { parents: 1, interior: X1(Plurality { .. }) }
+	};
+}
 
 parameter_types! {
 	// One XCM operation is 1_000_000_000 weight - almost certainly a conservative estimate.
@@ -180,23 +196,22 @@ match_types! {
 	};
 }
 
-pub type Barrier = TrailingSetTopicAsId<
-	DenyThenTry<
-		DenyReserveTransferToRelayChain,
-		(
-			TakeWeightCredit,
-			WithComputedOrigin<
-				(
-					AllowTopLevelPaidExecutionFrom<Everything>,
-					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-					// ^^^ Parent and its exec plurality get free execution
-				),
-				UniversalLocation,
-				ConstU32<8>,
-			>,
-		),
-	>,
->;
+pub type Barrier = (
+	TakeWeightCredit,
+    AllowTopLevelPaidExecutionFrom<Everything>,
+    // This will first calculate the derived origin, before checking it against the barrier implementation
+    WithComputedOrigin<AllowTopLevelPaidExecutionFrom<Everything>, UniversalLocation, ConstU32<8>>,
+    // Parent and its plurality get free execution
+    AllowUnpaidExecutionFrom<ParentOrParentsPlurality>,
+    // Expected responses are OK.
+    AllowKnownQueryResponses<PolkadotXcm>,
+    // Subscriptions for version tracking are OK.
+    AllowSubscriptionsFrom<Everything>,
+);
+
+pub type WaivedLocations = (
+	RelayOrOtherSystemParachains<AllSiblingSystemParachains, Runtime>,
+);
 
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
@@ -220,7 +235,10 @@ impl xcm_executor::Config for XcmConfig {
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	type AssetLocker = ();
 	type AssetExchanger = ();
-	type FeeManager = ();
+	type FeeManager = XcmFeeManagerFromComponents<
+		WaivedLocations,
+		(),
+	>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
@@ -255,7 +273,7 @@ impl pallet_xcm::Config for Runtime {
 	// Needs to be `Everything` for local testing.
 	type XcmExecutor = XcmExecutor<XcmConfig>;
 	type XcmTeleportFilter = Everything;
-	type XcmReserveTransferFilter = Nothing;
+	type XcmReserveTransferFilter = Everything;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
 	type UniversalLocation = UniversalLocation;
 	type RuntimeOrigin = RuntimeOrigin;
