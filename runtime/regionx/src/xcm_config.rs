@@ -1,31 +1,31 @@
 use super::{
-	AccountId, AllPalletsWithSystem, Balances, ParachainInfo, ParachainSystem, PolkadotXcm,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,ItemId, CollectionId, Uniques,
-};
-use frame_support::{
-	match_types, parameter_types,
-	traits::{ConstU32, Everything, Nothing, ContainsPair, Get},
-	weights::Weight,
+	AccountId, AllPalletsWithSystem, Balances, CollectionId, ItemId, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, Uniques,
+	WeightToFee, XcmpQueue,
 };
 use core::marker::PhantomData;
+use frame_support::{
+	match_types, parameter_types,
+	traits::{ConstU32, Everything, Get, Nothing},
+	weights::Weight,
+};
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
+use sp_runtime::traits::MaybeEquivalence;
 use xcm::latest::prelude::*;
 #[allow(deprecated)]
 use xcm_builder::CurrencyAdapter;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds, IsConcrete,
-	NativeAsset, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
-	WithComputedOrigin, WithUniqueTopic, AllowUnpaidExecutionFrom, NonFungiblesAdapter, ConvertedConcreteId,
-	NoChecking,
+	AllowUnpaidExecutionFrom, ConvertedConcreteId, DenyReserveTransferToRelayChain, DenyThenTry,
+	EnsureXcmOrigin, FixedWeightBounds, IsConcrete, NoChecking, NonFungiblesAdapter,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
-use sp_runtime::traits::MaybeEquivalence;
-use xcm_executor::{XcmExecutor, traits::JustTry};
+use xcm_executor::{traits::JustTry, XcmExecutor};
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
@@ -33,19 +33,8 @@ parameter_types! {
 	pub const CoretimeParaId: u32 = 1005;
 	pub const CoretimeParaLocation: MultiLocation =
 		MultiLocation { parents: 1, interior: X1(Parachain(CoretimeParaId::get())) };
-	pub const CoretimeRegionLocation: MultiLocation =
-		MultiLocation { parents: 1, interior: X2(Parachain(CoretimeParaId::get()), PalletInstance(50))};
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
-}
-
-pub struct CoretimeRegion;
-impl ContainsPair<MultiAsset, MultiLocation> for CoretimeRegion {
-	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
-		log::trace!(target: "xcm::contains", "CoretimeRegion asset: {:?}, origin: {:?}", asset, origin);
-		*origin == CoretimeParaLocation::get() &&
-			asset.id == Concrete(CoretimeRegionLocation::get())
-	}
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -209,7 +198,7 @@ impl xcm_executor::Config for XcmConfig {
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	// type IsReserve = (NativeAsset, CoretimeRegion);
+	// TODO: FIXME
 	type IsReserve = Everything;
 	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
