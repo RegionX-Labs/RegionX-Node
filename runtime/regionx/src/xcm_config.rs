@@ -1,12 +1,13 @@
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, ParachainInfo, ParachainSystem, PolkadotXcm,
-	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
+	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,ItemId, CollectionId, Uniques,
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ConstU32, Everything, Nothing},
+	traits::{ConstU32, Everything, Nothing, ContainsPair, Get},
 	weights::Weight,
 };
+use core::marker::PhantomData;
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
@@ -20,15 +21,31 @@ use xcm_builder::{
 	NativeAsset, ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
-	WithComputedOrigin, WithUniqueTopic, AllowUnpaidExecutionFrom,
+	WithComputedOrigin, WithUniqueTopic, AllowUnpaidExecutionFrom, NonFungiblesAdapter, ConvertedConcreteId,
+	NoChecking,
 };
-use xcm_executor::XcmExecutor;
+use sp_runtime::traits::MaybeEquivalence;
+use xcm_executor::{XcmExecutor, traits::JustTry};
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
 	pub const RelayNetwork: Option<NetworkId> = None;
+	pub const CoretimeParaId: u32 = 1005;
+	pub const CoretimeParaLocation: MultiLocation =
+		MultiLocation { parents: 1, interior: X1(Parachain(CoretimeParaId::get())) };
+	pub const CoretimeRegionLocation: MultiLocation =
+		MultiLocation { parents: 1, interior: X2(Parachain(CoretimeParaId::get()), PalletInstance(50))};
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+}
+
+pub struct CoretimeRegion;
+impl ContainsPair<MultiAsset, MultiLocation> for CoretimeRegion {
+	fn contains(asset: &MultiAsset, origin: &MultiLocation) -> bool {
+		log::trace!(target: "xcm::contains", "CoretimeRegion asset: {:?}, origin: {:?}", asset, origin);
+		*origin == CoretimeParaLocation::get() &&
+			asset.id == Concrete(CoretimeRegionLocation::get())
+	}
 }
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
@@ -57,6 +74,79 @@ pub type LocalAssetTransactor = CurrencyAdapter<
 	// We don't track any teleports.
 	(),
 >;
+
+// TODO: this shouldn't be defined here.
+pub struct AsPrefixedPalletInstance<Prefix, AssetId, ConvertAssetId, L = MultiLocation>(
+	PhantomData<(Prefix, AssetId, ConvertAssetId, L)>,
+);
+impl<
+		Prefix: Get<L>,
+		AssetId: Clone,
+		ConvertAssetId: MaybeEquivalence<u8, AssetId>,
+		L: TryInto<MultiLocation> + TryFrom<MultiLocation> + Clone,
+	> MaybeEquivalence<L, AssetId> for AsPrefixedPalletInstance<Prefix, AssetId, ConvertAssetId, L>
+{
+	fn convert(id: &L) -> Option<AssetId> {
+		let prefix = Prefix::get();
+		let latest_prefix: MultiLocation = prefix.try_into().ok()?;
+		let latest_id: MultiLocation = (*id).clone().try_into().ok()?;
+		if latest_prefix.parent_count() != latest_id.parent_count() ||
+			latest_prefix
+				.interior()
+				.iter()
+				.enumerate()
+				.any(|(index, junction)| latest_id.interior().at(index) != Some(junction))
+		{
+			return None
+		}
+		match latest_id.interior().at(latest_prefix.interior().len()) {
+			Some(Junction::PalletInstance(id)) => ConvertAssetId::convert(&id),
+			_ => None,
+		}
+	}
+	fn convert_back(what: &AssetId) -> Option<L> {
+		let location = Prefix::get();
+		let mut latest_location: MultiLocation = location.try_into().ok()?;
+		let id = ConvertAssetId::convert_back(what)?;
+		latest_location.push_interior(Junction::PalletInstance(id)).ok()?;
+		latest_location.try_into().ok()
+	}
+}
+
+pub struct RegionIdConverter;
+impl MaybeEquivalence<AssetInstance, ItemId> for RegionIdConverter {
+	fn convert(a: &AssetInstance) -> Option<ItemId> {
+		match a {
+			AssetInstance::Index(i) => Some(*i),
+			_ => None,
+		}
+	}
+	fn convert_back(i: &ItemId) -> Option<AssetInstance> {
+		Some(AssetInstance::Index(*i))
+	}
+}
+
+pub type CoretimeRegionsTransactor = NonFungiblesAdapter<
+	// Use this nonfungibles implementation:
+	Uniques,
+	// Type that attempts to convert the `MultiAsset` into a registered uniques item.
+	ConvertedConcreteId<
+		CollectionId,
+		ItemId,
+		AsPrefixedPalletInstance<CoretimeParaLocation, CollectionId, JustTry>,
+		RegionIdConverter,
+	>,
+	// Convert an XCM MultiLocation into a local account id:
+	LocationToAccountId,
+	// This chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Assets`.
+	NoChecking,
+	// No teleports.
+	(),
+>;
+
+pub type AssetTransactors = (LocalAssetTransactor, CoretimeRegionsTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -117,9 +207,10 @@ impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
 	// How to withdraw and deposit an asset.
-	type AssetTransactor = LocalAssetTransactor;
+	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = NativeAsset;
+	// type IsReserve = (NativeAsset, CoretimeRegion);
+	type IsReserve = Everything;
 	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
