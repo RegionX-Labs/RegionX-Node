@@ -21,7 +21,7 @@ smallvec = { workspace = true }
 
 # Local
 regionx-primitives = { workspace = true }
-pallet-parachain-template = { workspace = true }
+pallet-regions = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -100,7 +100,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-collator-selection/std",
 	"pallet-message-queue/std",
-	"pallet-parachain-template/std",
+	"pallet-regions/std",
 	"regionx-primitives/std",
 	"pallet-session/std",
 	"pallet-sudo/std",
@@ -146,7 +146,7 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
-	"pallet-parachain-template/runtime-benchmarks",
+	"pallet-regions/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
@@ -173,7 +173,7 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-collator-selection/try-runtime",
 	"pallet-message-queue/try-runtime",
-	"pallet-parachain-template/try-runtime",
+	"pallet-regions/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-timestamp/try-runtime",

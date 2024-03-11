@@ -1,7 +1,7 @@
 [package]
-name = "pallet-parachain-template"
+name = "pallet-regions"
 authors = ["Anonymous"]
-description = "FRAME pallet template for defining custom runtime logic."
+description = "Pallet responsible for handling Coretime regions"
 version = "0.1.0"
 license = "Unlicense"
 homepage = "https://substrate.io"
@@ -15,10 +15,14 @@ targets = ["x86_64-unknown-linux-gnu"]
 parity-scale-codec = { workspace = true, features = ["derive"] }
 scale-info = {  workspace = true, features = ["derive"] }
 
+# Polytope labs
+ismp = { workspace = true, default-features = false }
+
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-support = { workspace = true, default-features = false }
 frame-system = {  workspace = true, default-features = false }
+pallet-broker = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }

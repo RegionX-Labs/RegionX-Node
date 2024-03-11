@@ -47,6 +47,7 @@ frame-try-runtime = { git = "https://github.com/paritytech/polkadot-sdk", defaul
 pallet-aura = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
 pallet-authorship = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
 pallet-balances = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
+pallet-broker = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
 pallet-grandpa = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
 pallet-session = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
 pallet-sudo = { git = "https://github.com/paritytech/polkadot-sdk", default-features = false, branch = "release-polkadot-v1.6.0" }
@@ -133,7 +134,10 @@ cumulus-primitives-utility = { git = "https://github.com/paritytech/polkadot-sdk
 pallet-collator-selection = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.6.0", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.6.0", default-features = false }
 
+#Polytope Labs
+ismp = { git = "https://github.com/polytope-labs/hyperbridge.git", rev = "v0.3.6", default-features = false }
+
 # Local
 regionx-primitives = { path = "./primitives", default-features = false }
 regionx-runtime = { path = "./runtime/regionx" }
-pallet-parachain-template = { path = "./pallets/template", default-features = false }
+pallet-regions = { path = "./pallets/template", default-features = false }

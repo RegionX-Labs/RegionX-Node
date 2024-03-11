@@ -4399,6 +4399,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "ismp"
+version = "0.1.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?rev=v0.3.6#9748b4203bd998ea75ce84be9a33dace7a4160c2"
+dependencies = [
+ "derive_more",
+ "hex",
+ "parity-scale-codec",
+ "primitive-types",
+ "scale-info",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "itertools"
 version = "0.10.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6713,21 +6727,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "pallet-parachain-template"
-version = "0.1.0"
-dependencies = [
- "frame-benchmarking",
- "frame-support",
- "frame-system",
- "parity-scale-codec",
- "scale-info",
- "serde",
- "sp-core",
- "sp-io",
- "sp-runtime",
-]
-
-[[package]]
 name = "pallet-preimage"
 version = "4.0.0-dev"
 source = "git+https://github.com/paritytech/polkadot-sdk.git?branch=release-polkadot-v1.6.0#61801ce324f18eacb9c29e2f674f0d262a00bd4d"
@@ -6809,6 +6808,23 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std 8.0.0",
+]
+
+[[package]]
+name = "pallet-regions"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "ismp",
+ "pallet-broker",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
 ]
 
 [[package]]
@@ -9349,7 +9365,7 @@ dependencies = [
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-message-queue",
- "pallet-parachain-template",
+ "pallet-regions",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
