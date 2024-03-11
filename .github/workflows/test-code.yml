@@ -35,8 +35,8 @@ jobs:
     - uses: Swatinem/rust-cache@v2
 
     # Enable this for clippy linting.
-    # - name: Check and Lint Code
-    #   run: cargo +nightly clippy -- -D warnings
+    - name: Check and Lint Code
+      run: cargo +nightly clippy -- -D warnings
 
     - name: Check Code
       run: cargo check
