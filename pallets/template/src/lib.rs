@@ -7,6 +7,7 @@ use ismp::{
 };
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
+use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 
 #[cfg(test)]
 mod mock;
@@ -50,8 +51,8 @@ pub mod pallet {
 		/// Native currency implementation
 		type NativeCurrency: Mutate<Self::AccountId>;
 
-		type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = <Self as Config>::Balance>
-			+ Default;
+		//type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = <Self as Config>::Balance>
+		//	+ Default;
 	}
 
 	#[pallet::pallet]
@@ -145,7 +146,7 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 	}
 }
 
-impl<T: Config> IsmpModule for Pallet<T> {
+impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_accept(&self, _request: Post) -> Result<(), IsmpError> {
 		unimplemented!()
 	}
@@ -156,14 +157,48 @@ impl<T: Config> IsmpModule for Pallet<T> {
 				"Post responses are not accepted".to_string(),
 			))?,
 			Response::Get(res) => {
-				// TODO: extract data from the result
-				// crate::Pallet::<T>::initialize_region();
+				// TODO: read region_id from get request;
+				res.get.keys.iter().try_for_each(|key| {
+					let value = Self::read_value(&res.values, &key)?;
+
+					let region_id = RegionId::decode(&mut key.as_slice()).map_err(|_| {
+						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
+					})?;
+
+					let record =
+						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
+							IsmpError::ImplementationSpecific("Failed to decode record".to_string())
+						})?;
+
+					crate::Pallet::<T>::initialize_region(region_id, record)
+						.map_err(|e| IsmpError::ImplementationSpecific(format!("{:?}", e)))?;
+
+					Ok(())
+				})?;
 			},
 		}
-		todo!()
+
+		Ok(())
 	}
 
 	fn on_timeout(&self, _timeout: Timeout) -> Result<(), IsmpError> {
 		unimplemented!()
+	}
+}
+
+impl<T: Config> IsmpModuleCallback<T> {
+	fn read_value(
+		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
+		key: &Vec<u8>,
+	) -> Result<Vec<u8>, IsmpError> {
+		let result = values
+			.get(key)
+			.ok_or(IsmpError::ImplementationSpecific(
+				"The key doesn't have a corresponding value".to_string(),
+			))?
+			.clone()
+			.ok_or(IsmpError::ImplementationSpecific("Region record not found".to_string()))?;
+
+		Ok(result)
 	}
 }

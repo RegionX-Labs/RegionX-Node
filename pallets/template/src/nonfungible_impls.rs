@@ -39,6 +39,14 @@ impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 		let _region_id: RegionId = (*item).into();
 
 		// TODO: Make an ISMP get request to fetch the region record.
+		let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
+		let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
+		let region_id: RegionId = (*item).into();
+
+		println!("{:02X?}", pallet_hash);
+		println!("{:02X?}", region_id.encode());
+
+		// pallet_hash + storage_hash + region_id
 
 		Ok(())
 	}

@@ -1,6 +1,6 @@
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
-use sp_core::H256;
+use sp_core::{ConstU32, ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
@@ -13,7 +13,8 @@ frame_support::construct_runtime!(
 	pub enum Test
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
-		TemplateModule: crate::{Pallet, Call, Storage, Event<T>},
+		Balances: pallet_balances,
+		Regions: crate::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -36,10 +37,11 @@ impl system::Config for Test {
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
+	type RuntimeTask = RuntimeTask;
 	type BlockHashCount = BlockHashCount;
 	type Version = ();
 	type PalletInfo = PalletInfo;
-	type AccountData = ();
+	type AccountData = pallet_balances::AccountData<u64>;
 	type OnNewAccount = ();
 	type OnKilledAccount = ();
 	type SystemWeightInfo = ();
@@ -48,8 +50,27 @@ impl system::Config for Test {
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
+impl pallet_balances::Config for Test {
+	type Balance = u64;
+	type DustRemoval = ();
+	type RuntimeEvent = RuntimeEvent;
+	type ExistentialDeposit = ConstU64<1>;
+	type AccountStore = System;
+	type WeightInfo = ();
+	type MaxLocks = ();
+	type MaxHolds = ();
+	type MaxReserves = ConstU32<50>;
+	type ReserveIdentifier = [u8; 8];
+	type RuntimeHoldReason = RuntimeHoldReason;
+	type RuntimeFreezeReason = RuntimeFreezeReason;
+	type FreezeIdentifier = ();
+	type MaxFreezes = ();
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
+	type Balance = u64;
+	type NativeCurrency = Balances;
 }
 
 // Build genesis storage according to the mock runtime.
