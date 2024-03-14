@@ -13,6 +13,9 @@ use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 mod mock;
 
 #[cfg(test)]
+mod ismp_mock;
+
+#[cfg(test)]
 mod tests;
 
 #[cfg(feature = "runtime-benchmarks")]
@@ -51,8 +54,10 @@ pub mod pallet {
 		/// Native currency implementation
 		type NativeCurrency: Mutate<Self::AccountId>;
 
-		//type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = <Self as Config>::Balance>
-		//	+ Default;
+		type IsmpDispatcher: IsmpDispatcher<
+			Account = Self::AccountId,
+			Balance = <Self as Config>::Balance,
+		>;
 	}
 
 	#[pallet::pallet]
@@ -148,7 +153,7 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 
 impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_accept(&self, _request: Post) -> Result<(), IsmpError> {
-		unimplemented!()
+		Err(IsmpError::ImplementationSpecific("Not supported".to_string()))
 	}
 
 	fn on_response(&self, response: Response) -> Result<(), IsmpError> {
@@ -157,7 +162,6 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 				"Post responses are not accepted".to_string(),
 			))?,
 			Response::Get(res) => {
-				// TODO: read region_id from get request;
 				res.get.keys.iter().try_for_each(|key| {
 					let value = Self::read_value(&res.values, &key)?;
 
@@ -182,7 +186,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	}
 
 	fn on_timeout(&self, _timeout: Timeout) -> Result<(), IsmpError> {
-		unimplemented!()
+		Err(IsmpError::ImplementationSpecific("Not supported".to_string()))
 	}
 }
 

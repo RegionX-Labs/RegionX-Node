@@ -1,3 +1,4 @@
+use crate::ismp_mock::MockDispatcher;
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
 use sp_core::{ConstU32, ConstU64, H256};
@@ -71,6 +72,7 @@ impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type NativeCurrency = Balances;
+	type IsmpDispatcher = MockDispatcher;
 }
 
 // Build genesis storage according to the mock runtime.
