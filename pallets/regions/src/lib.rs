@@ -1,12 +1,15 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::PalletId;
 use ismp::{
 	error::Error as IsmpError,
+	host::StateMachine,
 	module::IsmpModule,
 	router::{IsmpDispatcher, Post, Response, Timeout},
 };
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
+use pallet_ismp::primitives::ModuleId;
 use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 
 #[cfg(test)]
@@ -22,6 +25,10 @@ mod tests;
 mod benchmarking;
 
 mod nonfungible_impls;
+
+/// Constant Pallet ID
+// TODO: Use ModuleId
+pub const PALLET_ID: [u8; 8] = *b"pregions";
 
 type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
@@ -54,10 +61,12 @@ pub mod pallet {
 		/// Native currency implementation
 		type NativeCurrency: Mutate<Self::AccountId>;
 
-		type IsmpDispatcher: IsmpDispatcher<
-			Account = Self::AccountId,
-			Balance = <Self as Config>::Balance,
-		>;
+		/// The Coretime chain from which we read region state.
+		type CoretimeChain: Get<StateMachine>;
+
+		/// The ISMP dispatcher.
+		type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = <Self as Config>::Balance>
+			+ Default;
 	}
 
 	#[pallet::pallet]

@@ -3,7 +3,9 @@ use frame_support::{
 	pallet_prelude::{DispatchResult, *},
 	traits::nonfungible::{Inspect, Mutate, Transfer},
 };
+use ismp::router::{DispatchGet, DispatchRequest};
 use pallet_broker::RegionId;
+use sp_runtime::traits::Zero;
 
 impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 	type ItemId = u128;
@@ -35,18 +37,31 @@ impl<T: Config> Transfer<T::AccountId> for Pallet<T> {
 }
 
 impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
-	fn mint_into(item: &Self::ItemId, _who: &T::AccountId) -> DispatchResult {
+	fn mint_into(item: &Self::ItemId, who: &T::AccountId) -> DispatchResult {
 		let _region_id: RegionId = (*item).into();
 
 		// TODO: Make an ISMP get request to fetch the region record.
 		let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
 		let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
 		let region_id: RegionId = (*item).into();
+		let region_id_encoded = region_id.encode();
 
 		println!("{:02X?}", pallet_hash);
 		println!("{:02X?}", region_id.encode());
 
 		// pallet_hash + storage_hash + region_id
+
+		let get = DispatchGet {
+			dest: T::CoretimeChain::get(),
+			from: PALLET_ID.to_vec(),
+			keys: vec![],
+			height: 0,            // TODO: FIXME
+			timeout_timestamp: 0, // TODO: FIXME
+			gas_limit: 0,
+		};
+
+		let dispatcher = T::IsmpDispatcher::default();
+		dispatcher.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero());
 
 		Ok(())
 	}

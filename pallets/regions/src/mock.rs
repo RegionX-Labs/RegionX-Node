@@ -1,6 +1,7 @@
 use crate::ismp_mock::MockDispatcher;
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
+use ismp::host::StateMachine;
 use sp_core::{ConstU32, ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -68,10 +69,15 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 }
 
+parameter_types! {
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type NativeCurrency = Balances;
+	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = MockDispatcher;
 }
 

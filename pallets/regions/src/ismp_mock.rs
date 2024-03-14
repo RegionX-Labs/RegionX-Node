@@ -5,6 +5,7 @@ use ismp::{
 use ismp_testsuite::mocks::Host;
 use std::sync::Arc;
 
+#[derive(Default)]
 pub struct MockDispatcher(pub Arc<Host>);
 
 impl IsmpDispatcher for MockDispatcher {

@@ -9,6 +9,15 @@ use pallet_broker::{CoreMask, RegionId};
 use std::collections::BTreeMap;
 
 #[test]
+fn mint_into_works() {
+	new_test_ext().execute_with(|| {
+		let region_id: u128 = (RegionId { begin: 1, core: 0, mask: CoreMask::complete() }).into();
+
+		assert_ok!(Regions::mint_into(&region_id, &2));
+	});
+}
+
+#[test]
 fn dummy_test() {
 	new_test_ext().execute_with(|| {
 		let region_id: u128 = (RegionId { begin: 1, core: 0, mask: CoreMask::complete() }).into();
