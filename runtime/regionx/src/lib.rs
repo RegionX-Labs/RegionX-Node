@@ -65,9 +65,6 @@ use regionx_primitives::{
 	AccountId, Address, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
-/// Import the template pallet.
-pub use pallet_parachain_template;
-
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// A Block signed with a Justification
 pub type SignedBlock = generic::SignedBlock<Block>;
@@ -448,11 +445,6 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
-/// Configure the pallet template in pallets/template.
-impl pallet_parachain_template::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -482,9 +474,6 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm = 31,
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		MessageQueue: pallet_message_queue = 33,
-
-		// Template
-		TemplatePallet: pallet_parachain_template = 50,
 	}
 );
 

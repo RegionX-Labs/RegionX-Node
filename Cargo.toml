@@ -144,4 +144,4 @@ ismp-testsuite = { git = "https://github.com/polytope-labs/hyperbridge.git", rev
 # Local
 regionx-primitives = { path = "./primitives", default-features = false }
 regionx-runtime = { path = "./runtime/regionx" }
-pallet-regions = { path = "./pallets/template", default-features = false }
+pallet-regions = { path = "./pallets/regions", default-features = false }
