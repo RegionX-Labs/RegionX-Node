@@ -2,6 +2,7 @@ use super::*;
 use frame_support::{
 	pallet_prelude::{DispatchResult, *},
 	traits::nonfungible::{Inspect, Mutate, Transfer},
+	Hashable,
 };
 use ismp::router::{DispatchGet, DispatchRequest};
 use pallet_broker::RegionId;
@@ -38,23 +39,28 @@ impl<T: Config> Transfer<T::AccountId> for Pallet<T> {
 
 impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 	fn mint_into(item: &Self::ItemId, who: &T::AccountId) -> DispatchResult {
-		let _region_id: RegionId = (*item).into();
+		let region_id: RegionId = (*item).into();
 
-		// TODO: Make an ISMP get request to fetch the region record.
 		let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
 		let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
-		let region_id: RegionId = (*item).into();
-		let region_id_encoded = region_id.encode();
+		let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
 
-		println!("{:02X?}", pallet_hash);
-		println!("{:02X?}", region_id.encode());
+		// pallet_hash + storage_hash + blake2_128(region_id) + region_id
+		let key = [
+			pallet_hash,
+			storage_hash,
+			// TODO: don't unwrap
+			region_id_hash.try_into().unwrap(),
+			region_id.encode().try_into().unwrap(),
+		]
+		.concat();
 
-		// pallet_hash + storage_hash + region_id
+		println!("{:?}", hex::encode(key.clone()));
 
 		let get = DispatchGet {
 			dest: T::CoretimeChain::get(),
 			from: PALLET_ID.to_vec(),
-			keys: vec![],
+			keys: vec![key],
 			height: 0,            // TODO: FIXME
 			timeout_timestamp: 0, // TODO: FIXME
 			gas_limit: 0,
