@@ -87,7 +87,7 @@ impl crate::Config for Test {
 	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = MockDispatcher;
 	type StateMachineHeightProvider = MockStateMachineHeightProvider;
-	type TimeoutTimestamp = ConstU64<1000>;
+	type Timeout = ConstU64<1000>;
 }
 
 // Build genesis storage according to the mock runtime.

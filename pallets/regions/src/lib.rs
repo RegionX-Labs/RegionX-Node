@@ -5,11 +5,12 @@ use ismp::{
 	error::Error as IsmpError,
 	host::StateMachine,
 	module::IsmpModule,
-	router::{IsmpDispatcher, Post, Response, Timeout},
+	router::{DispatchGet, DispatchRequest, IsmpDispatcher, Post, Response, Timeout},
 };
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
+use sp_runtime::traits::Zero;
 
 #[cfg(test)]
 mod mock;
@@ -77,15 +78,25 @@ pub mod pallet {
 		type StateMachineHeightProvider: StateMachineHeightProvider;
 
 		/// Number of seconds before a get request times out.
-		type TimeoutTimestamp: Get<u64>;
+		type Timeout: Get<u64>;
 	}
 
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
 	#[pallet::storage]
-	#[pallet::getter(fn something)]
+	#[pallet::getter(fn regions)]
 	pub type Regions<T> = StorageMap<_, Blake2_128Concat, RegionId, RegionRecordOf<T>, OptionQuery>;
+
+	#[pallet::storage]
+	#[pallet::getter(fn timedout_regions)]
+	pub type TimedOutRegoins<T> = StorageMap<
+		_,
+		Blake2_128Concat,
+		RegionId,
+		<T as frame_system::Config>::AccountId,
+		OptionQuery,
+	>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -118,6 +129,7 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		// TODO: correct weight
 		#[pallet::call_index(0)]
 		#[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
 		pub fn transfer(
@@ -127,6 +139,18 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 			Self::do_transfer(region_id, Some(who), new_owner)?;
+
+			Ok(())
+		}
+
+		// TODO: correct weight
+		#[pallet::call_index(1)]
+		#[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
+		pub fn request_region_record(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
+			// TODO: don't unwrap
+			let who = TimedOutRegoins::<T>::get(region_id).unwrap();
+
+			Self::do_request_region_record(region_id, who)?;
 
 			Ok(())
 		}
@@ -163,6 +187,48 @@ pub mod pallet {
 
 			Ok(())
 		}
+
+		pub(crate) fn do_request_region_record(
+			region_id: RegionId,
+			who: <T as frame_system::Config>::AccountId,
+		) -> DispatchResult {
+			let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
+			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
+			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
+
+			// TODO: be defensive here
+			let region_id_encoded: [u8; 16] =
+				region_id.encode().try_into().expect("RegionId is exactly 128 bits");
+
+			// pallet_hash + storage_hash + blake2_128(region_id) + scale encoded region_id
+			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
+
+			let coretime_chain_height =
+				T::StateMachineHeightProvider::get_latest_state_machine_height(StateMachineId {
+					state_id: T::CoretimeChain::get(),
+					consensus_state_id: Default::default(), // TODO: FIXME
+				})
+				.map_or(Err(Error::<T>::FailedReadingCoretimeHeight), Ok)?;
+
+			let get = DispatchGet {
+				dest: T::CoretimeChain::get(),
+				from: PALLET_ID.to_vec(),
+				keys: vec![key],
+				height: coretime_chain_height,
+				timeout_timestamp: T::Timeout::get(),
+				gas_limit: 0,
+			};
+
+			let dispatcher = T::IsmpDispatcher::default();
+
+			dispatcher
+				.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero())
+				.map_err(|_| Error::<T>::IsmpDispatchError)?;
+
+			// TODO: Emit event
+
+			Ok(())
+		}
 	}
 }
 
@@ -193,6 +259,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 					})?;
 
+					// TODO: set owner
 					let record =
 						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
 							IsmpError::ImplementationSpecific("Failed to decode record".to_string())
