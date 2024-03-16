@@ -1,7 +1,7 @@
-use crate::ismp_mock::MockDispatcher;
+use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
 use frame_support::{parameter_types, traits::Everything};
 use frame_system as system;
-use ismp::host::StateMachine;
+use ismp::{consensus::StateMachineId, host::StateMachine};
 use sp_core::{ConstU32, ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -73,12 +73,21 @@ parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
 }
 
+pub struct MockStateMachineHeightProvider;
+impl StateMachineHeightProvider for MockStateMachineHeightProvider {
+	fn get_latest_state_machine_height(_id: StateMachineId) -> Option<u64> {
+		Some(0)
+	}
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
 	type NativeCurrency = Balances;
 	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = MockDispatcher;
+	type StateMachineHeightProvider = MockStateMachineHeightProvider;
+	type TimeoutTimestamp = ConstU64<1000>;
 }
 
 // Build genesis storage according to the mock runtime.

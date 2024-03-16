@@ -42,6 +42,6 @@ fn dummy_test() {
 		});
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
-		module.on_response(dummy_response);
+		let _ = module.on_response(dummy_response);
 	});
 }

@@ -1,7 +1,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::PalletId;
 use ismp::{
+	consensus::StateMachineId,
 	error::Error as IsmpError,
 	host::StateMachine,
 	module::IsmpModule,
@@ -9,7 +9,6 @@ use ismp::{
 };
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
-use pallet_ismp::primitives::ModuleId;
 use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 
 #[cfg(test)]
@@ -31,6 +30,12 @@ mod nonfungible_impls;
 pub const PALLET_ID: [u8; 8] = *b"pregions";
 
 type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
+
+// TODO: move trait outside the pallet.
+pub trait StateMachineHeightProvider {
+	/// Return the latest height of the state machine
+	fn get_latest_state_machine_height(id: StateMachineId) -> Option<u64>;
+}
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -67,6 +72,12 @@ pub mod pallet {
 		/// The ISMP dispatcher.
 		type IsmpDispatcher: IsmpDispatcher<Account = Self::AccountId, Balance = <Self as Config>::Balance>
 			+ Default;
+
+		/// Used for getting the height of the Coretime chain.
+		type StateMachineHeightProvider: StateMachineHeightProvider;
+
+		/// Number of seconds before a get request times out.
+		type TimeoutTimestamp: Get<u64>;
 	}
 
 	#[pallet::pallet]
@@ -99,6 +110,10 @@ pub mod pallet {
 		NotOwner,
 		/// The region record of the region is already set.
 		RegionAlreadyInitialized,
+		/// An error occured when attempting to dispatch an ISMP get request.
+		IsmpDispatchError,
+		/// Failed reading the height of the Coretime chain.
+		FailedReadingCoretimeHeight,
 	}
 
 	#[pallet::call]
