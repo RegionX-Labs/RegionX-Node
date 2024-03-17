@@ -46,13 +46,20 @@ pub enum RequestStatus {
 	Pending,
 	/// A request was made, but it timed out.
 	Timedout,
+	/// Successfully retreived the region record.
+	Successful,
 }
 
-/// Regions that do not have their record set on the RegionX parachain.
-#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub struct UnregisteredRegion<AccountId> {
-	/// Owner of the region
-	owner: AccountId,
+/// Region that got cross-chain transferred from the Coretime chain.
+#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[scale_info(skip_type_params(T))]
+pub struct Region<T: pallet::Config> {
+	/// Owner of the region.
+	owner: T::AccountId,
+	// TODO: the owner inside the record is redundant.
+	/// The associated record of the region. If `None`, we still didn't receive a response
+	/// to the ISMP get request.
+	record: Option<RegionRecordOf<T>>,
 	/// The status of the ISMP get request for getting the region record.
 	request_status: RequestStatus,
 }
@@ -103,19 +110,10 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	/// Regions that got cross-chain transferred to the RegionX parachain.
 	#[pallet::storage]
 	#[pallet::getter(fn regions)]
-	pub type Regions<T> = StorageMap<_, Blake2_128Concat, RegionId, RegionRecordOf<T>, OptionQuery>;
-
-	#[pallet::storage]
-	#[pallet::getter(fn unregistered_regions)]
-	pub type UnregisteredRegions<T> = StorageMap<
-		_,
-		Blake2_128Concat,
-		RegionId,
-		UnregisteredRegion<<T as frame_system::Config>::AccountId>,
-		OptionQuery,
-	>;
+	pub type Regions<T> = StorageMap<_, Blake2_128Concat, RegionId, Region<T>, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -139,13 +137,11 @@ pub mod pallet {
 		/// The owner of the region is not the origin.
 		NotOwner,
 		/// The region record of the region is already set.
-		RegionAlreadyInitialized,
+		RegionRecordAlreadySet,
 		/// An error occured when attempting to dispatch an ISMP get request.
 		IsmpDispatchError,
 		/// Failed reading the height of the Coretime chain.
 		FailedReadingCoretimeHeight,
-		/// The region record is already registered.
-		RegionAlreadyRegistered,
 		/// A request to get the region record was already made and still didn't time out.
 		NotTimedOut,
 	}
@@ -172,13 +168,10 @@ pub mod pallet {
 		pub fn request_region_record(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let unregistered = UnregisteredRegions::<T>::get(region_id)
-				.map_or(Err(Error::<T>::RegionAlreadyRegistered), Ok)?;
+			let region =
+				Regions::<T>::get(region_id).map_or(Err(Error::<T>::UnknownRegion).into(), Ok)?;
 
-			ensure!(
-				unregistered.request_status == RequestStatus::Timedout,
-				Error::<T>::NotTimedOut
-			);
+			ensure!(region.request_status == RequestStatus::Timedout, Error::<T>::NotTimedOut);
 
 			Self::do_request_region_record(region_id, who)?;
 
@@ -208,12 +201,16 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub(crate) fn initialize_region(
-			region_id: RegionId,
-			record: RegionRecordOf<T>,
-		) -> DispatchResult {
-			ensure!(Regions::<T>::get(&region_id).is_none(), Error::<T>::RegionAlreadyInitialized);
-			Regions::<T>::insert(region_id, record);
+		pub(crate) fn set_record(region_id: RegionId, record: RegionRecordOf<T>) -> DispatchResult {
+			let Some(mut region) = Regions::<T>::get(&region_id) else {
+				return Err(Error::<T>::UnknownRegion.into());
+			};
+			ensure!(region.record.is_none(), Error::<T>::RegionRecordAlreadySet);
+
+			region.record = Some(record);
+			// TODO: rename `request_status`.
+			region.request_status = RequestStatus::Successful;
+			Regions::<T>::insert(region_id, region);
 
 			Ok(())
 		}
@@ -255,9 +252,9 @@ pub mod pallet {
 				.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero())
 				.map_err(|_| Error::<T>::IsmpDispatchError)?;
 
-			UnregisteredRegions::<T>::insert(
+			Regions::<T>::insert(
 				region_id,
-				UnregisteredRegion { owner: who, request_status: RequestStatus::Pending },
+				Region { owner: who, record: None, request_status: RequestStatus::Pending },
 			);
 
 			// TODO: Emit event
@@ -294,21 +291,13 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 					})?;
 
-					let unregistered = UnregisteredRegions::<T>::get(region_id).map_or(
-						Err(IsmpError::ImplementationSpecific("Unknown region".to_string())),
-						Ok,
-					)?;
-
-					let mut record =
+					let record =
 						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
 							IsmpError::ImplementationSpecific("Failed to decode record".to_string())
 						})?;
 
-					record.owner = unregistered.owner;
-
-					crate::Pallet::<T>::initialize_region(region_id, record)
+					crate::Pallet::<T>::set_record(region_id, record)
 						.map_err(|e| IsmpError::ImplementationSpecific(format!("{:?}", e)))?;
-					UnregisteredRegions::<T>::remove(region_id);
 
 					Ok(())
 				})?;
