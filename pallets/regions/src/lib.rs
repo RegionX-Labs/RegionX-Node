@@ -9,7 +9,8 @@ use ismp::{
 };
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
-use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
+use parity_scale_codec::{alloc::collections::BTreeMap, Decode, Encode, MaxEncodedLen};
+use scale_info::TypeInfo;
 use sp_runtime::traits::Zero;
 
 #[cfg(test)]
@@ -36,6 +37,24 @@ type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, Ba
 pub trait StateMachineHeightProvider {
 	/// Return the latest height of the state machine
 	fn get_latest_state_machine_height(id: StateMachineId) -> Option<u64>;
+}
+
+/// The request status for getting the region record.
+#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub enum RequestStatus {
+	/// A request was made and we are still anticipating a response
+	Pending,
+	/// A request was made, but it timed out.
+	Timedout,
+}
+
+/// Regions that do not have their record set on the RegionX parachain.
+#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub struct UnregisteredRegion<AccountId> {
+	/// Owner of the region
+	owner: AccountId,
+	/// The status of the ISMP get request for getting the region record.
+	request_status: RequestStatus,
 }
 
 #[frame_support::pallet]
@@ -89,12 +108,12 @@ pub mod pallet {
 	pub type Regions<T> = StorageMap<_, Blake2_128Concat, RegionId, RegionRecordOf<T>, OptionQuery>;
 
 	#[pallet::storage]
-	#[pallet::getter(fn timedout_regions)]
-	pub type TimedOutRegoins<T> = StorageMap<
+	#[pallet::getter(fn unregistered_regions)]
+	pub type UnregisteredRegions<T> = StorageMap<
 		_,
 		Blake2_128Concat,
 		RegionId,
-		<T as frame_system::Config>::AccountId,
+		UnregisteredRegion<<T as frame_system::Config>::AccountId>,
 		OptionQuery,
 	>;
 
@@ -125,6 +144,10 @@ pub mod pallet {
 		IsmpDispatchError,
 		/// Failed reading the height of the Coretime chain.
 		FailedReadingCoretimeHeight,
+		/// The region record is already registered.
+		RegionAlreadyRegistered,
+		/// A request to get the region record was already made and still didn't time out.
+		NotTimedOut,
 	}
 
 	#[pallet::call]
@@ -147,8 +170,15 @@ pub mod pallet {
 		#[pallet::call_index(1)]
 		#[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
 		pub fn request_region_record(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
-			// TODO: don't unwrap
-			let who = TimedOutRegoins::<T>::get(region_id).unwrap();
+			let who = ensure_signed(origin)?;
+
+			let unregistered = UnregisteredRegions::<T>::get(region_id)
+				.map_or(Err(Error::<T>::RegionAlreadyRegistered), Ok)?;
+
+			ensure!(
+				unregistered.request_status == RequestStatus::Timedout,
+				Error::<T>::NotTimedOut
+			);
 
 			Self::do_request_region_record(region_id, who)?;
 
@@ -225,6 +255,11 @@ pub mod pallet {
 				.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero())
 				.map_err(|_| Error::<T>::IsmpDispatchError)?;
 
+			UnregisteredRegions::<T>::insert(
+				region_id,
+				UnregisteredRegion { owner: who, request_status: RequestStatus::Pending },
+			);
+
 			// TODO: Emit event
 
 			Ok(())
@@ -259,14 +294,21 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 					})?;
 
-					// TODO: set owner
-					let record =
+					let unregistered = UnregisteredRegions::<T>::get(region_id).map_or(
+						Err(IsmpError::ImplementationSpecific("Unknown region".to_string())),
+						Ok,
+					)?;
+
+					let mut record =
 						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
 							IsmpError::ImplementationSpecific("Failed to decode record".to_string())
 						})?;
 
+					record.owner = unregistered.owner;
+
 					crate::Pallet::<T>::initialize_region(region_id, record)
 						.map_err(|e| IsmpError::ImplementationSpecific(format!("{:?}", e)))?;
+					UnregisteredRegions::<T>::remove(region_id);
 
 					Ok(())
 				})?;
