@@ -5,12 +5,11 @@ use ismp::{
 	error::Error as IsmpError,
 	host::StateMachine,
 	module::IsmpModule,
-	router::{DispatchGet, DispatchRequest, IsmpDispatcher, Post, Response, Timeout},
+	router::{DispatchGet, DispatchRequest, IsmpDispatcher, Post, Request, Response, Timeout},
 };
 pub use pallet::*;
-use pallet_broker::{RegionId, RegionRecord};
-use parity_scale_codec::{alloc::collections::BTreeMap, Decode, Encode, MaxEncodedLen};
-use scale_info::TypeInfo;
+use pallet_broker::RegionId;
+use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 use sp_runtime::traits::Zero;
 
 #[cfg(test)]
@@ -27,41 +26,17 @@ mod benchmarking;
 
 mod nonfungible_impls;
 
+mod types;
+use types::*;
+
 /// Constant Pallet ID
 // TODO: Use ModuleId
 pub const PALLET_ID: [u8; 8] = *b"pregions";
-
-type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 // TODO: move trait outside the pallet.
 pub trait StateMachineHeightProvider {
 	/// Return the latest height of the state machine
 	fn get_latest_state_machine_height(id: StateMachineId) -> Option<u64>;
-}
-
-/// The request status for getting the region record.
-#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub enum RequestStatus {
-	/// A request was made and we are still anticipating a response
-	Pending,
-	/// A request was made, but it timed out.
-	Timedout,
-	/// Successfully retreived the region record.
-	Successful,
-}
-
-/// Region that got cross-chain transferred from the Coretime chain.
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-#[scale_info(skip_type_params(T))]
-pub struct Region<T: pallet::Config> {
-	/// Owner of the region.
-	owner: T::AccountId,
-	// TODO: the owner inside the record is redundant.
-	/// The associated record of the region. If `None`, we still didn't receive a response
-	/// to the ISMP get request.
-	record: Option<RegionRecordOf<T>>,
-	/// The status of the ISMP get request for getting the region record.
-	request_status: RequestStatus,
 }
 
 #[frame_support::pallet]
@@ -75,9 +50,6 @@ pub mod pallet {
 		},
 	};
 	use frame_system::pallet_prelude::*;
-
-	pub type BalanceOf<T> =
-		<<T as Config>::NativeCurrency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
 
 	/// The module configuration trait.
 	#[pallet::config]
@@ -237,6 +209,7 @@ pub mod pallet {
 				})
 				.map_or(Err(Error::<T>::FailedReadingCoretimeHeight), Ok)?;
 
+			// TODO: should requests be coupled in the future?
 			let get = DispatchGet {
 				dest: T::CoretimeChain::get(),
 				from: PALLET_ID.to_vec(),
@@ -307,8 +280,28 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 		Ok(())
 	}
 
-	fn on_timeout(&self, _timeout: Timeout) -> Result<(), IsmpError> {
-		Err(IsmpError::ImplementationSpecific("Not supported".to_string()))
+	fn on_timeout(&self, timeout: Timeout) -> Result<(), IsmpError> {
+		match timeout {
+			Timeout::Request(Request::Get(get)) => get.keys.iter().try_for_each(|key| {
+				let region_id = RegionId::decode(&mut key.as_slice()).map_err(|_| {
+					IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
+				})?;
+
+				let Some(mut region) = Regions::<T>::get(&region_id) else {
+					return Err(IsmpError::ImplementationSpecific("Unknown region".to_string()));
+				};
+
+				region.request_status = RequestStatus::Timedout;
+				Regions::<T>::insert(region_id, region);
+
+				Ok(())
+			}),
+			Timeout::Request(Request::Post(_)) => Ok(()),
+			Timeout::Response(_) => {
+				// TODO: should something be done here?
+				Ok(())
+			},
+		}
 	}
 }
 
