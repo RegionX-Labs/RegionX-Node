@@ -12,8 +12,8 @@ edition = "2021"
 targets = ["x86_64-unknown-linux-gnu"]
 
 [dependencies]
-parity-scale-codec = { workspace = true, features = ["derive"] }
-scale-info = {  workspace = true, features = ["derive"] }
+parity-scale-codec = { workspace = true, default-features = false, features = ["derive"] }
+scale-info = {  workspace = true,  default-features = false, features = ["derive"] }
 
 # TODO: remove
 hex = { workspace = true, default-features = false }
@@ -34,10 +34,6 @@ sp-runtime = { workspace = true, default-features = false }
 serde = { workspace = true }
 pallet-balances = { workspace = true, default-features = false }
 ismp-testsuite = { workspace = true }
-
-# Substrate
-sp-core = { workspace = true }
-sp-io = { workspace = true }
 
 [features]
 default = ["std"]

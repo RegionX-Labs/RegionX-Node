@@ -21,7 +21,7 @@ smallvec = { workspace = true }
 
 # Local
 regionx-primitives = { workspace = true }
-pallet-regions = { workspace = true }
+pallet-regions = { workspace = true, default-features = false }
 
 # Polytope labs
 ismp = { workspace = true, default-features = false }

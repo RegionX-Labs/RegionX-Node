@@ -9,7 +9,7 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod weights;
 pub mod xcm_config;
 
-mod ismp;
+//mod ismp;
 
 use ::ismp::{
 	consensus::{ConsensusClientId, StateMachineId},
@@ -511,7 +511,7 @@ construct_runtime!(
 		MessageQueue: pallet_message_queue = 33,
 
 		// ISMP stuff.
-		Ismp: pallet_ismp = 40,
+		//Ismp: pallet_ismp = 40,
 	}
 );
 
@@ -672,6 +672,7 @@ impl_runtime_apis! {
 		}
 	}
 
+	/*
 	impl ismp_runtime_api::IsmpRuntimeApi<Block, <Block as BlockT>::Hash> for Runtime {
 		/// Return the number of MMR leaves.
 		fn mmr_leaf_count() -> Result<LeafIndex, pallet_ismp::primitives::Error> {
@@ -756,6 +757,7 @@ impl_runtime_apis! {
 			Ismp::get_responses(commitments)
 		}
 	}
+	*/
 
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
