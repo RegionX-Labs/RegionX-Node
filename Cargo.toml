@@ -139,6 +139,7 @@ parachain-info = { package = "staging-parachain-info", git = "https://github.com
 #Polytope Labs
 ismp = { git = "https://github.com/polytope-labs/hyperbridge.git", rev = "v0.3.6", default-features = false }
 pallet-ismp = { git = "https://github.com/polytope-labs/hyperbridge.git", rev = "v0.3.6", default-features = false }
+ismp-runtime-api = { git = "https://github.com/polytope-labs/hyperbridge.git", rev = "v0.3.6", default-features = false } 
 ismp-testsuite = { git = "https://github.com/polytope-labs/hyperbridge.git", rev = "v0.3.6", default-features = false }
 
 # Local

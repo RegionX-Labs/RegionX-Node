@@ -9,14 +9,27 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 mod weights;
 pub mod xcm_config;
 
+mod ismp;
+
+use ::ismp::{
+	consensus::{ConsensusClientId, StateMachineId},
+	router::{Request, Response},
+};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
+use frame_system::Phase;
+use pallet_ismp::{
+	mmr_primitives::{Leaf, LeafIndex},
+	primitives::Proof,
+	ProofKeys,
+};
+use pallet_regions::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
-use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
+use sp_core::{crypto::KeyTypeId, OpaqueMetadata, H256};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
@@ -445,6 +458,29 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
+/*
+struct StateMachineHeightProvider;
+impl StateMachineHeightProviderT for StateMachineHeightProvider {
+	fn get_latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+		Ismp::latest_state_machine_height(id)
+	}
+}
+
+parameter_types! {
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
+}
+
+impl pallet_regions::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Balance = Balance;
+	type NativeCurrency = Balances;
+	type CoretimeChain = CoretimeChain;
+	type IsmpDispatcher = pallet_ismp::dispatcher::Dispatcher<Runtime>;
+	type StateMachineHeightProvider = StateMachineHeightProvider;
+	type Timeout = ConstU64<1000>; // TODO: FIXME
+}
+*/
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -474,6 +510,9 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm = 31,
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		MessageQueue: pallet_message_queue = 33,
+
+		// ISMP stuff.
+		Ismp: pallet_ismp = 40,
 	}
 );
 
@@ -631,6 +670,91 @@ impl_runtime_apis! {
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
+		}
+	}
+
+	impl ismp_runtime_api::IsmpRuntimeApi<Block, <Block as BlockT>::Hash> for Runtime {
+		/// Return the number of MMR leaves.
+		fn mmr_leaf_count() -> Result<LeafIndex, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_leaf_count())
+		}
+
+		/// Return the on-chain MMR root hash.
+		fn mmr_root() -> Result<<Block as BlockT>::Hash, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_root())
+		}
+
+		fn challenge_period(consensus_state_id: [u8; 4]) -> Option<u64> {
+			Ismp::get_challenge_period(consensus_state_id)
+		}
+
+		/// Generate a proof for the provided leaf indices
+		fn generate_proof(
+			keys: ProofKeys
+		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), pallet_ismp::primitives::Error> {
+			Ismp::generate_proof(keys)
+		}
+
+		/// Fetch all ISMP events
+		fn block_events() -> Vec<pallet_ismp::events::Event> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord{ event, ..} = *e;
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Fetch all ISMP events and their extrinsic metadata
+		fn block_events_with_metadata() -> Vec<(pallet_ismp::events::Event, u32)> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord { event, phase, ..} = *e;
+				let Phase::ApplyExtrinsic(index) = phase else {
+					unreachable!("ISMP events are always dispatched by extrinsics");
+				};
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+							.map(|event| {
+							(event, index)
+						})
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Return the scale encoded consensus state
+		fn consensus_state(id: ConsensusClientId) -> Option<Vec<u8>> {
+			Ismp::consensus_states(id)
+		}
+
+		/// Return the timestamp this client was last updated in seconds
+		fn consensus_update_time(id: ConsensusClientId) -> Option<u64> {
+			Ismp::consensus_update_time(id)
+		}
+
+		/// Return the latest height of the state machine
+		fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+			Ismp::get_latest_state_machine_height(id)
+		}
+
+
+		/// Get actual requests
+		fn get_requests(commitments: Vec<H256>) -> Vec<Request> {
+			Ismp::get_requests(commitments)
+		}
+
+		/// Get actual requests
+		fn get_responses(commitments: Vec<H256>) -> Vec<Response> {
+			Ismp::get_responses(commitments)
 		}
 	}
 
