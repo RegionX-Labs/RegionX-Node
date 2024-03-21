@@ -9544,6 +9544,7 @@ dependencies = [
  "hex-literal",
  "ismp",
  "ismp-runtime-api",
+ "ismp-testsuite",
  "log",
  "pallet-aura",
  "pallet-authorship",
