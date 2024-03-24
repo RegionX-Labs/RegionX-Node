@@ -9,10 +9,7 @@ use ismp::{
 };
 pub use pallet::*;
 use pallet_broker::RegionId;
-use parity_scale_codec::{
-	alloc::{collections::BTreeMap, string::ToString},
-	Decode,
-};
+use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 use scale_info::prelude::{format, vec, vec::Vec};
 use sp_runtime::traits::Zero;
 
