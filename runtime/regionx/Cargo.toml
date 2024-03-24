@@ -23,6 +23,11 @@ smallvec = { workspace = true }
 regionx-primitives = { workspace = true }
 pallet-parachain-template = { workspace = true }
 
+# Polytope Labs
+ismp = { workspace = true, optional = true }
+pallet-ismp = { workspace = true, optional = true }
+ismp-runtime-api = { workspace = true, optional = true }
+
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
 frame-executive = { workspace = true }
@@ -87,6 +92,9 @@ std = [
 	"cumulus-pallet-xcmp-queue/std",
 	"cumulus-primitives-core/std",
 	"cumulus-primitives-utility/std",
+	"ismp/std",
+	"pallet-ismp/std",
+	"ismp-runtime-api/std",
 	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",

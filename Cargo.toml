@@ -133,6 +133,11 @@ cumulus-primitives-utility = { git = "https://github.com/paritytech/polkadot-sdk
 pallet-collator-selection = { git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.7.0", default-features = false }
 parachain-info = { package = "staging-parachain-info", git = "https://github.com/paritytech/polkadot-sdk.git", branch = "release-polkadot-v1.7.0", default-features = false }
 
+# Polytope Labs
+ismp = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
+pallet-ismp = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
+ismp-runtime-api = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
+
 # Local
 regionx-primitives = { path = "./primitives", default-features = false }
 regionx-runtime = { path = "./runtime/regionx" }
