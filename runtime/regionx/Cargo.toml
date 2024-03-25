@@ -21,12 +21,13 @@ smallvec = { workspace = true }
 
 # Local
 regionx-primitives = { workspace = true }
-pallet-parachain-template = { workspace = true }
+pallet-parachain-template = { workspace = true, default-features = false }
 
 # Polytope Labs
-ismp = { workspace = true, optional = true }
-pallet-ismp = { workspace = true, optional = true }
-ismp-runtime-api = { workspace = true, optional = true }
+ismp = { workspace = true, optional = true, default-features = false }
+pallet-ismp = { workspace = true, optional = true, default-features = false }
+ismp-parachain = { workspace = true, optional = true, default-features = false }
+ismp-runtime-api = { workspace = true, optional = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -95,6 +96,7 @@ std = [
 	"ismp/std",
 	"pallet-ismp/std",
 	"ismp-runtime-api/std",
+	"ismp-parachain/std",
 	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",
