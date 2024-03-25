@@ -4198,6 +4198,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ismp-parachain-runtime-api"
+version = "0.1.0"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=export-ismp-parachain#6f823d2f77762c8a20e5c467e660b45767d241f0"
+dependencies = [
+ "sp-api",
+]
+
+[[package]]
 name = "ismp-runtime-api"
 version = "0.1.0"
 source = "git+https://github.com/Szegoo/hyperbridge.git?branch=export-ismp-parachain#6f823d2f77762c8a20e5c467e660b45767d241f0"
@@ -9320,6 +9328,7 @@ dependencies = [
  "hex-literal",
  "ismp",
  "ismp-parachain",
+ "ismp-parachain-runtime-api",
  "ismp-runtime-api",
  "log",
  "pallet-aura",

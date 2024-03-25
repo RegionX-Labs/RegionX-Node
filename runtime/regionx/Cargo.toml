@@ -28,6 +28,7 @@ ismp = { workspace = true, optional = true, default-features = false }
 pallet-ismp = { workspace = true, optional = true, default-features = false }
 ismp-parachain = { workspace = true, optional = true, default-features = false }
 ismp-runtime-api = { workspace = true, optional = true, default-features = false }
+ismp-parachain-runtime-api = { workspace = true, optional = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -97,6 +98,7 @@ std = [
 	"pallet-ismp/std",
 	"ismp-runtime-api/std",
 	"ismp-parachain/std",
+	"ismp-parachain-runtime-api/std",
 	"frame-benchmarking?/std",
 	"frame-executive/std",
 	"frame-support/std",

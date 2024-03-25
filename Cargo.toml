@@ -133,6 +133,7 @@ ismp = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-pa
 pallet-ismp = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
 ismp-parachain = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
 ismp-runtime-api = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
+ismp-parachain-runtime-api = { git="https://github.com/Szegoo/hyperbridge.git", branch="export-ismp-parachain", default-features = false }
 
 # Local
 regionx-primitives = { path = "./primitives", default-features = false }

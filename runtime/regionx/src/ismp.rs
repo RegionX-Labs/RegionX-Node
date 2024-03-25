@@ -75,19 +75,19 @@ impl IsmpModule for ProxyModule {
 	}
 
 	fn on_timeout(&self, timeout: Timeout) -> Result<(), Error> {
-        let from = match &timeout {
-            Timeout::Request(Request::Post(post)) => &post.from,
-            Timeout::Request(Request::Get(get)) => &get.from,
-            Timeout::Response(res) => &res.post.to,
-        };
+		let from = match &timeout {
+			Timeout::Request(Request::Post(post)) => &post.from,
+			Timeout::Request(Request::Get(get)) => &get.from,
+			Timeout::Response(res) => &res.post.to,
+		};
 
-        let pallet_id = ModuleId::from_bytes(from)
-            .map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
-        match pallet_id {
+		let pallet_id = ModuleId::from_bytes(from)
+			.map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
+		match pallet_id {
 			// TODO: route to regions pallet
-            // instead of returning an error, do nothing. The timeout is for a connected chain.
-            _ => Ok(()),
-        }
+			// instead of returning an error, do nothing. The timeout is for a connected chain.
+			_ => Ok(()),
+		}
 	}
 }
 

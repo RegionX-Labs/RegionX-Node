@@ -31,6 +31,10 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use ::ismp::{
+	consensus::{ConsensusClientId, StateMachineId},
+	router::{Request, Response},
+};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -45,10 +49,16 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	EnsureRoot, Phase,
+};
+use pallet_ismp::{
+	mmr_primitives::{Leaf, LeafIndex},
+	primitives::Proof,
+	ProofKeys,
 };
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
 
@@ -665,6 +675,96 @@ impl_runtime_apis! {
 	impl cumulus_primitives_core::CollectCollationInfo<Block> for Runtime {
 		fn collect_collation_info(header: &<Block as BlockT>::Header) -> cumulus_primitives_core::CollationInfo {
 			ParachainSystem::collect_collation_info(header)
+		}
+	}
+
+	impl ismp_runtime_api::IsmpRuntimeApi<Block, <Block as BlockT>::Hash> for Runtime {
+		/// Return the number of MMR leaves.
+		fn mmr_leaf_count() -> Result<LeafIndex, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_leaf_count())
+		}
+
+		/// Return the on-chain MMR root hash.
+		fn mmr_root() -> Result<<Block as BlockT>::Hash, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_root())
+		}
+
+		fn challenge_period(consensus_state_id: [u8; 4]) -> Option<u64> {
+			Ismp::get_challenge_period(consensus_state_id)
+		}
+
+		/// Generate a proof for the provided leaf indices
+		fn generate_proof(
+			keys: ProofKeys
+		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), pallet_ismp::primitives::Error> {
+			Ismp::generate_proof(keys)
+		}
+
+		/// Fetch all ISMP events
+		fn block_events() -> Vec<pallet_ismp::events::Event> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord{ event, ..} = *e;
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Fetch all ISMP events and their extrinsic metadata
+		fn block_events_with_metadata() -> Vec<(pallet_ismp::events::Event, u32)> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord { event, phase, ..} = *e;
+				let Phase::ApplyExtrinsic(index) = phase else {
+					unreachable!("ISMP events are always dispatched by extrinsics");
+				};
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+							.map(|event| {
+							(event, index)
+						})
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Return the scale encoded consensus state
+		fn consensus_state(id: ConsensusClientId) -> Option<Vec<u8>> {
+			Ismp::consensus_states(id)
+		}
+
+		/// Return the timestamp this client was last updated in seconds
+		fn consensus_update_time(id: ConsensusClientId) -> Option<u64> {
+			Ismp::consensus_update_time(id)
+		}
+
+		/// Return the latest height of the state machine
+		fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+			Ismp::get_latest_state_machine_height(id)
+		}
+
+		/// Get actual requests
+		fn get_requests(commitments: Vec<H256>) -> Vec<Request> {
+			Ismp::get_requests(commitments)
+		}
+
+		/// Get actual requests
+		fn get_responses(commitments: Vec<H256>) -> Vec<Response> {
+			Ismp::get_responses(commitments)
+		}
+	}
+
+	impl ismp_parachain_runtime_api::IsmpParachainApi<Block> for Runtime {
+		fn para_ids() -> Vec<u32> {
+			IsmpParachain::para_ids()
 		}
 	}
 
