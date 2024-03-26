@@ -37,7 +37,7 @@ pub const PALLET_ID: [u8; 8] = *b"pregions";
 // TODO: move trait outside the pallet.
 pub trait StateMachineHeightProvider {
 	/// Return the latest height of the state machine
-	fn get_latest_state_machine_height(id: StateMachineId) -> Option<u64>;
+	fn get_latest_state_machine_height(id: StateMachineId) -> u64;
 }
 
 #[frame_support::pallet]
@@ -204,11 +204,11 @@ pub mod pallet {
 			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
 
 			let coretime_chain_height =
+				// TODO: this will be zero by default, could this cause some issues?
 				T::StateMachineHeightProvider::get_latest_state_machine_height(StateMachineId {
 					state_id: T::CoretimeChain::get(),
 					consensus_state_id: Default::default(), // TODO: FIXME
-				})
-				.map_or(Err(Error::<T>::FailedReadingCoretimeHeight), Ok)?;
+				});
 
 			// TODO: should requests be coupled in the future?
 			let get = DispatchGet {
