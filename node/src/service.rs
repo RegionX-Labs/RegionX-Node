@@ -15,8 +15,8 @@ use cumulus_client_service::{
 	build_network, build_relay_chain_interface, prepare_node_config, start_relay_chain_tasks,
 	BuildNetworkParams, CollatorSybilResistance, DARecoveryProfile, StartRelayChainTasksParams,
 };
-use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId, PersistedValidationData};
-use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
+use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId};
+use cumulus_relay_chain_interface::{OccupiedCoreAssumption, OverseerHandle, RelayChainInterface};
 
 // Substrate Imports
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
@@ -407,10 +407,20 @@ fn start_consensus(
 				slot_duration,
 			);
 
-			// TODO: fix
-			let validation_data: PersistedValidationData = Default::default();
-
 			async move {
+				// TODO: Double check if this is correct
+				let maybe_validation_data = relay_chain_interface
+					.persisted_validation_data(parent, para_id, OccupiedCoreAssumption::Included)
+					.await?;
+
+				let validation_data = match maybe_validation_data {
+					Some(v) => v,
+					None =>
+						return Err(
+							format!("Could not create para inherent data at {:?}", parent).into()
+						),
+				};
+
 				let para_inherent_data =
 					cumulus_client_parachain_inherent::ParachainInherentDataProvider::create_at(
 						parent,

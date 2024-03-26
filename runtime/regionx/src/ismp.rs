@@ -54,7 +54,6 @@ impl IsmpModule for ProxyModule {
 	}
 
 	fn on_response(&self, response: Response) -> Result<(), Error> {
-		// TODO: do we want to further dispatch?
 		if response.dest_chain() != HostStateMachine::get() {
 			let meta = FeeMetadata { origin: [0u8; 32].into(), fee: Default::default() };
 			return Ismp::dispatch_response(response, meta);
