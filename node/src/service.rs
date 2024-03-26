@@ -15,7 +15,7 @@ use cumulus_client_service::{
 	build_network, build_relay_chain_interface, prepare_node_config, start_relay_chain_tasks,
 	BuildNetworkParams, CollatorSybilResistance, DARecoveryProfile, StartRelayChainTasksParams,
 };
-use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId};
+use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId, PersistedValidationData};
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
 
 // Substrate Imports
@@ -394,8 +394,52 @@ fn start_consensus(
 		client.clone(),
 	);
 
+	let client_clone = client.clone();
+	let relay_chain_interface_clone = relay_chain_interface.clone();
 	let params = BasicAuraParams {
-		create_inherent_data_providers: move |_, ()| async move { Ok(()) },
+		create_inherent_data_providers: move |parent, ()| {
+			let relay_chain_interface = relay_chain_interface_clone.clone();
+			let client = client_clone.clone();
+
+			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
+			let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
+				*timestamp,
+				slot_duration,
+			);
+
+			// TODO: fix
+			let validation_data: PersistedValidationData = Default::default();
+
+			async move {
+				let para_inherent_data =
+					cumulus_client_parachain_inherent::ParachainInherentDataProvider::create_at(
+						parent,
+						&relay_chain_interface.clone(),
+						&validation_data,
+						para_id,
+					)
+					.await;
+
+				let para_inherent_data = match para_inherent_data {
+					Some(p) => p,
+					None =>
+						return Err(
+							format!("Could not create para inherent data at {:?}", parent).into()
+						),
+				};
+
+				let consensus_inherent =
+					ismp_parachain_inherent::ConsensusInherentProvider::create(
+						client.clone(),
+						parent,
+						&relay_chain_interface,
+						validation_data,
+					)
+					.await?;
+
+				Ok((slot, timestamp, para_inherent_data, consensus_inherent))
+			}
+		},
 		block_import,
 		para_client: client,
 		relay_client: relay_chain_interface,

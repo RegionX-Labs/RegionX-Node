@@ -4198,6 +4198,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "ismp-parachain-inherent"
+version = "0.1.0"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=export-ismp-parachain#6f823d2f77762c8a20e5c467e660b45767d241f0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "cumulus-primitives-core",
+ "cumulus-relay-chain-interface",
+ "ismp",
+ "ismp-parachain",
+ "ismp-parachain-runtime-api",
+ "parity-scale-codec",
+ "sp-api",
+ "sp-blockchain",
+ "sp-inherents",
+ "sp-runtime",
+]
+
+[[package]]
 name = "ismp-parachain-runtime-api"
 version = "0.1.0"
 source = "git+https://github.com/Szegoo/hyperbridge.git?branch=export-ismp-parachain#6f823d2f77762c8a20e5c467e660b45767d241f0"
@@ -9176,6 +9195,7 @@ dependencies = [
  "cumulus-client-consensus-aura",
  "cumulus-client-consensus-common",
  "cumulus-client-consensus-proposer",
+ "cumulus-client-parachain-inherent",
  "cumulus-client-service",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
@@ -9183,6 +9203,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-benchmarking-cli",
  "futures",
+ "ismp-parachain-inherent",
  "jsonrpsee",
  "log",
  "pallet-transaction-payment-rpc",
