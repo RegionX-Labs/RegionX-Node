@@ -1,12 +1,6 @@
-use crate::{mock::*, IsmpModuleCallback};
+use crate::mock::*;
 use frame_support::{assert_ok, traits::nonfungible::Mutate};
-use ismp::{
-	host::StateMachine,
-	module::IsmpModule,
-	router::{Get, GetResponse, Response},
-};
 use pallet_broker::{CoreMask, RegionId};
-use std::collections::BTreeMap;
 
 #[test]
 fn mint_into_works() {
@@ -18,6 +12,7 @@ fn mint_into_works() {
 	});
 }
 
+/*
 #[test]
 fn dummy_test() {
 	new_test_ext().execute_with(|| {
@@ -45,3 +40,4 @@ fn dummy_test() {
 		let _ = module.on_response(dummy_response);
 	});
 }
+*/

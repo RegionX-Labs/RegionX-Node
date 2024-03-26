@@ -68,7 +68,8 @@ impl IsmpModule for ProxyModule {
 		let pallet_id = ModuleId::from_bytes(from)
 			.map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
 		match pallet_id {
-			// TODO: route to regions pallet
+			pallet_regions::PALLET_ID =>
+				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_response(response),
 			_ => Err(Error::ImplementationSpecific("Destination module not found".to_string())),
 		}
 	}
@@ -83,7 +84,8 @@ impl IsmpModule for ProxyModule {
 		let pallet_id = ModuleId::from_bytes(from)
 			.map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
 		match pallet_id {
-			// TODO: route to regions pallet
+			pallet_regions::PALLET_ID =>
+				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_timeout(timeout),
 			// instead of returning an error, do nothing. The timeout is for a connected chain.
 			_ => Ok(()),
 		}

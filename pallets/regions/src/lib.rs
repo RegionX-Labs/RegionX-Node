@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use frame_support::PalletId;
 use ismp::{
 	consensus::StateMachineId,
 	error::Error as IsmpError,
@@ -7,8 +8,10 @@ use ismp::{
 	module::IsmpModule,
 	router::{DispatchGet, DispatchRequest, IsmpDispatcher, Post, Request, Response, Timeout},
 };
+use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::RegionId;
+use pallet_ismp::primitives::ModuleId;
 use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
 use scale_info::prelude::{format, vec, vec::Vec};
 use sp_runtime::traits::Zero;
@@ -31,8 +34,7 @@ mod types;
 use types::*;
 
 /// Constant Pallet ID
-// TODO: Use ModuleId
-pub const PALLET_ID: [u8; 8] = *b"pregions";
+pub const PALLET_ID: ModuleId = ModuleId::Pallet(PalletId(*b"ismp-reg"));
 
 // TODO: move trait outside the pallet.
 pub trait StateMachineHeightProvider {
@@ -204,16 +206,15 @@ pub mod pallet {
 			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
 
 			let coretime_chain_height =
-				// TODO: this will be zero by default, could this cause some issues?
 				T::StateMachineHeightProvider::get_latest_state_machine_height(StateMachineId {
 					state_id: T::CoretimeChain::get(),
-					consensus_state_id: Default::default(), // TODO: FIXME
+					consensus_state_id: PARACHAIN_CONSENSUS_ID,
 				});
 
 			// TODO: should requests be coupled in the future?
 			let get = DispatchGet {
 				dest: T::CoretimeChain::get(),
-				from: PALLET_ID.to_vec(),
+				from: PALLET_ID.to_bytes(),
 				keys: vec![key],
 				height: coretime_chain_height,
 				timeout_timestamp: T::Timeout::get(),
@@ -298,10 +299,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 				Ok(())
 			}),
 			Timeout::Request(Request::Post(_)) => Ok(()),
-			Timeout::Response(_) => {
-				// TODO: should something be done here?
-				Ok(())
-			},
+			Timeout::Response(_) => Ok(()),
 		}
 	}
 }
