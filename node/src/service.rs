@@ -416,9 +416,11 @@ fn start_consensus(
 				let validation_data = match maybe_validation_data {
 					Some(v) => v,
 					None =>
-						return Err(
-							format!("Could not create para inherent data at {:?}", parent).into()
-						),
+						return Err(format!(
+							"Couldn't get persisted validation data at: {:?}",
+							parent
+						)
+						.into()),
 				};
 
 				let para_inherent_data =
