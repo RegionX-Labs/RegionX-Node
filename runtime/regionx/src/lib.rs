@@ -11,10 +11,6 @@ pub mod xcm_config;
 
 mod ismp;
 
-mod ismp;
-
-use crate::ismp::MockDispatcher;
-use ::ismp::{consensus::StateMachineId, host::StateMachine};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
@@ -38,6 +34,7 @@ use sp_version::RuntimeVersion;
 
 use ::ismp::{
 	consensus::{ConsensusClientId, StateMachineId},
+	host::StateMachine,
 	router::{Request, Response},
 };
 use frame_support::{
@@ -57,6 +54,7 @@ use frame_system::{
 	EnsureRoot, Phase,
 };
 use pallet_ismp::{
+	dispatcher::Dispatcher,
 	mmr_primitives::{Leaf, LeafIndex},
 	primitives::Proof,
 	ProofKeys,
@@ -496,7 +494,7 @@ impl pallet_regions::Config for Runtime {
 	type Balance = Balance;
 	type NativeCurrency = Balances;
 	type CoretimeChain = CoretimeChain;
-	type IsmpDispatcher = MockDispatcher;
+	type IsmpDispatcher = Dispatcher<Runtime>;
 	type StateMachineHeightProvider = StateMachineHeightProvider;
 	type Timeout = ConstU64<1000>; // TODO: FIXME
 }
