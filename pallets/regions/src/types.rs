@@ -9,7 +9,7 @@ pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<
 pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 /// The request status for getting the region record.
-#[derive(Encode, Decode, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, Debug, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub enum RequestStatus {
 	/// A request was made and we are still anticipating a response
 	Pending,
@@ -20,7 +20,7 @@ pub enum RequestStatus {
 }
 
 /// Region that got cross-chain transferred from the Coretime chain.
-#[derive(Encode, Decode, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 #[scale_info(skip_type_params(T))]
 pub struct Region<T: crate::Config> {
 	/// Owner of the region.

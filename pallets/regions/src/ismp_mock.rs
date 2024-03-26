@@ -3,10 +3,21 @@ use ismp::{
 	router::{DispatchRequest, IsmpDispatcher, PostResponse},
 };
 use ismp_testsuite::mocks::Host;
-use std::sync::Arc;
+use std::{cell::RefCell, sync::Arc};
 
 #[derive(Default)]
 pub struct MockDispatcher(pub Arc<Host>);
+
+/// Mock request
+#[derive(Clone)]
+pub struct Request<AccountId> {
+	pub request: DispatchRequest,
+	pub who: AccountId,
+}
+
+thread_local! {
+	pub static REQUESTS: RefCell<Vec<Request<u64>>> = Default::default();
+}
 
 impl IsmpDispatcher for MockDispatcher {
 	type Account = u64;
@@ -14,10 +25,15 @@ impl IsmpDispatcher for MockDispatcher {
 
 	fn dispatch_request(
 		&self,
-		_request: DispatchRequest,
-		_who: Self::Account,
+		request: DispatchRequest,
+		who: Self::Account,
 		_fee: Self::Balance,
 	) -> Result<(), Error> {
+		REQUESTS.with(|requests| {
+			let mut requests = requests.borrow_mut();
+			requests.push(Request { request, who });
+		});
+
 		Ok(())
 	}
 
@@ -29,4 +45,8 @@ impl IsmpDispatcher for MockDispatcher {
 	) -> Result<(), Error> {
 		Ok(())
 	}
+}
+
+pub fn requests() -> Vec<Request<u64>> {
+	REQUESTS.with(|requests| requests.borrow().clone())
 }
