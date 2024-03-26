@@ -11,6 +11,8 @@ pub mod xcm_config;
 
 mod ismp;
 
+mod ismp;
+
 use crate::ismp::MockDispatcher;
 use ::ismp::{consensus::StateMachineId, host::StateMachine};
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
@@ -34,6 +36,10 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use ::ismp::{
+	consensus::{ConsensusClientId, StateMachineId},
+	router::{Request, Response},
+};
 use frame_support::{
 	construct_runtime,
 	dispatch::DispatchClass,
@@ -48,10 +54,16 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	EnsureRoot, Phase,
+};
+use pallet_ismp::{
+	mmr_primitives::{Leaf, LeafIndex},
+	primitives::Proof,
+	ProofKeys,
 };
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
 
@@ -170,6 +182,15 @@ pub const DAYS: BlockNumber = HOURS * 24;
 pub const M4X: Balance = 1_000_000_000_000;
 pub const MILLIM4X: Balance = 1_000_000_000;
 pub const MICROM4X: Balance = 1_000_000;
+
+/// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
+/// into the relay chain.
+const UNINCLUDED_SEGMENT_CAPACITY: u32 = 1;
+/// How many parachain blocks are processed by the relay chain per parent. Limits the
+/// number of blocks authored per slot.
+const BLOCK_PROCESSING_VELOCITY: u32 = 1;
+/// Relay chain slot duration, in milliseconds.
+const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
 /// The existential deposit. Set to 1/10 of the Connected Relay Chain.
 pub const EXISTENTIAL_DEPOSIT: Balance = MILLIM4X;
@@ -296,6 +317,7 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = ConstU32<50>;
+	type MaxHolds = ConstU32<1>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -338,6 +360,13 @@ parameter_types! {
 	pub const RelayOrigin: AggregateMessageOrigin = AggregateMessageOrigin::Parent;
 }
 
+type ConsensusHook = cumulus_pallet_aura_ext::FixedVelocityConsensusHook<
+	Runtime,
+	RELAY_CHAIN_SLOT_DURATION_MILLIS,
+	BLOCK_PROCESSING_VELOCITY,
+	UNINCLUDED_SEGMENT_CAPACITY,
+>;
+
 impl cumulus_pallet_parachain_system::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type OnSystemEvent = ();
@@ -349,6 +378,7 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberStrictlyIncreases;
 	type WeightInfo = ();
+	type ConsensusHook = ConsensusHook;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -500,6 +530,10 @@ construct_runtime!(
 		PolkadotXcm: pallet_xcm = 31,
 		CumulusXcm: cumulus_pallet_xcm = 32,
 		MessageQueue: pallet_message_queue = 33,
+
+		// ISMP
+		Ismp: pallet_ismp = 40,
+		IsmpParachain: ismp_parachain = 41,
 
 		// Main stage:
 		Regions: pallet_regions = 50,
@@ -663,6 +697,96 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl ismp_runtime_api::IsmpRuntimeApi<Block, <Block as BlockT>::Hash> for Runtime {
+		/// Return the number of MMR leaves.
+		fn mmr_leaf_count() -> Result<LeafIndex, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_leaf_count())
+		}
+
+		/// Return the on-chain MMR root hash.
+		fn mmr_root() -> Result<<Block as BlockT>::Hash, pallet_ismp::primitives::Error> {
+			Ok(Ismp::mmr_root())
+		}
+
+		fn challenge_period(consensus_state_id: [u8; 4]) -> Option<u64> {
+			Ismp::get_challenge_period(consensus_state_id)
+		}
+
+		/// Generate a proof for the provided leaf indices
+		fn generate_proof(
+			keys: ProofKeys
+		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), pallet_ismp::primitives::Error> {
+			Ismp::generate_proof(keys)
+		}
+
+		/// Fetch all ISMP events
+		fn block_events() -> Vec<pallet_ismp::events::Event> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord{ event, ..} = *e;
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Fetch all ISMP events and their extrinsic metadata
+		fn block_events_with_metadata() -> Vec<(pallet_ismp::events::Event, u32)> {
+			let raw_events = frame_system::Pallet::<Self>::read_events_no_consensus().into_iter();
+			raw_events.filter_map(|e| {
+				let frame_system::EventRecord { event, phase, ..} = *e;
+				let Phase::ApplyExtrinsic(index) = phase else {
+					unreachable!("ISMP events are always dispatched by extrinsics");
+				};
+
+				match event {
+					RuntimeEvent::Ismp(event) => {
+						pallet_ismp::events::to_core_protocol_event(event)
+							.map(|event| {
+							(event, index)
+						})
+					},
+					_ => None
+				}
+			}).collect()
+		}
+
+		/// Return the scale encoded consensus state
+		fn consensus_state(id: ConsensusClientId) -> Option<Vec<u8>> {
+			Ismp::consensus_states(id)
+		}
+
+		/// Return the timestamp this client was last updated in seconds
+		fn consensus_update_time(id: ConsensusClientId) -> Option<u64> {
+			Ismp::consensus_update_time(id)
+		}
+
+		/// Return the latest height of the state machine
+		fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+			Ismp::get_latest_state_machine_height(id)
+		}
+
+		/// Get actual requests
+		fn get_requests(commitments: Vec<H256>) -> Vec<Request> {
+			Ismp::get_requests(commitments)
+		}
+
+		/// Get actual requests
+		fn get_responses(commitments: Vec<H256>) -> Vec<Response> {
+			Ismp::get_responses(commitments)
+		}
+	}
+
+	impl ismp_parachain_runtime_api::IsmpParachainApi<Block> for Runtime {
+		fn para_ids() -> Vec<u32> {
+			IsmpParachain::para_ids()
+		}
+	}
+
 	#[cfg(feature = "try-runtime")]
 	impl frame_try_runtime::TryRuntime<Block> for Runtime {
 		fn on_runtime_upgrade(checks: frame_try_runtime::UpgradeCheckSelect) -> (Weight, Weight) {
@@ -741,33 +865,4 @@ impl_runtime_apis! {
 			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
-}
-
-struct CheckInherents;
-
-impl cumulus_pallet_parachain_system::CheckInherents<Block> for CheckInherents {
-	fn check_inherents(
-		block: &Block,
-		relay_state_proof: &cumulus_pallet_parachain_system::RelayChainStateProof,
-	) -> sp_inherents::CheckInherentsResult {
-		let relay_chain_slot = relay_state_proof
-			.read_slot()
-			.expect("Could not read the relay chain slot from the proof");
-
-		let inherent_data =
-			cumulus_primitives_timestamp::InherentDataProvider::from_relay_chain_slot_and_duration(
-				relay_chain_slot,
-				sp_std::time::Duration::from_secs(6),
-			)
-			.create_inherent_data()
-			.expect("Could not create the timestamp inherent data");
-
-		inherent_data.check_extrinsics(block)
-	}
-}
-
-cumulus_pallet_parachain_system::register_validate_block! {
-	Runtime = Runtime,
-	BlockExecutor = cumulus_pallet_aura_ext::BlockExecutor::<Runtime, Executive>,
-	CheckInherents = CheckInherents,
 }

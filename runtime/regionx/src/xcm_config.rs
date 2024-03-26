@@ -3,9 +3,8 @@ use super::{
 	Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
 };
 use frame_support::{
-	parameter_types,
-	traits::{ConstU32, Contains, Everything, Nothing},
-	weights::Weight,
+	match_types, parameter_types,
+	traits::{ConstU32, Everything, Nothing},
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
@@ -14,8 +13,8 @@ use polkadot_runtime_common::impls::ToAuthor;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	CurrencyAdapter, DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin,
-	FixedWeightBounds, FrameTransactionalProcessor, IsConcrete, NativeAsset, ParentIsPreset,
+	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
+	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
@@ -23,13 +22,13 @@ use xcm_builder::{
 use xcm_executor::XcmExecutor;
 
 parameter_types! {
-	pub const RelayLocation: Location = Location::parent();
+	pub const RelayLocation: MultiLocation = MultiLocation::parent();
 	pub const RelayNetwork: Option<NetworkId> = None;
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
 
-/// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
+/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
@@ -42,12 +41,12 @@ pub type LocationToAccountId = (
 );
 
 /// Means for transacting assets on this chain.
-pub type LocalAssetTransactor = CurrencyAdapter<
+pub type LocalAssetTransactor = FungibleAdapter<
 	// Use this currency:
 	Balances,
 	// Use this currency when it is a fungible asset matching the given location or name:
 	IsConcrete<RelayLocation>,
-	// Do a simple punn to convert an AccountId32 Location into a native chain account ID:
+	// Do a simple punn to convert an AccountId32 MultiLocation into a native chain account ID:
 	LocationToAccountId,
 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
 	AccountId,
@@ -83,11 +82,11 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-pub struct ParentOrParentsExecutivePlurality;
-impl Contains<Location> for ParentOrParentsExecutivePlurality {
-	fn contains(location: &Location) -> bool {
-		matches!(location.unpack(), (1, []) | (1, [Plurality { id: BodyId::Executive, .. }]))
-	}
+match_types! {
+	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
+		MultiLocation { parents: 1, interior: Here } |
+		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
+	};
 }
 
 pub type Barrier = TrailingSetTopicAsId<
@@ -153,7 +152,7 @@ pub type XcmRouter = WithUniqueTopic<(
 
 #[cfg(feature = "runtime-benchmarks")]
 parameter_types! {
-	pub ReachableDest: Option<Location> = Some(Parent.into());
+	pub ReachableDest: Option<MultiLocation> = Some(Parent.into());
 }
 
 impl pallet_xcm::Config for Runtime {
