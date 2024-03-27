@@ -31,7 +31,28 @@ fn nonfungibles_implementation_works() {
 }
 
 #[test]
-fn setting_record_works() {
+fn set_record_works() {
+	new_test_ext().execute_with(|| {
+		// TODO
+	});
+}
+
+#[test]
+fn request_region_record_works() {
+	new_test_ext().execute_with(|| {
+		// TODO
+	});
+}
+
+#[test]
+fn transfer_works() {
+	new_test_ext().execute_with(|| {
+		// TODO
+	});
+}
+
+#[test]
+fn on_response_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
 
@@ -75,5 +96,12 @@ fn setting_record_works() {
 				request_status: RequestStatus::Successful
 			}
 		);
+	});
+}
+
+#[test]
+fn on_timeout_works() {
+	new_test_ext().execute_with(|| {
+		// TODO
 	});
 }
