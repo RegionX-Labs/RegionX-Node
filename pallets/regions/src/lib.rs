@@ -1,5 +1,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use core::cmp::max;
 use frame_support::PalletId;
 use ismp::{
 	consensus::StateMachineId,
@@ -262,7 +263,10 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 				res.get.keys.iter().try_for_each(|key| {
 					let value = Self::read_value(&res.values, &key)?;
 
-					let region_id = RegionId::decode(&mut key.as_slice()).map_err(|_| {
+					// The last 16 bytes represent the region id.
+					let mut region_id_encoded = &key[max(0, key.len() as usize - 16) as usize..];
+
+					let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
 						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 					})?;
 

@@ -4,7 +4,7 @@ use ismp::{
 	module::IsmpModule,
 	router::{DispatchRequest, Get, GetResponse, Response},
 };
-use pallet_broker::{CoreMask, RegionId};
+use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use std::collections::BTreeMap;
 
 #[test]
@@ -48,22 +48,32 @@ fn setting_record_works() {
 
 		assert_eq!(request.who, 2);
 
+		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 42, owner: 1, paid: None };
+
 		let mock_response = Response::Get(GetResponse {
 			get: Get {
 				source: <Test as Config>::CoretimeChain::get(),
 				dest: get.dest,
 				nonce: 0,
 				from: get.from,
-				keys: get.keys,
+				keys: get.keys.clone(),
 				height: get.height,
 				timeout_timestamp: <Test as Config>::Timeout::get(),
 				gas_limit: 0,
 			},
-			// TODO: value
-			values: BTreeMap::from([(vec![], None)]),
+			values: BTreeMap::from([(get.keys[0].clone(), Some(mock_record.encode()))]),
 		});
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
-		let _ = module.on_response(mock_response);
+		assert_ok!(module.on_response(mock_response));
+
+		assert_eq!(
+			Regions::regions(&region_id).unwrap(),
+			Region {
+				owner: 2,
+				record: Some(mock_record),
+				request_status: RequestStatus::Successful
+			}
+		);
 	});
 }

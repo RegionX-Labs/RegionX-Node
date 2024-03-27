@@ -6718,6 +6718,7 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
+ "hex",
  "ismp",
  "ismp-parachain",
  "ismp-testsuite",
