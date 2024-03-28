@@ -10,6 +10,7 @@ use ismp::{
 };
 use ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::{dispatcher::FeeMetadata, primitives::ModuleId};
+use parity_scale_codec::alloc::string::ToString;
 use scale_info::prelude::boxed::Box;
 
 pub struct HostStateMachine;
