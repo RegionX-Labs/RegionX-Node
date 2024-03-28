@@ -1,4 +1,4 @@
-name: Test Code
+name: CI
 
 # Controls when the action will run.
 on:
@@ -14,15 +14,10 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  test-code:
+  setup:
     runs-on: ubuntu-22.04
 
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-    # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - name: Checkout Code
-      uses: actions/checkout@v4
-
     - name: Install linux dependencies
       run: sudo apt-get install -y clang libssl-dev llvm libudev-dev protobuf-compiler git 
 
@@ -40,17 +35,43 @@ jobs:
         rustup toolchain install nightly
         rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
         rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
+        rustup target add wasm32-unknown-unknown
         rustup show
 
     # Rust cache
     - uses: Swatinem/rust-cache@v2
 
-    # Enable this for clippy linting.
-    - name: Check and Lint Code
-      run: cargo +nightly clippy -- -D warnings
+  fmt:
+    needs: setup
+    runs-on: ubuntu-22.04
 
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Cargo fmt
+      run: cargo +nightly fmt --all -- --check
+
+  clippy:
+    needs: setup
+    runs-on: ubuntu-22.04
+
+    steps:
+    - name: Cargo clippy
+      run: cargo +nightly clippy -- -D warnings
+  
+  check:
+    needs: setup
+    runs-on: ubuntu-22.04
+
+    steps:
     - name: Check Code
       run: cargo check
 
+  test:
+    needs: setup
+    runs-on: ubuntu-22.04
+
+    steps:
     - name: Test Code
       run: cargo test
