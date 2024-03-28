@@ -1,0 +1,28 @@
+name: 'Enviornment Setup'
+
+
+runs:
+    using: 'composite'
+
+    steps:
+        - name: Install linux dependencies
+        run: sudo apt-get install -y clang libssl-dev llvm libudev-dev protobuf-compiler git 
+
+        - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+            ssh-private-key: ${{ secrets.GH_TOKEN }}
+
+        - name: Use Git CLI for Cargo
+        run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
+        - name: Install Rust
+        run: |
+            rustup show
+            rustup toolchain install nightly
+            rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+            rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
+            rustup target add wasm32-unknown-unknown
+            rustup show
+
+    - uses: Swatinem/rust-cache@v2
