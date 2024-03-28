@@ -21,6 +21,15 @@ jobs:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.GH_TOKEN }}
+
+    - name: Use Git CLI for Cargo
+      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
     - name: Cargo fmt
       run: cargo +nightly fmt --all -- --check
 
@@ -31,6 +40,15 @@ jobs:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.GH_TOKEN }}
+
+    - name: Use Git CLI for Cargo
+      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
     - name: Cargo clippy
       run: cargo +nightly clippy -- -D warnings
   
@@ -41,6 +59,15 @@ jobs:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.GH_TOKEN }}
+
+    - name: Use Git CLI for Cargo
+      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
     - name: Check Code
       run: cargo check
 
@@ -51,5 +78,14 @@ jobs:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.GH_TOKEN }}
+
+    - name: Use Git CLI for Cargo
+      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+
     - name: Test Code
       run: cargo test

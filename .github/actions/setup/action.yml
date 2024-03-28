@@ -2,18 +2,10 @@ name: 'Enviornment Setup'
 
 runs:
     using: 'composite'
-
     steps:
         - name: Install linux dependencies
         run: sudo apt-get install -y clang libssl-dev llvm libudev-dev protobuf-compiler git 
-
-        - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
-        with:
-            ssh-private-key: ${{ secrets.GH_TOKEN }}
-
-        - name: Use Git CLI for Cargo
-        run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+        shell: bash
 
         - name: Install Rust
         run: |
