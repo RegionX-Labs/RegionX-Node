@@ -89,3 +89,9 @@ jobs:
 
     - name: Test Code
       run: cargo test
+
+  # TODO: benchmark test
+
+  # TODO: try-runtime test
+
+  # TODO: release build
