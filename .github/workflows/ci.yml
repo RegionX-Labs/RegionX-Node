@@ -19,7 +19,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/setup.yml
     - name: Cargo fmt
       run: cargo +nightly fmt --all -- --check
 
@@ -28,7 +28,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/setup.yml
     - name: Cargo clippy
       run: cargo +nightly clippy -- -D warnings
   
@@ -37,7 +37,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/setup.yml
     - name: Check Code
       run: cargo check
 
@@ -46,6 +46,6 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
+    - uses: ./.github/actions/setup.yml
     - name: Test Code
       run: cargo test
