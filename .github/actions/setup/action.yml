@@ -3,16 +3,16 @@ name: 'Enviornment Setup'
 runs:
   using: 'composite'
   steps:
-      - name: Install linux dependencies
+    - name: Install linux dependencies
       run: sudo apt-get install -y clang libssl-dev llvm libudev-dev protobuf-compiler git 
       shell: bash
 
-      - name: Install Rust
+    - name: Install Rust
       run: |
-          rustup show
-          rustup toolchain install nightly
-          rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
-          rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
-          rustup target add wasm32-unknown-unknown
-          rustup show
+        rustup show
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly-x86_64-unknown-linux-gnu
+        rustup component add clippy --toolchain nightly-x86_64-unknown-linux-gnu
+        rustup target add wasm32-unknown-unknown
+        rustup show
       shell: bash
