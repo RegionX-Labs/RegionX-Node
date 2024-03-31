@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::alloc::string::ToString;
 use crate::{AccountId, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent, Timestamp};
 use frame_support::pallet_prelude::Get;
 use frame_system::EnsureRoot;
@@ -9,6 +11,7 @@ use ismp::{
 };
 use ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::{dispatcher::FeeMetadata, primitives::ModuleId};
+use sp_std::prelude::*;
 
 pub struct HostStateMachine;
 impl Get<StateMachine> for HostStateMachine {
