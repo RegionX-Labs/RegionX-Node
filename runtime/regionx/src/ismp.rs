@@ -1,3 +1,5 @@
+#[cfg(not(feature = "std"))]
+use crate::alloc::string::ToString;
 use crate::{AccountId, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent, Timestamp};
 use frame_support::pallet_prelude::Get;
 use frame_system::EnsureRoot;
@@ -5,12 +7,11 @@ use ismp::{
 	error::Error,
 	host::StateMachine,
 	module::IsmpModule,
-	prelude::Vec,
 	router::{IsmpRouter, Post, Request, Response, Timeout},
 };
 use ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::{dispatcher::FeeMetadata, primitives::ModuleId};
-use scale_info::prelude::boxed::Box;
+use sp_std::prelude::*;
 
 pub struct HostStateMachine;
 impl Get<StateMachine> for HostStateMachine {
@@ -67,6 +68,8 @@ impl IsmpModule for ProxyModule {
 
 		let pallet_id = ModuleId::from_bytes(from)
 			.map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
+
+		#[allow(clippy::match_single_binding)]
 		match pallet_id {
 			pallet_regions::PALLET_ID =>
 				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_response(response),
@@ -83,6 +86,8 @@ impl IsmpModule for ProxyModule {
 
 		let pallet_id = ModuleId::from_bytes(from)
 			.map_err(|err| Error::ImplementationSpecific(err.to_string()))?;
+
+		#[allow(clippy::match_single_binding)]
 		match pallet_id {
 			pallet_regions::PALLET_ID =>
 				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_timeout(timeout),
@@ -97,6 +102,6 @@ pub struct Router;
 
 impl IsmpRouter for Router {
 	fn module_for_id(&self, _bytes: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
-		Ok(Box::new(ProxyModule::default()))
+		Ok(Box::new(ProxyModule))
 	}
 }
