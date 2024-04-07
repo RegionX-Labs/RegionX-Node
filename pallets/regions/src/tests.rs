@@ -1,4 +1,4 @@
-use crate::{ismp_mock::requests, mock::*, Config, IsmpModuleCallback, Region, RequestStatus};
+use crate::{ismp_mock::requests, mock::*, Config, IsmpModuleCallback, RecordStatus, Region};
 use frame_support::{assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
@@ -16,7 +16,7 @@ fn nonfungibles_implementation_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: None, request_status: RequestStatus::Pending }
+			Region { owner: 2, record: None, record_status: RecordStatus::Pending }
 		);
 
 		// The user is not required to set the region record to withdraw the asset back to the coretime
@@ -59,7 +59,7 @@ fn on_response_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: None, request_status: RequestStatus::Pending }
+			Region { owner: 2, record: None, record_status: RecordStatus::Pending }
 		);
 
 		let request = &requests()[0];
@@ -90,11 +90,7 @@ fn on_response_works() {
 
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region {
-				owner: 2,
-				record: Some(mock_record),
-				request_status: RequestStatus::Successful
-			}
+			Region { owner: 2, record: Some(mock_record), record_status: RecordStatus::Received }
 		);
 	});
 }

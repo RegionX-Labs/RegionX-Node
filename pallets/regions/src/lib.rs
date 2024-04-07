@@ -118,8 +118,8 @@ pub mod pallet {
 		IsmpDispatchError,
 		/// Failed reading the height of the Coretime chain.
 		FailedReadingCoretimeHeight,
-		/// A request to get the region record was already made and still didn't time out.
-		NotTimedOut,
+		/// The record must be unavailable to be able to re-request it.
+		NotUnavailable,
 	}
 
 	#[pallet::call]
@@ -147,7 +147,7 @@ pub mod pallet {
 			let region =
 				Regions::<T>::get(region_id).map_or(Err(Error::<T>::UnknownRegion).into(), Ok)?;
 
-			ensure!(region.request_status == RequestStatus::Timedout, Error::<T>::NotTimedOut);
+			ensure!(region.record_status == RecordStatus::Unavailable, Error::<T>::NotUnavailable);
 
 			Self::do_request_region_record(region_id, who)?;
 
@@ -184,8 +184,7 @@ pub mod pallet {
 			ensure!(region.record.is_none(), Error::<T>::RegionRecordAlreadySet);
 
 			region.record = Some(record);
-			// TODO: rename `request_status`.
-			region.request_status = RequestStatus::Successful;
+			region.record_status = RecordStatus::Received;
 			Regions::<T>::insert(region_id, region);
 
 			Ok(())
@@ -230,7 +229,7 @@ pub mod pallet {
 
 			Regions::<T>::insert(
 				region_id,
-				Region { owner: who, record: None, request_status: RequestStatus::Pending },
+				Region { owner: who, record: None, record_status: RecordStatus::Pending },
 			);
 
 			// TODO: Emit event
@@ -297,7 +296,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 					return Err(IsmpError::ImplementationSpecific("Unknown region".to_string()));
 				};
 
-				region.request_status = RequestStatus::Timedout;
+				region.record_status = RecordStatus::Unavailable;
 				Regions::<T>::insert(region_id, region);
 
 				Ok(())

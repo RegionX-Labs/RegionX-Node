@@ -10,13 +10,13 @@ pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId
 
 /// The request status for getting the region record.
 #[derive(Encode, Decode, Debug, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub enum RequestStatus {
-	/// A request was made and we are still anticipating a response
+pub enum RecordStatus {
+	/// An ISMP request was made to query the region record and we are now anticipating a response.
 	Pending,
-	/// A request was made, but it timed out.
-	Timedout,
+	/// An ISMP request was made, but we failed at getting a response.
+	Unavailable,
 	/// Successfully retreived the region record.
-	Successful,
+	Received,
 }
 
 /// Region that got cross-chain transferred from the Coretime chain.
@@ -31,6 +31,6 @@ pub struct Region<T: crate::Config> {
 	/// NOTE: The owner inside the record is the sovereign account of the parachain, so there
 	/// isn't really a point to using it.
 	pub record: Option<RegionRecordOf<T>>,
-	/// The status of the ISMP get request for getting the region record.
-	pub request_status: RequestStatus,
+	/// The region record status.
+	pub record_status: RecordStatus,
 }
