@@ -39,7 +39,24 @@ impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 	/// Minting is used for depositing a region from the holding registar.
 	fn mint_into(item: &Self::ItemId, who: &T::AccountId) -> DispatchResult {
 		let region_id: RegionId = (*item).into();
-		Self::do_request_region_record(region_id, who.clone())?;
+
+		// We don't want the region to get trapped, so we will handle the error.
+		let record_status = match Self::do_request_region_record(region_id, who.clone()) {
+			Ok(_) => RecordStatus::Pending,
+			Err(_) => {
+				log::error!(
+					target: LOG_TARGET,
+					"Failed to request region record for region_id: {:?}",
+					region_id
+				);
+				RecordStatus::Unavailable
+			},
+		};
+
+		// Even if requesting the region record fails we still want to mint it to the owner.
+		//
+		// We will just have the region record not set.
+		Regions::<T>::insert(region_id, Region { owner: who.clone(), record: None, record_status });
 
 		Ok(())
 	}

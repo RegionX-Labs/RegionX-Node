@@ -34,6 +34,8 @@ mod nonfungible_impls;
 mod types;
 use types::*;
 
+const LOG_TARGET: &'static str = "runtime::regions";
+
 /// Constant Pallet ID
 pub const PALLET_ID: ModuleId = ModuleId::Pallet(PalletId(*b"ismp-reg"));
 
@@ -226,11 +228,6 @@ pub mod pallet {
 			dispatcher
 				.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero())
 				.map_err(|_| Error::<T>::IsmpDispatchError)?;
-
-			Regions::<T>::insert(
-				region_id,
-				Region { owner: who, record: None, record_status: RecordStatus::Pending },
-			);
 
 			// TODO: Emit event
 
