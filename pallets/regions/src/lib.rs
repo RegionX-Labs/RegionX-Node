@@ -146,8 +146,7 @@ pub mod pallet {
 		pub fn request_region_record(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let region =
-				Regions::<T>::get(region_id).map_or(Err(Error::<T>::UnknownRegion).into(), Ok)?;
+			let region = Regions::<T>::get(region_id).ok_or(Error::<T>::UnknownRegion)?;
 
 			ensure!(region.record.is_unavailable(), Error::<T>::NotUnavailable);
 
@@ -163,7 +162,7 @@ pub mod pallet {
 			maybe_check_owner: Option<T::AccountId>,
 			new_owner: T::AccountId,
 		) -> DispatchResult {
-			let mut region = Regions::<T>::get(&region_id).ok_or(Error::<T>::UnknownRegion)?;
+			let mut region = Regions::<T>::get(region_id).ok_or(Error::<T>::UnknownRegion)?;
 
 			if let Some(check_owner) = maybe_check_owner {
 				ensure!(check_owner == region.owner, Error::<T>::NotOwner);
@@ -171,7 +170,7 @@ pub mod pallet {
 
 			let old_owner = region.owner;
 			region.owner = new_owner;
-			Regions::<T>::insert(&region_id, &region);
+			Regions::<T>::insert(region_id, &region);
 
 			Self::deposit_event(Event::Transferred { region_id, old_owner, owner: region.owner });
 			Ok(())
@@ -180,7 +179,7 @@ pub mod pallet {
 
 	impl<T: Config> Pallet<T> {
 		pub(crate) fn set_record(region_id: RegionId, record: RegionRecordOf<T>) -> DispatchResult {
-			let Some(mut region) = Regions::<T>::get(&region_id) else {
+			let Some(mut region) = Regions::<T>::get(region_id) else {
 				return Err(Error::<T>::UnknownRegion.into());
 			};
 			ensure!(!region.record.is_available(), Error::<T>::RegionRecordAlreadySet);
@@ -256,7 +255,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 			))?,
 			Response::Get(res) => {
 				res.get.keys.iter().try_for_each(|key| {
-					let value = Self::read_value(&res.values, &key)?;
+					let value = Self::read_value(&res.values, key)?;
 
 					// The last 16 bytes represent the region id.
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
@@ -288,7 +287,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 					IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 				})?;
 
-				let Some(mut region) = Regions::<T>::get(&region_id) else {
+				let Some(mut region) = Regions::<T>::get(region_id) else {
 					return Err(IsmpError::ImplementationSpecific("Unknown region".to_string()));
 				};
 
