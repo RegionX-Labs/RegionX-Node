@@ -34,7 +34,7 @@ mod nonfungible_impls;
 mod types;
 use types::*;
 
-const LOG_TARGET: &'static str = "runtime::regions";
+const LOG_TARGET: &str = "runtime::regions";
 
 /// Constant Pallet ID
 pub const PALLET_ID: ModuleId = ModuleId::Pallet(PalletId(*b"ismp-reg"));

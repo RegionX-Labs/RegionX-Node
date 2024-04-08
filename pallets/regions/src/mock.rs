@@ -1,8 +1,8 @@
 use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
-use frame_support::{parameter_types, traits::Everything};
+use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
 use frame_system as system;
 use ismp::{consensus::StateMachineId, host::StateMachine};
-use sp_core::{ConstU32, ConstU64, H256};
+use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
 	BuildStorage,
@@ -85,7 +85,7 @@ impl crate::Config for Test {
 	type Balance = u64;
 	type NativeCurrency = Balances;
 	type CoretimeChain = CoretimeChain;
-	type IsmpDispatcher = MockDispatcher;
+	type IsmpDispatcher = MockDispatcher<Self>;
 	type StateMachineHeightProvider = MockStateMachineHeightProvider;
 	type Timeout = ConstU64<1000>;
 }

@@ -1,25 +1,31 @@
 use ismp::{
 	error::Error,
-	router::{DispatchRequest, IsmpDispatcher, PostResponse},
+	router::{DispatchRequest, Get as IsmpGet, IsmpDispatcher, PostResponse, Request},
 };
 use ismp_testsuite::mocks::Host;
-use std::{cell::RefCell, sync::Arc};
+use sp_core::Get;
+use std::{cell::RefCell, marker::PhantomData, sync::Arc};
 
-#[derive(Default)]
-pub struct MockDispatcher(pub Arc<Host>);
+pub struct MockDispatcher<T: crate::Config>(pub Arc<Host>, PhantomData<T>);
+
+impl<T: crate::Config> Default for MockDispatcher<T> {
+	fn default() -> Self {
+		MockDispatcher(Default::default(), PhantomData::<T>::default())
+	}
+}
 
 /// Mock request
 #[derive(Clone)]
-pub struct Request<AccountId> {
-	pub request: DispatchRequest,
+pub struct MockRequest<AccountId> {
+	pub request: Request,
 	pub who: AccountId,
 }
 
 thread_local! {
-	pub static REQUESTS: RefCell<Vec<Request<u64>>> = Default::default();
+	pub static REQUESTS: RefCell<Vec<MockRequest<u64>>> = Default::default();
 }
 
-impl IsmpDispatcher for MockDispatcher {
+impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 	type Account = u64;
 	type Balance = u64;
 
@@ -29,9 +35,23 @@ impl IsmpDispatcher for MockDispatcher {
 		who: Self::Account,
 		_fee: Self::Balance,
 	) -> Result<(), Error> {
+		let request = match request {
+			DispatchRequest::Get(get) => Request::Get(IsmpGet {
+				source: T::CoretimeChain::get(),
+				dest: get.dest,
+				nonce: 0,
+				from: get.from,
+				keys: get.keys.clone(),
+				height: get.height,
+				timeout_timestamp: T::Timeout::get(),
+				gas_limit: 0,
+			}),
+			_ => unimplemented!(),
+		};
+
 		REQUESTS.with(|requests| {
 			let mut requests = requests.borrow_mut();
-			requests.push(Request { request, who });
+			requests.push(MockRequest { request, who });
 		});
 
 		Ok(())
@@ -47,6 +67,6 @@ impl IsmpDispatcher for MockDispatcher {
 	}
 }
 
-pub fn requests() -> Vec<Request<u64>> {
+pub fn requests() -> Vec<MockRequest<u64>> {
 	REQUESTS.with(|requests| requests.borrow().clone())
 }

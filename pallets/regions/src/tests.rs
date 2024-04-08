@@ -1,8 +1,8 @@
-use crate::{ismp_mock::requests, mock::*, Config, IsmpModuleCallback, Record, Region};
+use crate::{ismp_mock::requests, mock::*, IsmpModuleCallback, Record, Region};
 use frame_support::{assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
-	router::{DispatchRequest, Get, GetResponse, Response},
+	router::{GetResponse, Request, Response, Timeout},
 };
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use std::collections::BTreeMap;
@@ -63,25 +63,14 @@ fn on_response_works() {
 		);
 
 		let request = &requests()[0];
-		let DispatchRequest::Get(get) = request.request.clone() else {
-			panic!("Expected get request")
-		};
+		let Request::Get(get) = request.request.clone() else { panic!("Expected get request") };
 
 		assert_eq!(request.who, 2);
 
 		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 42, owner: 1, paid: None };
 
 		let mock_response = Response::Get(GetResponse {
-			get: Get {
-				source: <Test as Config>::CoretimeChain::get(),
-				dest: get.dest,
-				nonce: 0,
-				from: get.from,
-				keys: get.keys.clone(),
-				height: get.height,
-				timeout_timestamp: <Test as Config>::Timeout::get(),
-				gas_limit: 0,
-			},
+			get: get.clone(),
 			values: BTreeMap::from([(get.keys[0].clone(), Some(mock_record.encode()))]),
 		});
 
@@ -98,6 +87,20 @@ fn on_response_works() {
 #[test]
 fn on_timeout_works() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &2));
+		assert_eq!(
+			Regions::regions(&region_id).unwrap(),
+			Region { owner: 2, record: Record::Pending }
+		);
+
+		let request = &requests()[0];
+
+		let Request::Get(get) = request.request.clone() else { panic!("Expected get request") };
+
+		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
+		let timeout = Timeout::Request(Request::Get(get));
+		assert_ok!(module.on_timeout(timeout));
 	});
 }
