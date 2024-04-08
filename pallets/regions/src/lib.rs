@@ -149,7 +149,7 @@ pub mod pallet {
 			let region =
 				Regions::<T>::get(region_id).map_or(Err(Error::<T>::UnknownRegion).into(), Ok)?;
 
-			ensure!(region.record_status == RecordStatus::Unavailable, Error::<T>::NotUnavailable);
+			ensure!(region.record.is_unavailable(), Error::<T>::NotUnavailable);
 
 			Self::do_request_region_record(region_id, who)?;
 
@@ -183,10 +183,9 @@ pub mod pallet {
 			let Some(mut region) = Regions::<T>::get(&region_id) else {
 				return Err(Error::<T>::UnknownRegion.into());
 			};
-			ensure!(region.record.is_none(), Error::<T>::RegionRecordAlreadySet);
+			ensure!(!region.record.is_available(), Error::<T>::RegionRecordAlreadySet);
 
-			region.record = Some(record);
-			region.record_status = RecordStatus::Received;
+			region.record = Record::Available(record);
 			Regions::<T>::insert(region_id, region);
 
 			Ok(())
@@ -293,7 +292,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 					return Err(IsmpError::ImplementationSpecific("Unknown region".to_string()));
 				};
 
-				region.record_status = RecordStatus::Unavailable;
+				region.record = Record::Unavailable;
 				Regions::<T>::insert(region_id, region);
 
 				Ok(())

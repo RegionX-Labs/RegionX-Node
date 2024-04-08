@@ -9,14 +9,36 @@ pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<
 pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 /// The request status for getting the region record.
-#[derive(Encode, Decode, Debug, Copy, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub enum RecordStatus {
+#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[scale_info(skip_type_params(T))]
+pub enum Record<T: crate::Config> {
 	/// An ISMP request was made to query the region record and we are now anticipating a response.
 	Pending,
 	/// An ISMP request was made, but we failed at getting a response.
 	Unavailable,
-	/// Successfully retreived the region record.
-	Received,
+	/// Successfully retrieved the region record.
+	Available(RegionRecordOf<T>),
+}
+
+impl<T: crate::Config> Record<T> {
+	pub fn is_pending(&self) -> bool {
+		matches!(self, Record::Pending)
+	}
+
+	pub fn is_unavailable(&self) -> bool {
+		matches!(self, Record::Unavailable)
+	}
+
+	pub fn is_available(&self) -> bool {
+		matches!(self, Record::Available(_))
+	}
+
+	pub fn get(&self) -> Option<RegionRecordOf<T>> {
+		match self {
+			Self::Available(r) => Some(r.clone()),
+			_ => None,
+		}
+	}
 }
 
 /// Region that got cross-chain transferred from the Coretime chain.
@@ -30,7 +52,5 @@ pub struct Region<T: crate::Config> {
 	///
 	/// NOTE: The owner inside the record is the sovereign account of the parachain, so there
 	/// isn't really a point to using it.
-	pub record: Option<RegionRecordOf<T>>,
-	/// The region record status.
-	pub record_status: RecordStatus,
+	pub record: Record<T>,
 }

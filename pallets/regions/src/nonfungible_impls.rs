@@ -15,7 +15,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 
 	fn attribute(item: &Self::ItemId, key: &[u8]) -> Option<Vec<u8>> {
 		let id = RegionId::from(*item);
-		let record = Regions::<T>::get(id)?.record?;
+		let record = Regions::<T>::get(id)?.record.get()?;
 		match key {
 			b"begin" => Some(id.begin.encode()),
 			b"end" => Some(record.end.encode()),
@@ -41,22 +41,22 @@ impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 		let region_id: RegionId = (*item).into();
 
 		// We don't want the region to get trapped, so we will handle the error.
-		let record_status = match Self::do_request_region_record(region_id, who.clone()) {
-			Ok(_) => RecordStatus::Pending,
+		let record = match Self::do_request_region_record(region_id, who.clone()) {
+			Ok(_) => Record::Pending,
 			Err(_) => {
 				log::error!(
 					target: LOG_TARGET,
 					"Failed to request region record for region_id: {:?}",
 					region_id
 				);
-				RecordStatus::Unavailable
+				Record::Unavailable
 			},
 		};
 
 		// Even if requesting the region record fails we still want to mint it to the owner.
 		//
 		// We will just have the region record not set.
-		Regions::<T>::insert(region_id, Region { owner: who.clone(), record: None, record_status });
+		Regions::<T>::insert(region_id, Region { owner: who.clone(), record });
 
 		Ok(())
 	}
@@ -65,9 +65,9 @@ impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 	fn burn(item: &Self::ItemId, maybe_check_owner: Option<&T::AccountId>) -> DispatchResult {
 		let region_id: RegionId = (*item).into();
 
-		let record = Regions::<T>::get(&region_id).ok_or(Error::<T>::UnknownRegion)?;
+		let region = Regions::<T>::get(&region_id).ok_or(Error::<T>::UnknownRegion)?;
 		if let Some(owner) = maybe_check_owner {
-			ensure!(owner.clone() == record.owner, Error::<T>::NotOwner);
+			ensure!(owner.clone() == region.owner, Error::<T>::NotOwner);
 		}
 
 		Regions::<T>::remove(region_id);
