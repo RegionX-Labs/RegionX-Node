@@ -102,5 +102,10 @@ fn on_timeout_works() {
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 		let timeout = Timeout::Request(Request::Get(get));
 		assert_ok!(module.on_timeout(timeout));
+
+		assert_eq!(
+			Regions::regions(&region_id).unwrap(),
+			Region { owner: 2, record: Record::Unavailable }
+		);
 	});
 }

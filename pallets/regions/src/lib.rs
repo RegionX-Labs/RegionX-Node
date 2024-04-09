@@ -283,7 +283,8 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_timeout(&self, timeout: Timeout) -> Result<(), IsmpError> {
 		match timeout {
 			Timeout::Request(Request::Get(get)) => get.keys.iter().try_for_each(|key| {
-				let region_id = RegionId::decode(&mut key.as_slice()).map_err(|_| {
+				let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
+				let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
 					IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
 				})?;
 
