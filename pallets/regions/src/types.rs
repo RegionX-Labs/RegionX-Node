@@ -1,3 +1,4 @@
+use crate::IsmpError;
 use frame_support::traits::fungible::Inspect;
 use pallet_broker::RegionRecord;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
@@ -53,4 +54,37 @@ pub struct Region<T: crate::Config> {
 	/// NOTE: The owner inside the record is the sovereign account of the parachain, so there
 	/// isn't really a point to using it.
 	pub record: Record<T>,
+}
+
+/// ISMP errors specific to the RegionX project.
+#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+pub enum IsmpCustomError {
+	/// Operation not supported.
+	NotSupported,
+	/// Failed to decode data.
+	DecodeFailed,
+	/// Couldn't find the region with the associated `RegionId`
+	RegionNotFound,
+	/// Couldn't find the corresponding value of a key in the ISMP result.
+	ValueNotFound,
+	/// Found the corresponding value, but it is `None`.
+	EmptyValue,
+}
+
+impl core::fmt::Display for IsmpCustomError {
+	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+		match self {
+			Self::NotSupported => write!(f, "NotSupported"),
+			Self::DecodeFailed => write!(f, "DecodeFailed"),
+			Self::RegionNotFound => write!(f, "RegionNotFound"),
+			Self::ValueNotFound => write!(f, "ValueNotFound"),
+			Self::EmptyValue => write!(f, "EmptyValue"),
+		}
+	}
+}
+
+impl From<IsmpCustomError> for IsmpError {
+	fn from(error: IsmpCustomError) -> Self {
+		IsmpError::ImplementationSpecific(format!("{}", error))
+	}
 }

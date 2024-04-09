@@ -1,4 +1,6 @@
-use crate::{ismp_mock::requests, mock::*, utils, IsmpError, IsmpModuleCallback, Record, Region};
+use crate::{
+	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region,
+};
 use frame_support::{assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
@@ -123,15 +125,11 @@ fn utils_read_value_works() {
 		);
 		assert_eq!(
 			utils::read_value(&values, &"key42".as_bytes().to_vec()),
-			// TODO: don't use custom strings to represent errors.
-			Err(IsmpError::ImplementationSpecific(
-				"The key doesn't have a corresponding value".to_string()
-			))
+			Err(IsmpCustomError::ValueNotFound.into())
 		);
 		assert_eq!(
 			utils::read_value(&values, &"key2".as_bytes().to_vec()),
-			// TODO: don't use custom strings to represent errors.
-			Err(IsmpError::ImplementationSpecific("Value not found".to_string()))
+			Err(IsmpCustomError::EmptyValue.into())
 		);
 	});
 }

@@ -244,29 +244,24 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 
 impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_accept(&self, _request: Post) -> Result<(), IsmpError> {
-		Err(IsmpError::ImplementationSpecific("Not supported".to_string()))
+		Err(IsmpCustomError::NotSupported.into())
 	}
 
 	fn on_response(&self, response: Response) -> Result<(), IsmpError> {
 		match response {
-			Response::Post(_) => Err(IsmpError::ImplementationSpecific(
-				"Post responses are not accepted".to_string(),
-			))?,
+			Response::Post(_) => Err(IsmpCustomError::NotSupported)?,
 			Response::Get(res) => {
-				res.get.keys.iter().try_for_each(|key| {
+				res.get.keys.iter().try_for_each(|key| -> Result<(), IsmpError> {
 					let value = utils::read_value(&res.values, key)?;
 
 					// The last 16 bytes represent the region id.
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
 
-					let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
-						IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
-					})?;
+					let region_id = RegionId::decode(&mut region_id_encoded)
+						.map_err(|_| IsmpCustomError::DecodeFailed)?;
 
-					let record =
-						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
-							IsmpError::ImplementationSpecific("Failed to decode record".to_string())
-						})?;
+					let record = RegionRecordOf::<T>::decode(&mut value.as_slice())
+						.map_err(|_| IsmpCustomError::DecodeFailed)?;
 
 					crate::Pallet::<T>::set_record(region_id, record)
 						.map_err(|e| IsmpError::ImplementationSpecific(format!("{:?}", e)))?;
@@ -283,12 +278,11 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 		match timeout {
 			Timeout::Request(Request::Get(get)) => get.keys.iter().try_for_each(|key| {
 				let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
-				let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
-					IsmpError::ImplementationSpecific("Failed to decode region_id".to_string())
-				})?;
+				let region_id = RegionId::decode(&mut region_id_encoded)
+					.map_err(|_| IsmpCustomError::DecodeFailed)?;
 
 				let Some(mut region) = Regions::<T>::get(region_id) else {
-					return Err(IsmpError::ImplementationSpecific("Unknown region".to_string()));
+					return Err(IsmpCustomError::RegionNotFound.into());
 				};
 
 				region.record = Record::Unavailable;
@@ -303,7 +297,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 }
 
 mod utils {
-	use super::{BTreeMap, IsmpError};
+	use super::{BTreeMap, IsmpCustomError, IsmpError};
 
 	pub fn read_value(
 		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
@@ -311,11 +305,9 @@ mod utils {
 	) -> Result<Vec<u8>, IsmpError> {
 		let result = values
 			.get(key)
-			.ok_or(IsmpError::ImplementationSpecific(
-				"The key doesn't have a corresponding value".to_string(),
-			))?
+			.ok_or(IsmpCustomError::ValueNotFound)?
 			.clone()
-			.ok_or(IsmpError::ImplementationSpecific("Value not found".to_string()))?;
+			.ok_or(IsmpCustomError::EmptyValue)?;
 
 		Ok(result)
 	}
