@@ -218,7 +218,6 @@ pub mod pallet {
 				keys: vec![key],
 				height: coretime_chain_height,
 				timeout_timestamp: T::Timeout::get(),
-				gas_limit: 0,
 			};
 
 			let dispatcher = T::IsmpDispatcher::default();
@@ -255,7 +254,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 			))?,
 			Response::Get(res) => {
 				res.get.keys.iter().try_for_each(|key| {
-					let value = Self::read_value(&res.values, key)?;
+					let value = utils::read_value(&res.values, key)?;
 
 					// The last 16 bytes represent the region id.
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
@@ -303,8 +302,10 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	}
 }
 
-impl<T: Config> IsmpModuleCallback<T> {
-	fn read_value(
+mod utils {
+	use super::{BTreeMap, IsmpError};
+
+	pub fn read_value(
 		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
 		key: &Vec<u8>,
 	) -> Result<Vec<u8>, IsmpError> {
@@ -314,7 +315,7 @@ impl<T: Config> IsmpModuleCallback<T> {
 				"The key doesn't have a corresponding value".to_string(),
 			))?
 			.clone()
-			.ok_or(IsmpError::ImplementationSpecific("Region record not found".to_string()))?;
+			.ok_or(IsmpError::ImplementationSpecific("Value not found".to_string()))?;
 
 		Ok(result)
 	}

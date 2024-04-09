@@ -44,7 +44,6 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 				keys: get.keys.clone(),
 				height: get.height,
 				timeout_timestamp: T::Timeout::get(),
-				gas_limit: 0,
 			}),
 			_ => unimplemented!(),
 		};

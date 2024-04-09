@@ -1,4 +1,4 @@
-use crate::{ismp_mock::requests, mock::*, IsmpModuleCallback, Record, Region};
+use crate::{ismp_mock::requests, mock::*, utils, IsmpError, IsmpModuleCallback, Record, Region};
 use frame_support::{assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
@@ -106,6 +106,32 @@ fn on_timeout_works() {
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
 			Region { owner: 2, record: Record::Unavailable }
+		);
+	});
+}
+
+#[test]
+fn utils_read_value_works() {
+	new_test_ext().execute_with(|| {
+		let mut values: BTreeMap<Vec<u8>, Option<Vec<u8>>> = BTreeMap::new();
+		values.insert("key1".as_bytes().to_vec(), Some("value1".as_bytes().to_vec()));
+		values.insert("key2".as_bytes().to_vec(), None);
+
+		assert_eq!(
+			utils::read_value(&values, &"key1".as_bytes().to_vec()),
+			Ok("value1".as_bytes().to_vec())
+		);
+		assert_eq!(
+			utils::read_value(&values, &"key42".as_bytes().to_vec()),
+			// TODO: don't use custom strings to represent errors.
+			Err(IsmpError::ImplementationSpecific(
+				"The key doesn't have a corresponding value".to_string()
+			))
+		);
+		assert_eq!(
+			utils::read_value(&values, &"key2".as_bytes().to_vec()),
+			// TODO: don't use custom strings to represent errors.
+			Err(IsmpError::ImplementationSpecific("Value not found".to_string()))
 		);
 	});
 }

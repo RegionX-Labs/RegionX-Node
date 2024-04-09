@@ -4162,7 +4162,7 @@ dependencies = [
 [[package]]
 name = "ismp"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "derive_more",
  "hex",
@@ -4176,7 +4176,7 @@ dependencies = [
 [[package]]
 name = "ismp-parachain"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4200,7 +4200,7 @@ dependencies = [
 [[package]]
 name = "ismp-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4219,31 +4219,18 @@ dependencies = [
 [[package]]
 name = "ismp-parachain-runtime-api"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "sp-api",
-]
-
-[[package]]
-name = "ismp-runtime-api"
-version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
-dependencies = [
- "ismp",
- "pallet-ismp",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-core",
- "sp-std",
 ]
 
 [[package]]
 name = "ismp-testsuite"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "ismp",
+ "once_cell",
  "parity-scale-codec",
  "primitive-types",
  "sp-core",
@@ -6411,7 +6398,7 @@ dependencies = [
 [[package]]
 name = "pallet-ismp"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "ckb-merkle-mountain-range",
  "derive_more",
@@ -6431,6 +6418,20 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ismp-runtime-api"
+version = "0.1.0"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
+dependencies = [
+ "ismp",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
  "sp-std",
 ]
 
@@ -9297,13 +9298,13 @@ dependencies = [
  "ismp",
  "ismp-parachain",
  "ismp-parachain-runtime-api",
- "ismp-runtime-api",
  "log",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-ismp",
+ "pallet-ismp-runtime-api",
  "pallet-message-queue",
  "pallet-regions",
  "pallet-session",
@@ -12594,7 +12595,7 @@ dependencies = [
 [[package]]
 name = "substrate-state-machine"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=eq-for-error#347e3a3fad9701ec0d1f23f9790060312fc9936b"
 dependencies = [
  "ckb-merkle-mountain-range",
  "frame-support",
