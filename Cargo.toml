@@ -2,7 +2,6 @@
 resolver = "2"
 members = [
 	"node",
-	"primitives",
 	"pallets/*",
 	"runtime/*",
 ]
@@ -141,6 +140,6 @@ ismp-parachain-runtime-api = { git="https://github.com/polytope-labs/hyperbridge
 ismp-testsuite = { git="https://github.com/polytope-labs/hyperbridge.git", branch="main", default-features = false }
 
 # Local
-regionx-primitives = { path = "./primitives", default-features = false }
+regionx-primitives = { path = "./runtime/primitives", default-features = false }
 regionx-runtime = { path = "./runtime/regionx" }
 pallet-regions = { path = "./pallets/regions", default-features = false }
