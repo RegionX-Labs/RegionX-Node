@@ -34,16 +34,13 @@ mod nonfungible_impls;
 mod types;
 use types::*;
 
+pub mod primitives;
+use primitives::StateMachineHeightProvider;
+
 const LOG_TARGET: &str = "runtime::regions";
 
 /// Constant Pallet ID
 pub const PALLET_ID: ModuleId = ModuleId::Pallet(PalletId(*b"ismp-reg"));
-
-// TODO: move trait outside the pallet.
-pub trait StateMachineHeightProvider {
-	/// Return the latest height of the state machine
-	fn get_latest_state_machine_height(id: StateMachineId) -> u64;
-}
 
 #[frame_support::pallet]
 pub mod pallet {

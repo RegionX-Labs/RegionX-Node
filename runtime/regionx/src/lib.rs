@@ -16,7 +16,7 @@ mod ismp;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::TransformOrigin;
-use pallet_regions::StateMachineHeightProvider as StateMachineHeightProviderT;
+use pallet_regions::primitives::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
 use smallvec::smallvec;
@@ -57,7 +57,7 @@ use frame_system::{
 };
 use pallet_ismp::{
 	dispatcher::Dispatcher,
-	mmr_primitives::{Leaf, LeafIndex},
+	mmr::primitives::{Leaf, LeafIndex},
 	primitives::Proof,
 	ProofKeys,
 };
