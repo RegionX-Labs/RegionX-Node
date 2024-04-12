@@ -366,8 +366,8 @@ parameter_types! {
 impl pallet_assets::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
-	type AssetId = u64;
-	type AssetIdParameter = parity_scale_codec::Compact<u64>;
+	type AssetId = u32;
+	type AssetIdParameter = parity_scale_codec::Compact<u32>;
 	type Currency = Balances;
 	// TODO after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
 	// Allow only TC to create an asset as well.
