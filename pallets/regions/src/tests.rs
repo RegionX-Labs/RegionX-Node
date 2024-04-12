@@ -4,7 +4,7 @@ use crate::{
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
-	router::{GetResponse, Post, Request, Response, Timeout},
+	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
 };
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use std::collections::BTreeMap;
@@ -83,6 +83,36 @@ fn on_response_works() {
 			Regions::regions(&region_id).unwrap(),
 			Region { owner: 2, record: Record::Available(mock_record) }
 		);
+	});
+}
+
+#[test]
+fn on_response_only_handles_get() {
+	new_test_ext().execute_with(|| {
+		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
+
+		let mock_response = Response::Post(PostResponse {
+			post: Post {
+				source: <Test as crate::Config>::CoretimeChain::get(),
+				dest: <Test as crate::Config>::CoretimeChain::get(),
+				nonce: Default::default(),
+				from: Default::default(),
+				to: Default::default(),
+				timeout_timestamp: Default::default(),
+				data: Default::default(),
+			},
+			response: Default::default(),
+			timeout_timestamp: Default::default(),
+		});
+
+		assert_err!(module.on_response(mock_response), IsmpCustomError::NotSupported);
+	});
+}
+
+#[test]
+fn on_timeout_only_handles_get() {
+	new_test_ext().execute_with(|| {
+		// TODO
 	});
 }
 
