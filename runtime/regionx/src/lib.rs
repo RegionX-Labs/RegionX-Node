@@ -117,7 +117,7 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_asset_tx_payment::ChargeAssetTxPayment<Runtime>,
+	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
@@ -427,11 +427,11 @@ impl pallet_transaction_payment::Config for Runtime {
 
 impl pallet_asset_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Fungibles = ();
+	type Fungibles = Assets;
 	type OnChargeAssetTransaction = FungiblesAdapter<
 		// This converts based on the minimum balance:
-		pallet_assets::BalanceToAssetBalance<Balance, Runtime, ConvertInto>,
-		CreditToBlockAuthor,
+		pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto>,
+		AssetsToBlockAuthor,
 	>;
 }
 

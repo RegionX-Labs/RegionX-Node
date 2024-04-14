@@ -1,5 +1,5 @@
-use crate::{AssetId, Runtime, AccountId, Assets};
-use frame_support::traits::fungibles::{Credit, Balanced};
+use crate::{AccountId, AssetId, Assets, Authorship, Runtime};
+use frame_support::traits::{fungibles, Defensive};
 use orml_asset_registry::DefaultAssetMetadata;
 use orml_traits::asset_registry::AssetProcessor;
 use pallet_asset_tx_payment::HandleCredit;
@@ -31,13 +31,15 @@ impl AssetProcessor<AssetId, DefaultAssetMetadata<Runtime>> for CustomAssetProce
 	}
 }
 
-pub struct CreditToBlockAuthor;
-impl HandleCredit<AccountId, Assets> for CreditToBlockAuthor {
-	fn handle_credit(credit: Credit<AccountId, Assets>) {
-		if let Some(author) = pallet_authorship::Pallet::<Runtime>::author() {
-			// What to do in case paying the author fails (e.g. because `fee < min_balance`)
-			// default: drop the result which will trigger the `OnDrop` of the imbalance.
-			let _ = <Assets as Balanced<AccountId>>::resolve(&author, credit);
+/// A `HandleCredit` implementation that naively transfers the fees to the block author.
+/// Will drop and burn the assets in case the transfer fails.
+pub struct AssetsToBlockAuthor;
+impl HandleCredit<AccountId, Assets> for AssetsToBlockAuthor {
+	fn handle_credit(credit: fungibles::Credit<AccountId, Assets>) {
+		use frame_support::traits::fungibles::Balanced;
+		if let Some(author) = Authorship::author() {
+			// In case of error: Will drop the result triggering the `OnDrop` of the imbalance.
+			let _ = Assets::resolve(&author, credit).defensive();
 		}
 	}
 }
