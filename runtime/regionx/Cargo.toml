@@ -50,6 +50,7 @@ pallet-session = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
+pallet-asset-tx-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
@@ -123,6 +124,7 @@ std = [
 	"pallet-sudo/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
+	"pallet-asset-tx-payment/std",
 	"pallet-transaction-payment/std",
 	"pallet-xcm/std",
 	"parachain-info/std",
@@ -165,6 +167,7 @@ runtime-benchmarks = [
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
+	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
@@ -197,6 +200,7 @@ try-runtime = [
 	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-timestamp/try-runtime",
+	"pallet-asset-tx-payment/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-xcm/try-runtime",
 	"parachain-info/try-runtime",

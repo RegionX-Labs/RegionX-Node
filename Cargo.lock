@@ -9329,6 +9329,7 @@ dependencies = [
  "log",
  "orml-asset-registry",
  "orml-traits",
+ "pallet-asset-tx-payment",
  "pallet-assets",
  "pallet-aura",
  "pallet-authorship",

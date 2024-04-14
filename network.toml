@@ -1,0 +1,36 @@
+ # some comment
+# first space above is on purpose for testing parser
+[relaychain]
+default_command = "./bin/polkadot"
+default_args = [ "-lparachain=debug" ]
+
+chain = "rococo-local"
+
+  [[relaychain.nodes]]
+  name = "alice"
+  ws_port = 9910
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "bob"
+  ws_port = 9911
+  validator = true
+  args = ["--database=paritydb-experimental"]
+
+[[parachains]]
+id = 2000
+add_to_genesis = true
+cumulus_based = true
+chain = "regionx-rococo"
+
+  [[parachains.collators]]
+  name = "regionx-collator01"
+  command = "./bin/regionx-node"
+  ws_port = 9920
+  args = ["--log=xcm=trace"]
+
+  [[parachains.collators]]
+  name = "regoinx-collator02"
+  command = "./bin/regionx-node"
+  ws_port = 9921
+  args = ["--log=xcm=trace"]

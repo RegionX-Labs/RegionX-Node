@@ -73,6 +73,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, EnsureSigned, Phase,
 };
+use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::{
 	mmr_primitives::{Leaf, LeafIndex},
 	primitives::Proof,
@@ -81,6 +82,7 @@ use pallet_ismp::{
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::H256;
+use sp_runtime::traits::ConvertInto;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
 
@@ -115,7 +117,7 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_transaction_payment::ChargeTransactionPayment<Runtime>,
+	pallet_asset_tx_payment::ChargeAssetTxPayment<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
@@ -415,11 +417,22 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO: send fees to treasury.
 	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, ()>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+}
+
+impl pallet_asset_tx_payment::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Fungibles = ();
+	type OnChargeAssetTransaction = FungiblesAdapter<
+		// This converts based on the minimum balance:
+		pallet_assets::BalanceToAssetBalance<Balance, Runtime, ConvertInto>,
+		CreditToBlockAuthor,
+	>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -566,8 +579,9 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-		Assets: pallet_assets = 12,
-		OrmlAssetRegistry: orml_asset_registry = 13,
+		AssetTxPayment: pallet_asset_tx_payment = 12,
+		Assets: pallet_assets = 13,
+		OrmlAssetRegistry: orml_asset_registry = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 20,
