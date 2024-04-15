@@ -410,64 +410,8 @@ fn start_consensus(
 		client.clone(),
 	);
 
-	let client_clone = client.clone();
-	let relay_chain_interface_clone = relay_chain_interface.clone();
 	let params = BasicAuraParams {
-		create_inherent_data_providers: move |parent, ()| {
-			let relay_chain_interface = relay_chain_interface_clone.clone();
-			let client = client_clone.clone();
-
-			let timestamp = sp_timestamp::InherentDataProvider::from_system_time();
-			let slot = sp_consensus_aura::inherents::InherentDataProvider::from_timestamp_and_slot_duration(
-				*timestamp,
-				slot_duration,
-			);
-
-			async move {
-				// TODO: Double check if this is correct
-				let maybe_validation_data = relay_chain_interface
-					.persisted_validation_data(parent, para_id, OccupiedCoreAssumption::Included)
-					.await?;
-
-				let validation_data = match maybe_validation_data {
-					Some(v) => v,
-					None =>
-						return Err(format!(
-							"Couldn't get persisted validation data at: {:?}",
-							parent
-						)
-						.into()),
-				};
-
-				let para_inherent_data =
-					cumulus_client_parachain_inherent::ParachainInherentDataProvider::create_at(
-						parent,
-						&relay_chain_interface.clone(),
-						&validation_data,
-						para_id,
-					)
-					.await;
-
-				let para_inherent_data = match para_inherent_data {
-					Some(p) => p,
-					None =>
-						return Err(
-							format!("Could not create para inherent data at {:?}", parent).into()
-						),
-				};
-
-				let consensus_inherent =
-					ismp_parachain_inherent::ConsensusInherentProvider::create(
-						client.clone(),
-						parent,
-						&relay_chain_interface,
-						validation_data,
-					)
-					.await?;
-
-				Ok((slot, timestamp, para_inherent_data, consensus_inherent))
-			}
-		},
+		create_inherent_data_providers: move |_, ()| async move { Ok(()) },
 		block_import,
 		para_client: client,
 		relay_client: relay_chain_interface,
