@@ -65,6 +65,11 @@ jobs:
       - name: Checkout the source code
         uses: actions/checkout@v3
 
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.GH_TOKEN }}
+
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:

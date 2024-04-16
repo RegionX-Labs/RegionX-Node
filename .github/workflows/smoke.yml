@@ -13,9 +13,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  smoke:
+  block-production:
     runs-on: ubuntu-latest
-
 
     steps:
     - uses: actions/checkout@v4
@@ -33,6 +32,11 @@ jobs:
         echo $GITHUB_WORKSPACE
         echo "PATH=$GITHUB_WORKSPACE:$PATH" >> $GITHUB_ENV
         echo $PATH
+
+    - name: Setup SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.GH_TOKEN }}
 
     - name: Compile regionx-node
       run: |
