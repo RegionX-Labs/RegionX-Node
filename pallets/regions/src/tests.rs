@@ -86,6 +86,8 @@ fn request_region_record_works() {
 
 		assert!(region.record.is_pending());
 
+		// more tests required in an e2e test
+
 		assert_err!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id), Error::<Test>::NotUnavailable);
 	});
 }
