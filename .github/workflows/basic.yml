@@ -14,19 +14,6 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  cancel-previous-runs:
-    name: Cancel Previous Workflow Runs
-    runs-on: ubuntu-latest
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-        workflow_id: ${{ github.workflow }}
-
   fmt:
     runs-on: ubuntu-22.04
 
@@ -35,6 +22,17 @@ jobs:
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
 
+    - name: Cancel Previous Workflow Runs
+      uses: styfle/cancel-workflow-action
+
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.9.1
+      with:
+        access_token: ${{ github.token }}
+        workflow_id: ${{ github.workflow }}
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
@@ -53,6 +51,9 @@ jobs:
     - uses: actions/checkout@v4
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
+
+    - name: Cancel Previous Workflow Runs
+      uses: styfle/cancel-workflow-action
 
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.5.3
@@ -74,6 +75,9 @@ jobs:
     - uses: actions/checkout@v4
     - uses: ./.github/actions/setup
 
+    - name: Cancel Previous Workflow Runs
+      uses: styfle/cancel-workflow-action
+
     - name: Install psvm
       run: |
         cargo install --git https://github.com/paritytech/psvm psvm
@@ -89,6 +93,9 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Swatinem/rust-cache@v2
       - uses: ./.github/actions/setup
+
+      - name: Cancel Previous Workflow Runs
+        uses: styfle/cancel-workflow-action
 
       - name: Checkout the source code
         uses: actions/checkout@v3
