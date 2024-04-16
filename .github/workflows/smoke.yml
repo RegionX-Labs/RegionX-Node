@@ -21,9 +21,6 @@ jobs:
     - uses: Swatinem/rust-cache@v2
     - uses: ./.github/actions/setup
 
-    - name: Cancel Previous Workflow Runs
-      uses: styfle/cancel-workflow-action
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
 
