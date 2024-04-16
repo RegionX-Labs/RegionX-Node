@@ -84,9 +84,9 @@ fn request_region_record_works() {
 		assert!(Regions::regions(region_id).is_some());
 		let region = Regions::regions(region_id).unwrap();
 
-		assert!(region.record.is_available());
+		assert!(region.record.is_pending());
 
-		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
+		assert_err!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id), Error::<Test>::NotUnavailable);
 	});
 }
 
