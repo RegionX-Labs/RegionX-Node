@@ -2,15 +2,25 @@ name: Smoke tests
 
 # Controls when the action will run.
 on:
+  # Triggers the workflow on push or pull request events but only for the main branch
+  pull_request:
+    branches:
+    - main
+  push:
+    branches:
+    - main
+  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
   smoke:
     runs-on: ubuntu-latest
 
+
     steps:
-    - name: Checkout Repository
-      uses: actions/checkout@v2
+    - uses: actions/checkout@v4
+    - uses: Swatinem/rust-cache@v2
+    - uses: ./.github/actions/setup
 
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v1
@@ -24,18 +34,10 @@ jobs:
         echo "PATH=$GITHUB_WORKSPACE:$PATH" >> $GITHUB_ENV
         echo $PATH
 
-    - name: Pull Docker Image
-      run: docker pull szegoo/regionx-node:latest
-    
-    - name: Create Container
-      id: create-container
+    - name: Compile regionx-node
       run: |
-        container_id=$(docker create szegoo/regionx-node:latest)
-        echo "::set-output name=container_id::$container_id"
-
-    - name: Copy Executable from Container
-      run: |
-        docker cp ${{ steps.create-container.outputs.container_id }}:/usr/bin/regionx-node . 
+        cargo build --release
+        cp ./target/release/regionx-node .
 
     - name: Run smoke test 0001
       run: ./zombienet-linux-x64 -p native test ./zombienet_tests/0001-smoke-test.zndsl

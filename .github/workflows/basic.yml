@@ -54,3 +54,29 @@ jobs:
   
     - name: Check Code
       run: cargo check
+
+  code_coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Swatinem/rust-cache@v2
+      - uses: ./.github/actions/setup
+
+      - name: Checkout the source code
+        uses: actions/checkout@v3
+
+      - name: Run cargo-tarpaulin
+        uses: actions-rs/tarpaulin@v0.1
+        with:
+          version: "0.21.0"
+
+      - name: Upload to codecov.io
+        uses: codecov/codecov-action@v3.1.0
+        with:
+          token: ${{secrets.CODECOV_TOKEN}}
+
+      - name: Archive code coverage results
+        uses: actions/upload-artifact@v3.1.0
+        with:
+          name: code-coverage-report
+          path: cobertura.xml
