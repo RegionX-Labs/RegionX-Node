@@ -24,5 +24,6 @@ jobs:
         cargo install --git https://github.com/paritytech/psvm psvm
 
     - name: Check Dependency Versions
-      chmod +x ./scripts/check-dependency-versions.sh
-      ./scripts/check-dependency-versions.sh 
+      run: |
+        chmod +x ./scripts/check-dependency-versions.sh
+        ./scripts/check-dependency-versions.sh 
