@@ -21,7 +21,7 @@ addToGenesis = false
 
   [parachains.collator]
   name = "regionx-collator01"
-  image = "{{COL_IMAGE}}"
+  image = "{{REGIONX_IMAGE}}"
   command = "regionx-node"
   args = [ "-lruntime=debug,parachain=trace" ]
 
