@@ -26,7 +26,7 @@ jobs:
     - name: Zombienet setup
       run: |
         wget https://github.com/paritytech/zombienet/releases/download/v1.3.100/zombienet-linux-x64
-        chmod +x zombienet-linux 
+        chmod +x zombienet-linux-x64
 
     - name: Pull Docker Image
       run: docker pull szegoo/regionx-node:latest
@@ -42,4 +42,4 @@ jobs:
         docker cp ${{ steps.create-container.outputs.container_id }}:/usr/bin/regionx-node . 
 
     - name: Run smoke test 0001
-      run: ./zombienet-linux -p native test ./zombienet_tests/0001-smoke-test.zndsl
+      run: ./zombienet-linux-x64 -p native test ./zombienet_tests/0001-smoke-test.zndsl
