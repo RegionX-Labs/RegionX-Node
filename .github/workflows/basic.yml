@@ -1,102 +1,104 @@
 name: Basic
 
-# Controls when the action will run.
 on:
-  # Triggers the workflow on push or pull request events but only for the main branch
   pull_request:
     branches:
     - main
   push:
     branches:
     - main
-  # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  fmt:
+  prepare:
     runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v4
-    - uses: Swatinem/rust-cache@v2
-    - uses: ./.github/actions/setup
-
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.GH_TOKEN }}
-
-    - name: Use Git CLI for Cargo
-      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
-
-    - name: Cargo fmt
-      run: cargo +nightly fmt --all -- --check
-
-  lint-and-check:
-    runs-on: ubuntu-22.04
-
-    steps:
-    - uses: actions/checkout@v4
-    - uses: Swatinem/rust-cache@v2
-    - uses: ./.github/actions/setup
-
-    - name: Setup SSH
-      uses: webfactory/ssh-agent@v0.5.3
-      with:
-        ssh-private-key: ${{ secrets.GH_TOKEN }}
-
-    - name: Use Git CLI for Cargo
-      run: echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
-
-    - name: Cargo clippy
-      run: cargo +nightly clippy -- -D warnings
-  
-    - name: Check Code
-      run: cargo check
-
-  check-dependencies:
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: ./.github/actions/setup
-
-    - name: Install psvm
-      run: |
-        cargo install --git https://github.com/paritytech/psvm psvm
-
-    - name: Check Dependency Versions
-      run: |
-        chmod +x ./scripts/check-dependency-versions.sh
-        ./scripts/check-dependency-versions.sh 
-
-  code_coverage:
-    runs-on: ubuntu-latest
+    outputs:
+      cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
+
+      - name: Generate cache key
+        id: cache-key
+        run: echo "::set-output name=key::${{ runner.os }}-$(date +%Y-%m-%d)-$(git rev-parse --short HEAD)"
+
       - uses: Swatinem/rust-cache@v2
-      - uses: ./.github/actions/setup
-
-      - name: Checkout the source code
-        uses: actions/checkout@v3
-
-      - name: Setup SSH
-        uses: webfactory/ssh-agent@v0.5.3
         with:
-          ssh-private-key: ${{ secrets.GH_TOKEN }}
+          key: ${{ steps.cache-key.outputs.key }}
+          restore-keys: |
+            ${{ runner.os }}-${{ github.event.pull_request.head.repo.default_branch }}-
+            ${{ runner.os }}-
 
+      - name: Setup common environment
+        run: |
+          echo "CARGO_NET_GIT_FETCH_WITH_CLI=true" >> $GITHUB_ENV
+          cargo install --git https://github.com/paritytech/psvm psvm
+
+  fmt:
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cargo fmt
+        run: cargo +nightly fmt --all -- --check
+
+  lint-and-check:
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Cargo clippy
+        run: cargo +nightly clippy -- -D warnings
+      - name: Check Code
+        run: cargo check
+
+  check-dependencies:
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check Dependency Versions
+        run: |
+          chmod +x ./scripts/check-dependency-versions.sh
+          ./scripts/check-dependency-versions.sh 
+
+  code_coverage:
+    needs: prepare
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
       - name: Run cargo-tarpaulin
         uses: actions-rs/tarpaulin@v0.1
         with:
           version: "0.21.0"
-
       - name: Upload to codecov.io
         uses: codecov/codecov-action@v3.1.0
         with:
-          token: ${{secrets.CODECOV_TOKEN}}
-
+          token: ${{ secrets.CODECOV_TOKEN }}
       - name: Archive code coverage results
         uses: actions/upload-artifact@v3.1.0
         with:
           name: code-coverage-report
           path: cobertura.xml
+
+  block-production:
+    needs: prepare
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Docker Buildx
+        uses: docker/setup-buildx-action@v1
+
+      - name: Zombienet setup
+        run: |
+          wget https://github.com/paritytech/zombienet/releases/download/v1.3.100/zombienet-linux-x64
+          chmod +x zombienet-linux-x64
+          yes 2>/dev/null | ./zombienet-linux-x64 setup polkadot
+          echo "PATH=$GITHUB_WORKSPACE:$PATH" >> $GITHUB_ENV
+
+      - name: Compile regionx-node
+        run: |
+          cargo build --release
+          cp ./target/release/regionx-node .
+
+      - name: Run smoke test 0001
+        run: ./zombienet-linux-x64 -p native test ./zombienet_tests/0001-smoke-test.zndsl
