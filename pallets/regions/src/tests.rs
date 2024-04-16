@@ -14,9 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region, Config, Error };
+	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region, Error };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
-use frame_system::EventRecord;
 use ismp::{
 	module::IsmpModule,
 	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
@@ -75,7 +74,19 @@ fn set_record_works() {
 #[test]
 fn request_region_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
+
+		// fails to request unknown regions
+		assert_err!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id), Error::<Test>::UnknownRegion);
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+
+		assert!(region.record.is_available());
+
+		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
 	});
 }
 
