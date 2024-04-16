@@ -171,13 +171,6 @@ fn on_response_only_handles_get() {
 }
 
 #[test]
-fn on_timeout_only_handles_get() {
-	new_test_ext().execute_with(|| {
-		// TODO:
-	});
-}
-
-#[test]
 fn on_timeout_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
