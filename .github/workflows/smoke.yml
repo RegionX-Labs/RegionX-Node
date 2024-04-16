@@ -27,7 +27,7 @@ jobs:
       run: |
         wget https://github.com/paritytech/zombienet/releases/download/v1.3.100/zombienet-linux-x64
         chmod +x zombienet-linux-x64
-        yes | ./zombienet-linux-x64 setup polkadot
+        ./zombienet-linux-x64 setup polkadot
 
     - name: Pull Docker Image
       run: docker pull szegoo/regionx-node:latest
