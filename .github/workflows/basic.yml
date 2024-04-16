@@ -16,6 +16,7 @@ jobs:
       cache-key: ${{ steps.cache-key.outputs.key }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
 
       - name: Generate cache key
         id: cache-key
