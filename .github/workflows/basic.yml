@@ -25,14 +25,6 @@ jobs:
     - name: Cancel Previous Workflow Runs
       uses: styfle/cancel-workflow-action
 
-    - name: Checkout code
-      uses: actions/checkout@v4
-
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.9.1
-      with:
-        access_token: ${{ github.token }}
-        workflow_id: ${{ github.workflow }}
     - name: Setup SSH
       uses: webfactory/ssh-agent@v0.5.3
       with:
