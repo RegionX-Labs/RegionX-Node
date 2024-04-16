@@ -566,7 +566,7 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 }
 
 impl pallet_regions::Config for Runtime {

@@ -85,7 +85,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 }
 
 pub struct MockStateMachineHeightProvider;

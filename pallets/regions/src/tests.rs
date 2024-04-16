@@ -50,7 +50,25 @@ fn nonfungibles_implementation_works() {
 #[test]
 fn set_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
+		let record: RegionRecord<u64, u64> = RegionRecord { end: 123600, owner: 1, paid: None };
+
+		// The region with the given `region_id` does not exist.
+		assert_err!(Regions::set_record(region_id, record.clone()), crate::Error::<Test>::UnknownRegion);
+
+		// `set_record` succeeds
+		assert_ok!(Regions::mint_into(&region_id.into(), &2));
+		assert_ok!(Regions::set_record(region_id, record.clone()));
+
+		// check storage
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+		assert!(region.record.is_available());
+		assert_eq!(region.owner, 2);
+		assert_eq!(region.record, Record::<Test>::Available(record.clone()));
+
+		// call `set_record` again with the same record
+		assert_err!(Regions::set_record(region_id, record), crate::Error::<Test>::RegionRecordAlreadySet);
 	});
 }
 
@@ -84,7 +102,7 @@ fn on_response_works() {
 
 		assert_eq!(request.who, 2);
 
-		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 42, owner: 1, paid: None };
+		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 113000, owner: 1, paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),
