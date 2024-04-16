@@ -24,8 +24,9 @@ jobs:
       uses: docker/setup-buildx-action@v1
 
     - name: Zombienet setup
-      wget https://github.com/paritytech/zombienet/releases/download/v1.3.100/zombienet-linux-x64
-      chmod +x zombienet-linux 
+      run: |
+        wget https://github.com/paritytech/zombienet/releases/download/v1.3.100/zombienet-linux-x64
+        chmod +x zombienet-linux 
 
     - name: Pull Docker Image
       run: docker pull szegoo/regionx-node:latest
