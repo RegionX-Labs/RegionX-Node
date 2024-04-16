@@ -95,7 +95,7 @@ pub mod pallet {
 		/// Used for getting the height of the Coretime chain.
 		type StateMachineHeightProvider: StateMachineHeightProvider;
 
-		/// Number of seconds before a get request times out.
+		/// Number of seconds before a GET request times out.
 		type Timeout: Get<u64>;
 	}
 
@@ -130,7 +130,7 @@ pub mod pallet {
 		NotOwner,
 		/// The region record of the region is already set.
 		RegionRecordAlreadySet,
-		/// An error occured when attempting to dispatch an ISMP get request.
+		/// An error occured when attempting to dispatch an ISMP GET request.
 		IsmpDispatchError,
 		/// Failed reading the height of the Coretime chain.
 		FailedReadingCoretimeHeight,

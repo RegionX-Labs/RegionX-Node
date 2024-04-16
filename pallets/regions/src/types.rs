@@ -30,7 +30,7 @@ pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId
 pub enum Record<T: crate::Config> {
 	/// An ISMP request was made to query the region record and we are now anticipating a response.
 	Pending,
-	/// An ISMP request was made, but we failed at getting a response.
+	/// An ISMP request was made, but we failed to get a response.
 	Unavailable,
 	/// Successfully retrieved the region record.
 	Available(RegionRecordOf<T>),
@@ -64,7 +64,7 @@ pub struct Region<T: crate::Config> {
 	/// Owner of the region.
 	pub owner: T::AccountId,
 	/// The associated record of the region. If `None`, we still didn't receive a response
-	/// to the ISMP get request.
+	/// for the ISMP GET request.
 	///
 	/// NOTE: The owner inside the record is the sovereign account of the parachain, so there
 	/// isn't really a point to using it.

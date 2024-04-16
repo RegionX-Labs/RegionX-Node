@@ -80,7 +80,7 @@ fn on_response_works() {
 		);
 
 		let request = &requests()[0];
-		let Request::Get(get) = request.request.clone() else { panic!("Expected get request") };
+		let Request::Get(get) = request.request.clone() else { panic!("Expected GET request") };
 
 		assert_eq!(request.who, 2);
 
@@ -144,7 +144,7 @@ fn on_timeout_works() {
 
 		let request = &requests()[0];
 
-		let Request::Get(get) = request.request.clone() else { panic!("Expected get request") };
+		let Request::Get(get) = request.request.clone() else { panic!("Expected GET request") };
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 		let timeout = Timeout::Request(Request::Get(get));
