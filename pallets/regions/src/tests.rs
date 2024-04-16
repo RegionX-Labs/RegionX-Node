@@ -14,9 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region,
-};
+	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region, Config, Error };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
+use frame_system::EventRecord;
 use ismp::{
 	module::IsmpModule,
 	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
@@ -54,7 +54,7 @@ fn set_record_works() {
 		let record: RegionRecord<u64, u64> = RegionRecord { end: 123600, owner: 1, paid: None };
 
 		// The region with the given `region_id` does not exist.
-		assert_err!(Regions::set_record(region_id, record.clone()), crate::Error::<Test>::UnknownRegion);
+		assert_err!(Regions::set_record(region_id, record.clone()), Error::<Test>::UnknownRegion);
 
 		// `set_record` succeeds
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
@@ -68,7 +68,7 @@ fn set_record_works() {
 		assert_eq!(region.record, Record::<Test>::Available(record.clone()));
 
 		// call `set_record` again with the same record
-		assert_err!(Regions::set_record(region_id, record), crate::Error::<Test>::RegionRecordAlreadySet);
+		assert_err!(Regions::set_record(region_id, record), Error::<Test>::RegionRecordAlreadySet);
 	});
 }
 
@@ -82,7 +82,24 @@ fn request_region_record_works() {
 #[test]
 fn transfer_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		// cannot transfer an unknown region
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+		assert!(Regions::regions(region_id).is_none());
+
+		assert_err!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2), Error::<Test>::UnknownRegion);
+
+		// only regions owned by the caller are transferable
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_err!(Regions::transfer(RuntimeOrigin::signed(3), region_id, 2), Error::<Test>::NotOwner);
+
+		// transfer region success
+		assert_ok!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2));
+
+		// check storage item
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+
+		assert_eq!(region.owner, 2);
 	});
 }
 
