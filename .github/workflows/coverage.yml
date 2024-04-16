@@ -35,7 +35,6 @@ jobs:
         --exclude-files **/mock.rs **/weights/* \
         --out xml
 
-    - name: Upload to codecov.io
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
+    - uses: codecov/codecov-action@v3
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}
