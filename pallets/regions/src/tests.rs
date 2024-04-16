@@ -50,21 +50,21 @@ fn nonfungibles_implementation_works() {
 #[test]
 fn set_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		// TODO:
 	});
 }
 
 #[test]
 fn request_region_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		// TODO:
 	});
 }
 
 #[test]
 fn transfer_works() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		// TODO:
 	});
 }
 
@@ -127,7 +127,7 @@ fn on_response_only_handles_get() {
 #[test]
 fn on_timeout_only_handles_get() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		// TODO:
 	});
 }
 

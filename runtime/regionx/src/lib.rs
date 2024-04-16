@@ -344,8 +344,6 @@ parameter_types! {
 }
 
 impl pallet_balances::Config for Runtime {
-	type MaxLocks = ConstU32<50>;
-	type MaxHolds = ConstU32<1>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -354,12 +352,15 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
+
+	type MaxLocks = ConstU32<50>;
 	type MaxFreezes = ConstU32<0>;
+	type MaxHolds = ConstU32<1>;
+	type MaxReserves = ConstU32<50>;
 }
 
 parameter_types! {
@@ -378,7 +379,7 @@ impl pallet_assets::Config for Runtime {
 	type AssetId = AssetId;
 	type AssetIdParameter = parity_scale_codec::Compact<AssetId>;
 	type Currency = Balances;
-	// TODO after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
+	// TODO: after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
 	// Allow only TC to create an asset.
 	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
 	type ForceOrigin = EnsureRoot<AccountId>;
@@ -401,13 +402,14 @@ impl pallet_assets::Config for Runtime {
 impl orml_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
 	type AssetProcessor = CustomAssetProcessor;
-	// TODO after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
+	// TODO: after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
 	// Allow TC to register an asset.
 	type AuthorityOrigin = EnsureRoot<AccountId>;
 	type Balance = Balance;
 	type CustomMetadata = CustomMetadata;
 	type StringLimit = AssetsStringLimit;
 	type RuntimeEvent = RuntimeEvent;
+	// TODO: accurate weight 
 	type WeightInfo = ();
 }
 
@@ -612,8 +614,8 @@ construct_runtime!(
 		// ISMP
 		Ismp: pallet_ismp = 50,
 		IsmpParachain: ismp_parachain = 51,
-    
-    // Main stage:
+		
+		// Main stage:
 		Regions: pallet_regions = 60,
 	}
 );
@@ -629,6 +631,7 @@ mod benches {
 		[pallet_sudo, Sudo]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
+		[pallet_regions, Regions]
 	);
 }
 
