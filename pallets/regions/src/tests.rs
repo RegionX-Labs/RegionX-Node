@@ -14,8 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, IsmpCustomError,
-	IsmpModuleCallback, Record, Region,
+	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, Event,
+	IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
@@ -65,6 +65,7 @@ fn set_record_works() {
 		assert!(region.record.is_pending());
 
 		assert_ok!(Regions::set_record(region_id, record.clone()));
+		System::assert_last_event(Event::RecordSet { region_id }.into());
 
 		// check storage
 		assert!(Regions::regions(region_id).is_some());
