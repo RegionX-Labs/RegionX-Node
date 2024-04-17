@@ -107,6 +107,8 @@ fn request_region_record_works() {
 		});
 
 		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
+
+		System::assert_last_event(Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into());
 	});
 }
 
@@ -131,6 +133,8 @@ fn transfer_works() {
 
 		// transfer region success
 		assert_ok!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2));
+
+		System::assert_last_event(Event::Transferred { region_id, old_owner: 1, owner: 2 }.into());
 
 		// check storage item
 		assert!(Regions::regions(region_id).is_some());
