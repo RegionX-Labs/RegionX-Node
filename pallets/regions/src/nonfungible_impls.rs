@@ -77,7 +77,7 @@ impl<T: Config> Mutate<T::AccountId> for Pallet<T> {
 	}
 
 	/// Burning is used for withdrawing a region into the holding registrar.
-	fn  burn(item: &Self::ItemId, maybe_check_owner: Option<&T::AccountId>) -> DispatchResult {
+	fn burn(item: &Self::ItemId, maybe_check_owner: Option<&T::AccountId>) -> DispatchResult {
 		let region_id: RegionId = (*item).into();
 
 		let region = Regions::<T>::get(region_id).ok_or(Error::<T>::UnknownRegion)?;

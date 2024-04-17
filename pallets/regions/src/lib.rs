@@ -130,7 +130,7 @@ pub mod pallet {
 			region_id: RegionId,
 			/// The account who requested the region record.
 			account: T::AccountId,
-		}
+		},
 	}
 
 	#[pallet::error]

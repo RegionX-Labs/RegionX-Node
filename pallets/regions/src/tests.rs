@@ -14,7 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region, Error };
+	ismp_mock::requests, mock::*, utils, Error, IsmpCustomError, IsmpModuleCallback, Record, Region,
+};
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
 	module::IsmpModule,
@@ -77,7 +78,10 @@ fn request_region_record_works() {
 		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
 
 		// fails to request unknown regions
-		assert_err!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id), Error::<Test>::UnknownRegion);
+		assert_err!(
+			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
+			Error::<Test>::UnknownRegion
+		);
 
 		assert_ok!(Regions::mint_into(&region_id.into(), &1));
 
@@ -88,7 +92,10 @@ fn request_region_record_works() {
 
 		// more tests required in an e2e test
 
-		assert_err!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id), Error::<Test>::NotUnavailable);
+		assert_err!(
+			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
+			Error::<Test>::NotUnavailable
+		);
 	});
 }
 
@@ -99,11 +106,17 @@ fn transfer_works() {
 		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
 		assert!(Regions::regions(region_id).is_none());
 
-		assert_err!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2), Error::<Test>::UnknownRegion);
+		assert_err!(
+			Regions::transfer(RuntimeOrigin::signed(1), region_id, 2),
+			Error::<Test>::UnknownRegion
+		);
 
 		// only regions owned by the caller are transferable
 		assert_ok!(Regions::mint_into(&region_id.into(), &1));
-		assert_err!(Regions::transfer(RuntimeOrigin::signed(3), region_id, 2), Error::<Test>::NotOwner);
+		assert_err!(
+			Regions::transfer(RuntimeOrigin::signed(3), region_id, 2),
+			Error::<Test>::NotOwner
+		);
 
 		// transfer region success
 		assert_ok!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2));
@@ -132,7 +145,8 @@ fn on_response_works() {
 
 		assert_eq!(request.who, 2);
 
-		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 113000, owner: 1, paid: None };
+		let mock_record: RegionRecord<u64, u64> =
+			RegionRecord { end: 113000, owner: 1, paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),

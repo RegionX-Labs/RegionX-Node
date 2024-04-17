@@ -409,7 +409,7 @@ impl orml_asset_registry::Config for Runtime {
 	type CustomMetadata = CustomMetadata;
 	type StringLimit = AssetsStringLimit;
 	type RuntimeEvent = RuntimeEvent;
-	// TODO: accurate weight 
+	// TODO: accurate weight
 	type WeightInfo = ();
 }
 
@@ -614,7 +614,7 @@ construct_runtime!(
 		// ISMP
 		Ismp: pallet_ismp = 50,
 		IsmpParachain: ismp_parachain = 51,
-		
+
 		// Main stage:
 		Regions: pallet_regions = 60,
 	}
