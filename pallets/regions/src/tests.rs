@@ -14,7 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, utils, Error, IsmpCustomError, IsmpModuleCallback, Record, Region,
+	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, IsmpCustomError,
+	IsmpModuleCallback, Record, Region,
 };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
@@ -58,6 +59,11 @@ fn set_record_works() {
 
 		// `set_record` succeeds
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
+
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+		assert!(region.record.is_pending());
+
 		assert_ok!(Regions::set_record(region_id, record.clone()));
 
 		// check storage
@@ -87,15 +93,19 @@ fn request_region_record_works() {
 
 		assert!(Regions::regions(region_id).is_some());
 		let region = Regions::regions(region_id).unwrap();
-
 		assert!(region.record.is_pending());
-
-		// more tests required in an e2e test
-
 		assert_err!(
 			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
 			Error::<Test>::NotUnavailable
 		);
+
+		RegionsStorage::<Test>::mutate_exists(region_id, |val| {
+			let mut v0 = val.clone().unwrap();
+			v0.record = Record::Unavailable;
+			*val = Some(v0);
+		});
+
+		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
 	});
 }
 
