@@ -14,7 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, utils, IsmpCustomError, IsmpModuleCallback, Record, Region,
+	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, Event,
+	IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
@@ -50,21 +51,96 @@ fn nonfungibles_implementation_works() {
 #[test]
 fn set_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
+		let record: RegionRecord<u64, u64> = RegionRecord { end: 123600, owner: 1, paid: None };
+
+		// The region with the given `region_id` does not exist.
+		assert_err!(Regions::set_record(region_id, record.clone()), Error::<Test>::UnknownRegion);
+
+		// `set_record` succeeds
+		assert_ok!(Regions::mint_into(&region_id.into(), &2));
+
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+		assert!(region.record.is_pending());
+
+		assert_ok!(Regions::set_record(region_id, record.clone()));
+		System::assert_last_event(Event::RecordSet { region_id }.into());
+
+		// check storage
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+		assert!(region.record.is_available());
+		assert_eq!(region.owner, 2);
+		assert_eq!(region.record, Record::<Test>::Available(record.clone()));
+
+		// call `set_record` again with the same record
+		assert_err!(Regions::set_record(region_id, record), Error::<Test>::RegionRecordAlreadySet);
 	});
 }
 
 #[test]
 fn request_region_record_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
+
+		// fails to request unknown regions
+		assert_err!(
+			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
+			Error::<Test>::UnknownRegion
+		);
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+		assert!(region.record.is_pending());
+		assert_err!(
+			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
+			Error::<Test>::NotUnavailable
+		);
+
+		RegionsStorage::<Test>::mutate_exists(region_id, |val| {
+			let mut v0 = val.clone().unwrap();
+			v0.record = Record::Unavailable;
+			*val = Some(v0);
+		});
+
+		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
+
+		System::assert_last_event(Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into());
 	});
 }
 
 #[test]
 fn transfer_works() {
 	new_test_ext().execute_with(|| {
-		// TODO:
+		// cannot transfer an unknown region
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+		assert!(Regions::regions(region_id).is_none());
+
+		assert_err!(
+			Regions::transfer(RuntimeOrigin::signed(1), region_id, 2),
+			Error::<Test>::UnknownRegion
+		);
+
+		// only regions owned by the caller are transferable
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_err!(
+			Regions::transfer(RuntimeOrigin::signed(3), region_id, 2),
+			Error::<Test>::NotOwner
+		);
+
+		// transfer region success
+		assert_ok!(Regions::transfer(RuntimeOrigin::signed(1), region_id, 2));
+
+		System::assert_last_event(Event::Transferred { region_id, old_owner: 1, owner: 2 }.into());
+
+		// check storage item
+		assert!(Regions::regions(region_id).is_some());
+		let region = Regions::regions(region_id).unwrap();
+
+		assert_eq!(region.owner, 2);
 	});
 }
 
@@ -84,7 +160,8 @@ fn on_response_works() {
 
 		assert_eq!(request.who, 2);
 
-		let mock_record: RegionRecord<u64, u64> = RegionRecord { end: 42, owner: 1, paid: None };
+		let mock_record: RegionRecord<u64, u64> =
+			RegionRecord { end: 113000, owner: 1, paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),
@@ -121,13 +198,6 @@ fn on_response_only_handles_get() {
 		});
 
 		assert_err!(module.on_response(mock_response), IsmpCustomError::NotSupported);
-	});
-}
-
-#[test]
-fn on_timeout_only_handles_get() {
-	new_test_ext().execute_with(|| {
-		// TODO:
 	});
 }
 

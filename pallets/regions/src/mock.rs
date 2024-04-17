@@ -85,7 +85,7 @@ impl pallet_balances::Config for Test {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005);
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 }
 
 pub struct MockStateMachineHeightProvider;
@@ -107,5 +107,8 @@ impl crate::Config for Test {
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
-	system::GenesisConfig::<Test>::default().build_storage().unwrap().into()
+	let t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
+    let mut ext = sp_io::TestExternalities::new(t);
+    ext.execute_with(|| System::set_block_number(1));
+    ext
 }
