@@ -14,8 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, Event,
-	IsmpCustomError, IsmpModuleCallback, Record, Region,
+	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Call as RegionsCall,
+	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
 use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
 use ismp::{
@@ -108,7 +108,9 @@ fn request_region_record_works() {
 
 		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
 
-		System::assert_last_event(Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into());
+		System::assert_last_event(
+			Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into(),
+		);
 	});
 }
 
@@ -241,6 +243,41 @@ fn on_accept_works() {
 		};
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 		assert_err!(module.on_accept(post), IsmpCustomError::NotSupported);
+	});
+}
+
+#[test]
+fn utlity_pallet_works() {
+	new_test_ext().execute_with(|| {
+		let region1_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
+		let region2_id = RegionId { begin: 112830, core: 82, mask: CoreMask::complete() };
+
+		assert_ok!(Regions::mint_into(&region1_id.into(), &1));
+		assert_ok!(Regions::mint_into(&region2_id.into(), &1));
+
+		assert_ok!(Utility::batch(
+			RuntimeOrigin::signed(1),
+			vec![
+				RuntimeCall::Regions(RegionsCall::transfer {
+					region_id: region1_id.clone(),
+					new_owner: 2
+				}),
+				RuntimeCall::Regions(RegionsCall::transfer {
+					region_id: region2_id.clone(),
+					new_owner: 2
+				})
+			]
+		));
+
+		// check the new owners
+		assert_eq!(
+			Regions::regions(&region1_id).unwrap(),
+			Region { owner: 2, record: Record::Pending }
+		);
+		assert_eq!(
+			Regions::regions(&region2_id).unwrap(),
+			Region { owner: 2, record: Record::Pending }
+		);
 	});
 }
 

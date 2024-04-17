@@ -34,11 +34,12 @@ sp-runtime = { workspace = true, default-features = false }
 hex = { workspace = true }
 serde = { workspace = true }
 pallet-balances = { workspace = true, default-features = false }
+pallet-utility = { workspace = true, default-features = false}
 ismp-testsuite = { workspace = true }
 
 [features]
 default = ["std"]
-runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks", "pallet-utility/runtime-benchmarks"]
 std = [
 	"log/std",
 	"parity-scale-codec/std",
@@ -50,5 +51,6 @@ std = [
 	"frame-system/std",
 	"pallet-balances/std",
 	"pallet-ismp/std",
+	"pallet-utility/std"
 ]
-try-runtime = [ "frame-support/try-runtime" ]
+try-runtime = [ "frame-support/try-runtime", "pallet-utility/try-runtime" ]

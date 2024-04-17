@@ -31,6 +31,7 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances,
+		Utility: pallet_utility,
 		Regions: crate::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -84,6 +85,13 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 }
 
+impl pallet_utility::Config for Test {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = pallet_utility::weights::SubstrateWeight<Test>;
+}
+
 parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 }
@@ -108,7 +116,7 @@ impl crate::Config for Test {
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
-    let mut ext = sp_io::TestExternalities::new(t);
-    ext.execute_with(|| System::set_block_number(1));
-    ext
+	let mut ext = sp_io::TestExternalities::new(t);
+	ext.execute_with(|| System::set_block_number(1));
+	ext
 }
