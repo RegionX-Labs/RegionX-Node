@@ -85,7 +85,7 @@ impl IsmpModule for ProxyModule {
 
 		#[allow(clippy::match_single_binding)]
 		match pallet_id {
-			pallet_regions::PALLET_ID => 
+			pallet_regions::PALLET_ID =>
 				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_response(response),
 			_ => Err(Error::ImplementationSpecific("Destination module not found".to_string())),
 		}
@@ -103,7 +103,7 @@ impl IsmpModule for ProxyModule {
 
 		#[allow(clippy::match_single_binding)]
 		match pallet_id {
-			pallet_regions::PALLET_ID => 
+			pallet_regions::PALLET_ID =>
 				pallet_regions::IsmpModuleCallback::<Runtime>::default().on_timeout(timeout),
 			// instead of returning an error, do nothing. The timeout is for a connected chain.
 			_ => Ok(()),
