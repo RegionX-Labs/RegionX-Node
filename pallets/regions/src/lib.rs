@@ -119,6 +119,18 @@ pub mod pallet {
 			/// The new owner of the Region.
 			owner: T::AccountId,
 		},
+		/// Region record of the given id has been set.
+		RecordSet {
+			/// The id of the region that the record has been set.
+			region_id: RegionId,
+		},
+		/// An ISMP GET request was made to get the region record.
+		RegionRecordRequested {
+			/// The id of the region that the request was made for.
+			region_id: RegionId,
+			/// The account who requested the region record.
+			account: T::AccountId,
+		}
 	}
 
 	#[pallet::error]
@@ -187,6 +199,7 @@ pub mod pallet {
 			Regions::<T>::insert(region_id, &region);
 
 			Self::deposit_event(Event::Transferred { region_id, old_owner, owner: region.owner });
+
 			Ok(())
 		}
 	}
@@ -200,6 +213,8 @@ pub mod pallet {
 
 			region.record = Record::Available(record);
 			Regions::<T>::insert(region_id, region);
+
+			Self::deposit_event(Event::RecordSet { region_id });
 
 			Ok(())
 		}
@@ -240,7 +255,7 @@ pub mod pallet {
 				.dispatch_request(DispatchRequest::Get(get), who.clone(), Zero::zero())
 				.map_err(|_| Error::<T>::IsmpDispatchError)?;
 
-			// TODO: Emit event
+			Self::deposit_event(Event::RegionRecordRequested { region_id, account: who });
 
 			Ok(())
 		}
