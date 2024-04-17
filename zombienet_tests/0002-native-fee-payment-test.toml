@@ -1,18 +1,17 @@
 [settings]
 timeout = 1000
 
-
 [relaychain]
 chain = "rococo-local"
 command = "polkadot"
 
   [[relaychain.nodes]]
   name = "alice"
-  args = [ "--alice", "-lruntime=debug,parachain=trace" ]
+  validator = true
 
   [[relaychain.nodes]]
   name = "bob"
-  args = [ "--bob", "-lruntime=debug,parachain=trace" ]
+  validator = true
 
 [[parachains]]
 id = 2000
