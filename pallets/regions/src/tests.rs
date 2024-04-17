@@ -108,7 +108,9 @@ fn request_region_record_works() {
 
 		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
 
-		System::assert_last_event(Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into());
+		System::assert_last_event(
+			Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into(),
+		);
 	});
 }
 
