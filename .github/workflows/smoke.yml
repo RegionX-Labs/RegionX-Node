@@ -29,13 +29,14 @@ jobs:
         echo $GITHUB_WORKSPACE
         echo "PATH=$GITHUB_WORKSPACE:$PATH" >> $GITHUB_ENV
         echo $PATH
+
     - name: Pull Docker Image
       run: docker pull szegoo/regionx-node:latest
 
-      - name: Compile regionx-node
-        run: |
-          cargo build --release
-          cp ./target/release/regionx-node .
+    - name: Compile regionx-node
+      run: |
+        cargo build --release
+        cp ./target/release/regionx-node .
     
     - name: Run smoke test 0001
       run: ./zombienet-linux-x64 -p native test ./zombienet_tests/0001-smoke-test.zndsl
