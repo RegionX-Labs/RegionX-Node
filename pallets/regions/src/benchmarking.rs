@@ -47,7 +47,7 @@ mod benchmarks {
 		_(RawOrigin::Signed(caller.clone()), region_id, new_owner.clone());
 
 		assert_last_event::<T>(
-			Event::Transferred { region_id, old_owner: caller, owner: new_owner }.into()
+			Event::Transferred { region_id, old_owner: caller, owner: new_owner }.into(),
 		);
 
 		Ok(())
@@ -67,9 +67,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), region_id);
 
-		assert_last_event::<T>(
-			Event::RegionRecordRequested { region_id, account: caller }.into()
-		);
+		assert_last_event::<T>(Event::RegionRecordRequested { region_id, account: caller }.into());
 
 		Ok(())
 	}
