@@ -578,6 +578,33 @@ impl pallet_multisig::Config for Runtime {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	// One storage item; key size 32, value size 8; .
+	pub const ProxyDepositBase: Balance = deposit(1, 40);
+	// Additional storage item size of 33 bytes.
+	pub const ProxyDepositFactor: Balance = deposit(0, 33);
+	pub const MaxProxies: u16 = 32;
+	// One storage item; key size 32, value size 16
+	pub const AnnouncementDepositBase: Balance = deposit(1, 48);
+	pub const AnnouncementDepositFactor: Balance = deposit(0, 66);
+	pub const MaxPending: u16 = 32;
+}
+
+impl pallet_proxy::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type Currency = Balances;
+	type ProxyType = ProxyType;
+	type ProxyDepositBase = ProxyDepositBase;
+	type ProxyDepositFactor = ProxyDepositFactor;
+	type MaxProxies = MaxProxies;
+	type WeightInfo = ();
+	type MaxPending = MaxPending;
+	type CallHasher = BlakeTwo256;
+	type AnnouncementDepositBase = AnnouncementDepositBase;
+	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -607,6 +634,7 @@ construct_runtime!(
 		// Handy utilities
 		Utility: pallet_utility = 40,
 		Multisig: pallet_multisig = 41,
+		Proxy: pallet_proxy = 42,
 
 		// XCM helpers.
 		XcmpQueue: cumulus_pallet_xcmp_queue = 50,
@@ -628,6 +656,7 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]
+		[pallet_proxy, Proxy]
 		[pallet_timestamp, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_sudo, Sudo]
