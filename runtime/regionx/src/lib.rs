@@ -553,6 +553,13 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = ();
 }
 
+impl pallet_utility::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeCall = RuntimeCall;
+	type PalletsOrigin = OriginCaller;
+	type WeightInfo = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -579,15 +586,18 @@ construct_runtime!(
 		Aura: pallet_aura = 33,
 		AuraExt: cumulus_pallet_aura_ext = 34,
 
+		// Handy utilities
+		Utility: pallet_utility = 40,
+
 		// XCM helpers.
-		XcmpQueue: cumulus_pallet_xcmp_queue = 40,
-		PolkadotXcm: pallet_xcm = 41,
-		CumulusXcm: cumulus_pallet_xcm = 42,
-		MessageQueue: pallet_message_queue = 43,
+		XcmpQueue: cumulus_pallet_xcmp_queue = 50,
+		PolkadotXcm: pallet_xcm = 51,
+		CumulusXcm: cumulus_pallet_xcm = 52,
+		MessageQueue: pallet_message_queue = 53,
 
 		// ISMP
-		Ismp: pallet_ismp = 50,
-		IsmpParachain: ismp_parachain = 51,
+		Ismp: pallet_ismp = 60,
+		IsmpParachain: ismp_parachain = 61,
 	}
 );
 
@@ -598,6 +608,7 @@ mod benches {
 		[pallet_assets, Assets]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
+		[pallet_timestamp, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_sudo, Sudo]
 		[pallet_collator_selection, CollatorSelection]
