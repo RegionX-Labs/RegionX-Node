@@ -46,6 +46,7 @@ pallet-aura = { workspace = true }
 pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-message-queue = { workspace = true }
+pallet-multisig = { workspace = true }
 pallet-session = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
@@ -120,6 +121,7 @@ std = [
 	"pallet-collator-selection/std",
 	"pallet-message-queue/std",
 	"regionx-primitives/std",
+	"pallet-multisig/std",
 	"pallet-session/std",
 	"pallet-sudo/std",
 	"pallet-utility/std",
@@ -166,6 +168,7 @@ runtime-benchmarks = [
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
@@ -197,6 +200,7 @@ try-runtime = [
 	"pallet-balances/try-runtime",
 	"pallet-collator-selection/try-runtime",
 	"pallet-message-queue/try-runtime",
+	"pallet-multisig/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
 	"pallet-utility/try-runtime",
