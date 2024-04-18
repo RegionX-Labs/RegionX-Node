@@ -15,22 +15,44 @@
 
 //! Benchmarking setup for pallet-regions
 
+#![cfg(feature = "runtime-benchmarks")]
+
 use super::*;
 
-#[allow(unused)]
-use crate::Pallet as Template;
-use frame_benchmarking::{benchmarks, impl_benchmark_test_suite, whitelisted_caller};
-use frame_system::RawOrigin;
+use frame_benchmarking::v2::*;
+use crate::mock::*;
+use pallet_broker::{RegionId, CoreMask};
 
-benchmarks! {
-	// TODO:
-	do_something {
-		let s in 0 .. 100;
-		let caller: T::AccountId = whitelisted_caller();
-	}: _(RawOrigin::Signed(caller), s)
-	verify {
-		assert_eq!(Something::<T>::get(), Some(s));
-	}
+fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
+	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 }
 
-impl_benchmark_test_suite!(Template, crate::mock::new_test_ext(), crate::mock::Test,);
+#[benchmarks]
+mod benchmarks  {
+	use super::*;
+
+	#[benchmark]
+	fn transfer() -> Result<(), BenchmarkError> {
+		let old_owner = 1;
+		let new_owner: T::AccountId = 2;
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		#[extrinsic_call]
+		_(RuntimeOrigin::signed(old_owner), region_id, new_owner);
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn request_region_record() -> Result<(), BenchmarkError> {
+		let owner = 1;
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		#[extrinsic_call]
+		_(RuntimeOrigin::signed(owner), region_id);
+
+		Ok(())
+	}
+
+	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
+}
