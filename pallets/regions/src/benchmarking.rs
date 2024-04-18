@@ -44,7 +44,11 @@ mod benchmarks {
 		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &caller));
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller), region_id, new_owner);
+		_(RawOrigin::Signed(caller.clone()), region_id, new_owner.clone());
+
+		assert_last_event::<T>(
+			Event::Transferred { region_id, old_owner: caller, owner: new_owner }.into()
+		);
 
 		Ok(())
 	}
@@ -61,7 +65,11 @@ mod benchmarks {
 		);
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller), region_id);
+		_(RawOrigin::Signed(caller.clone()), region_id);
+
+		assert_last_event::<T>(
+			Event::RegionRecordRequested { region_id, account: caller }.into()
+		);
 
 		Ok(())
 	}
