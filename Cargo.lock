@@ -9372,7 +9372,6 @@ dependencies = [
  "pallet-ismp",
  "pallet-ismp-runtime-api",
  "pallet-message-queue",
- "pallet-regions",
  "pallet-multisig",
  "pallet-proxy",
  "pallet-regions",
