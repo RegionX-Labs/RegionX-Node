@@ -637,6 +637,7 @@ impl pallet_proxy::Config for Runtime {
 	type CallHasher = BlakeTwo256;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -679,8 +680,8 @@ construct_runtime!(
 		// ISMP
 		Ismp: pallet_ismp = 60,
 		IsmpParachain: ismp_parachain = 61,
-    
-    // Main stage:
+
+	// Main stage:
 		Regions: pallet_regions = 70,
 	}
 );
