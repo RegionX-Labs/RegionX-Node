@@ -584,6 +584,7 @@ impl pallet_regions::Config for Runtime {
 	type IsmpDispatcher = Dispatcher<Runtime>;
 	type StateMachineHeightProvider = StateMachineHeightProvider;
 	type Timeout = ConstU64<1000>; // TODO: FIXME
+	type WeightInfo = ();
 }
 
 impl pallet_utility::Config for Runtime {
@@ -695,7 +696,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_timestamp, Utility]
 		[pallet_timestamp, Timestamp]
-		[pallet_utility, Utility],
+		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

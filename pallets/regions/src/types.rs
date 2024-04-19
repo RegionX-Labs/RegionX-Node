@@ -18,6 +18,7 @@ use frame_support::traits::fungible::Inspect;
 use pallet_broker::RegionRecord;
 use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
+use scale_info::prelude::format;
 
 pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<
 	<T as frame_system::Config>::AccountId,

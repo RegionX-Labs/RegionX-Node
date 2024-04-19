@@ -52,6 +52,9 @@ use types::*;
 pub mod primitives;
 use primitives::StateMachineHeightProvider;
 
+pub mod weights;
+pub use weights::WeightInfo;
+
 const LOG_TARGET: &str = "runtime::regions";
 
 /// Constant Pallet ID
@@ -97,6 +100,9 @@ pub mod pallet {
 
 		/// Number of seconds before a GET request times out.
 		type Timeout: Get<u64>;
+
+		/// Weight Info
+		type WeightInfo: WeightInfo;
 	}
 
 	#[pallet::pallet]
@@ -152,9 +158,8 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
-		// TODO: correct weight
 		#[pallet::call_index(0)]
-		#[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(T::WeightInfo::transfer())]
 		pub fn transfer(
 			origin: OriginFor<T>,
 			region_id: RegionId,
@@ -166,9 +171,8 @@ pub mod pallet {
 			Ok(())
 		}
 
-		// TODO: correct weight
 		#[pallet::call_index(1)]
-		#[pallet::weight(Weight::from_parts(10_000, 0) + T::DbWeight::get().writes(1))]
+		#[pallet::weight(T::WeightInfo::request_region_record())]
 		pub fn request_region_record(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -327,6 +331,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 mod utils {
 	use super::{BTreeMap, IsmpCustomError, IsmpError};
+	use scale_info::prelude::vec::Vec;
 
 	pub fn read_value(
 		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
