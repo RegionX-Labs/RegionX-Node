@@ -1,6 +1,5 @@
-use crate::{AssetId, Runtime, RuntimeCall};
-use frame_support::traits::InstanceFilter;
-use frame_support::traits::{fungibles, Defensive};
+use crate::{AccountId, AssetId, Assets, Authorship, Runtime, RuntimeCall};
+use frame_support::traits::{fungibles, Defensive, InstanceFilter};
 use orml_asset_registry::DefaultAssetMetadata;
 use orml_traits::asset_registry::AssetProcessor;
 use pallet_asset_tx_payment::HandleCredit;
@@ -41,7 +40,7 @@ impl HandleCredit<AccountId, Assets> for AssetsToBlockAuthor {
 		if let Some(author) = Authorship::author() {
 			// In case of error: Will drop the result triggering the `OnDrop` of the imbalance.
 			let _ = Assets::resolve(&author, credit).defensive();
-    }
+		}
 	}
 }
 
