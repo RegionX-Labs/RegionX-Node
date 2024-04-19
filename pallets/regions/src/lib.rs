@@ -154,6 +154,8 @@ pub mod pallet {
 		FailedReadingCoretimeHeight,
 		/// The record must be unavailable to be able to re-request it.
 		NotUnavailable,
+		/// The given region id is not valid.
+		RegionIdInvalid,
 	}
 
 	#[pallet::call]
@@ -231,9 +233,8 @@ pub mod pallet {
 			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
 			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
 
-			// TODO: be defensive here
 			let region_id_encoded: [u8; 16] =
-				region_id.encode().try_into().expect("RegionId is exactly 128 bits");
+				region_id.encode().try_into().map_err(|_| Error::<T>::InvalidRegionId)?;
 
 			// pallet_hash + storage_hash + blake2_128(region_id) + scale encoded region_id
 			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
