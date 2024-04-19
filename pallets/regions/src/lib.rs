@@ -28,7 +28,7 @@ use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::RegionId;
 use pallet_ismp::primitives::ModuleId;
-use parity_scale_codec::{alloc::collections::BTreeMap, Decode};
+use codec::{alloc::collections::BTreeMap, Decode};
 use scale_info::prelude::{format, vec, vec::Vec};
 use sp_runtime::traits::Zero;
 

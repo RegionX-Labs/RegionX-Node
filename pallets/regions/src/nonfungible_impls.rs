@@ -19,7 +19,7 @@ use frame_support::{
 	pallet_prelude::DispatchResult,
 	traits::nonfungible::{Inspect, Mutate, Transfer},
 };
-use parity_scale_codec::Encode;
+use codec::Encode;
 
 impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 	type ItemId = u128;

@@ -16,7 +16,7 @@
 use crate::IsmpError;
 use frame_support::traits::fungible::Inspect;
 use pallet_broker::RegionRecord;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::{prelude::format, TypeInfo};
 
 pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<
