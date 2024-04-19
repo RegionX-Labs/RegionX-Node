@@ -2,7 +2,7 @@
 
 ### Running zombienet tests
 
-1. Install latest zombienet release from the [Zombienet release page](https://github.com/paritytech/zombienet/releases).
+1. Install the latest zombienet release from the [Zombienet release page](https://github.com/paritytech/zombienet/releases).
 
 2. Build the `regionx-node` by running:
 
