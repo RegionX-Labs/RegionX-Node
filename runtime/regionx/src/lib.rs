@@ -584,6 +584,7 @@ impl pallet_regions::Config for Runtime {
 	type IsmpDispatcher = Dispatcher<Runtime>;
 	type StateMachineHeightProvider = StateMachineHeightProvider;
 	type Timeout = ConstU64<1000>; // TODO: FIXME
+	type WeightInfo = ();
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -636,7 +637,7 @@ mod benches {
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_timestamp, Timestamp]
-		[pallet_utility, Utility],
+		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]

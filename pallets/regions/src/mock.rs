@@ -111,6 +111,7 @@ impl crate::Config for Test {
 	type IsmpDispatcher = MockDispatcher<Self>;
 	type StateMachineHeightProvider = MockStateMachineHeightProvider;
 	type Timeout = ConstU64<1000>;
+	type WeightInfo = ();
 }
 
 // Build genesis storage according to the mock runtime.
