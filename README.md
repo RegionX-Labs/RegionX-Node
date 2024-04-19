@@ -1,7 +1,5 @@
 # RegionX parachain
 
-TODO
-
 ### Running zombienet tests
 
 1. Install latest zombienet release from the [Zombienet release page](https://github.com/paritytech/zombienet/releases).
