@@ -334,13 +334,6 @@ impl pallet_timestamp::Config for Runtime {
 	type WeightInfo = ();
 }
 
-impl pallet_utility::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Runtime>;
-}
-
 impl pallet_authorship::Config for Runtime {
 	type FindAuthor = pallet_session::FindAccountFromAuthorIndex<Self, Aura>;
 	type EventHandler = (CollatorSelection,);
@@ -648,7 +641,6 @@ construct_runtime!(
 		ParachainSystem: cumulus_pallet_parachain_system = 1,
 		Timestamp: pallet_timestamp = 2,
 		ParachainInfo: parachain_info = 3,
-		Utility: pallet_utility = 4,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -681,7 +673,7 @@ construct_runtime!(
 		Ismp: pallet_ismp = 60,
 		IsmpParachain: ismp_parachain = 61,
 
-	// Main stage:
+		// Main stage:
 		Regions: pallet_regions = 70,
 	}
 );
@@ -695,7 +687,6 @@ mod benches {
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]
 		[pallet_proxy, Proxy]
-		[pallet_timestamp, Utility]
 		[pallet_timestamp, Timestamp]
 		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]

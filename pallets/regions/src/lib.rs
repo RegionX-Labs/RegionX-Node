@@ -155,7 +155,7 @@ pub mod pallet {
 		/// The record must be unavailable to be able to re-request it.
 		NotUnavailable,
 		/// The given region id is not valid.
-		RegionIdInvalid,
+		InvalidRegionId,
 	}
 
 	#[pallet::call]
@@ -332,7 +332,6 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 mod utils {
 	use super::{BTreeMap, IsmpCustomError, IsmpError};
-	use scale_info::prelude::vec::Vec;
 
 	pub fn read_value(
 		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
