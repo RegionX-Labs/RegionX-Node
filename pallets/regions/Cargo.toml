@@ -38,7 +38,7 @@ ismp-testsuite = { workspace = true }
 
 [features]
 default = ["std"]
-runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks", "pallet-utility/runtime-benchmarks"]
+runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 std = [
 	"log/std",
 	"codec/std",
@@ -56,4 +56,4 @@ std = [
 	"pallet-ismp/std",
 	"pallet-utility/std"
 ]
-try-runtime = [ "frame-support/try-runtime", "pallet-utility/try-runtime" ]
+try-runtime = [ "frame-support/try-runtime" ]

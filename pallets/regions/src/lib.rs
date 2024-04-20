@@ -150,8 +150,6 @@ pub mod pallet {
 		RegionRecordAlreadySet,
 		/// An error occured when attempting to dispatch an ISMP GET request.
 		IsmpDispatchError,
-		/// Failed reading the height of the Coretime chain.
-		FailedReadingCoretimeHeight,
 		/// The record must be unavailable to be able to re-request it.
 		NotUnavailable,
 		/// The given region id is not valid.
@@ -233,6 +231,7 @@ pub mod pallet {
 			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
 			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
 
+			// We know a region id is 128 bits.
 			let region_id_encoded: [u8; 16] =
 				region_id.encode().try_into().map_err(|_| Error::<T>::InvalidRegionId)?;
 
@@ -311,7 +310,9 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_timeout(&self, timeout: Timeout) -> Result<(), IsmpError> {
 		match timeout {
 			Timeout::Request(Request::Get(get)) => get.keys.iter().try_for_each(|key| {
+				// The last 16 bytes represent the region id.
 				let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
+
 				let region_id = RegionId::decode(&mut region_id_encoded)
 					.map_err(|_| IsmpCustomError::DecodeFailed)?;
 
@@ -332,6 +333,8 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 mod utils {
 	use super::{BTreeMap, IsmpCustomError, IsmpError};
+	#[cfg(not(feature = "std"))]
+	use scale_info::prelude::vec::Vec;
 
 	pub fn read_value(
 		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
