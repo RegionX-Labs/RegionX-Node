@@ -60,9 +60,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{
-		AsEnsureOriginWithArg, ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, Everything,
-	},
+	traits::{ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, Everything},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -71,7 +69,7 @@ use frame_support::{
 };
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot, EnsureSigned, Phase,
+	EnsureRoot, Phase,
 };
 use pallet_ismp::{
 	mmr::primitives::{Leaf, LeafIndex},
@@ -96,8 +94,8 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_primitives::{
-	assets::CustomMetadata, AccountId, Address, Balance, BlockNumber, Hash, Header, Nonce,
-	Signature,
+	assets::{AssetId, CustomMetadata},
+	AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
@@ -232,8 +230,6 @@ const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
 );
 
-type AssetId = u32;
-
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -338,10 +334,12 @@ impl pallet_authorship::Config for Runtime {
 
 parameter_types! {
 	pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const MaxLocks: u32 = 50;
+	pub const MaxReserves: u32 = 50;
 }
 
 impl pallet_balances::Config for Runtime {
-	type MaxLocks = ConstU32<50>;
+	type MaxLocks = MaxLocks;
 	type MaxHolds = ConstU32<1>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
@@ -351,7 +349,7 @@ impl pallet_balances::Config for Runtime {
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
 	type WeightInfo = ();
-	type MaxReserves = ConstU32<50>;
+	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
@@ -369,30 +367,19 @@ parameter_types! {
 	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
 }
 
-impl pallet_assets::Config for Runtime {
+impl orml_tokens::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = Balance;
-	type AssetId = AssetId;
-	type AssetIdParameter = codec::Compact<AssetId>;
-	type Currency = Balances;
-	// TODO after https://github.com/RegionX-Labs/RegionX-Node/issues/72:
-	// Allow only TC to create an asset.
-	type CreateOrigin = AsEnsureOriginWithArg<EnsureSigned<AccountId>>;
-	type ForceOrigin = EnsureRoot<AccountId>;
-	type AssetDeposit = AssetDeposit;
-	type MetadataDepositBase = MetadataDepositBase;
-	type MetadataDepositPerByte = MetadataDepositPerByte;
-	type ApprovalDeposit = ExistentialDeposit;
-	type StringLimit = AssetsStringLimit;
-	type Freezer = ();
-	type Extra = ();
-	// TODO: accurate weight.
+	type Amount = Amount;
+	type CurrencyId = AssetId;
 	type WeightInfo = ();
-	type CallbackHandle = ();
-	type AssetAccountDeposit = AssetAccountDeposit;
-	type RemoveItemsLimit = sp_core::ConstU32<1000>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
+	/// Tokens are registered through the orml asset registry.
+	type ExistentialDeposits = ExistentialDeposits;
+	type CurrencyHooks = ();
+	type MaxLocks = MaxLocks;
+	type MaxReserves = MaxReserves;
+	type ReserveIdentifier = [u8; 8];
+	type DustRemovalWhitelist = ();
 }
 
 impl orml_asset_registry::Config for Runtime {
@@ -618,7 +605,7 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-		Assets: pallet_assets = 12,
+		OrmlTokens: orml_tokens = 12,
 		OrmlAssetRegistry: orml_asset_registry = 13,
 
 		// Governance
@@ -652,7 +639,6 @@ construct_runtime!(
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
-		[pallet_assets, Assets]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]

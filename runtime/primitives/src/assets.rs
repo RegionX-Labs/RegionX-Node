@@ -1,5 +1,9 @@
+use crate::Balance;
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
+
+/// Asset identifier.
+pub type AssetId = u32;
 
 #[derive(
 	Clone,
@@ -15,4 +19,6 @@ use scale_info::TypeInfo;
 	TypeInfo,
 	MaxEncodedLen,
 )]
-pub struct CustomMetadata;
+pub struct CustomMetadata {
+	pub existential_deposit: Balance,
+}
