@@ -71,6 +71,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, Phase,
 };
+use orml_currencies::BasicCurrencyAdapter;
 use pallet_ismp::{
 	mmr::primitives::{Leaf, LeafIndex},
 	primitives::Proof,
@@ -94,7 +95,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_primitives::{
-	assets::{AssetId, CustomMetadata},
+	assets::{AssetId, CustomMetadata, REGX_ASSET_ID},
 	AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
@@ -146,9 +147,9 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLIM4X:
-		// in our template, we map to 1/10 of that, or 1/10 MILLIM4X
-		let p = MILLIM4X / 10;
+		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLIREGX:
+		// in our template, we map to 1/10 of that, or 1/10 MILLIREGX
+		let p = MILLIREGX / 10;
 		let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -195,13 +196,13 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
 // Unit = the base number of indivisible units for balances
-pub const M4X: Balance = 1_000_000_000_000;
-pub const MILLIM4X: Balance = 1_000_000_000;
-pub const MICROM4X: Balance = 1_000_000;
+pub const REGX: Balance = 1_000_000_000_000;
+pub const MILLIREGX: Balance = 1_000_000_000;
+pub const MICROREGX: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
-	items as Balance * M4X + (bytes as Balance) * MILLIM4X
+	items as Balance * REGX + (bytes as Balance) * MILLIREGX
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -214,7 +215,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
 /// The existential deposit. Set to 1/10 of the Connected Relay Chain.
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLIM4X;
+pub const EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
 /// used to limit the maximal weight of a single extrinsic.
@@ -382,6 +383,17 @@ impl orml_tokens::Config for Runtime {
 	type DustRemovalWhitelist = ();
 }
 
+parameter_types! {
+	pub const NativeAssetId: AssetId = REGX_ASSET_ID;
+}
+
+impl orml_currencies::Config for Runtime {
+	type MultiCurrency = Tokens;
+	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
+	type GetNativeCurrencyId = NativeAssetId;
+	type WeightInfo = ();
+}
+
 impl orml_asset_registry::Config for Runtime {
 	type AssetId = AssetId;
 	type AssetProcessor = CustomAssetProcessor;
@@ -397,7 +409,7 @@ impl orml_asset_registry::Config for Runtime {
 
 parameter_types! {
 	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICROM4X;
+	pub const TransactionByteFee: Balance = 10 * MICROREGX;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -605,8 +617,9 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-		OrmlTokens: orml_tokens = 12,
-		OrmlAssetRegistry: orml_asset_registry = 13,
+		OrmlAssetRegistry: orml_asset_registry = 12,
+		Tokens: orml_tokens = 13,
+		Currencies: orml_currencies = 14,
 
 		// Governance
 		Sudo: pallet_sudo = 20,

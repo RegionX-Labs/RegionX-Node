@@ -22,3 +22,6 @@ pub type AssetId = u32;
 pub struct CustomMetadata {
 	pub existential_deposit: Balance,
 }
+
+pub const REGX_ASSET_ID: AssetId = 0;
+pub const RELAY_CHAIN_ASSET_ID: AssetId = 1;

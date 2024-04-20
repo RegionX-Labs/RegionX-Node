@@ -132,6 +132,7 @@ substrate-build-script-utils = "11.0.0"
 
 # Orml
 orml-asset-registry = { version = "0.7.0", default-features = false }
+orml-currencies = { version = "0.7.0", default-features = false }
 orml-tokens = { version = "0.7.0", default-features = false }
 orml-traits = { version = "0.7.0", default-features = false }
 
