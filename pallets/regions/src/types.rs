@@ -14,9 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::IsmpError;
+use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::fungible::Inspect;
 use pallet_broker::RegionRecord;
-use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::{prelude::format, TypeInfo};
 
 pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<

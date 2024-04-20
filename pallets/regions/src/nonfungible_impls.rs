@@ -14,12 +14,12 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::*;
+use codec::Encode;
 use frame_support::{
 	ensure,
 	pallet_prelude::DispatchResult,
 	traits::nonfungible::{Inspect, Mutate, Transfer},
 };
-use codec::Encode;
 
 impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 	type ItemId = u128;

@@ -15,6 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use codec::{alloc::collections::BTreeMap, Decode};
 use core::cmp::max;
 use frame_support::PalletId;
 use ismp::{
@@ -28,7 +29,6 @@ use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::RegionId;
 use pallet_ismp::primitives::ModuleId;
-use codec::{alloc::collections::BTreeMap, Decode};
 use scale_info::prelude::{format, vec, vec::Vec};
 use sp_runtime::traits::Zero;
 
