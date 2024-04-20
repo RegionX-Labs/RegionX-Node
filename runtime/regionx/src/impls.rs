@@ -1,9 +1,9 @@
-use crate::{AccountId, AssetId, Assets, Authorship, Runtime, RuntimeCall};
+use crate::{AssetId, Balance, OrmlAssetRegistry, Authorship, Runtime, RuntimeCall};
 use frame_support::traits::{fungibles, Defensive, InstanceFilter};
-use orml_asset_registry::DefaultAssetMetadata;
-use orml_traits::asset_registry::AssetProcessor;
 use pallet_asset_tx_payment::HandleCredit;
-use parity_scale_codec::{Decode, Encode, MaxEncodedLen};
+use codec::{Decode, Encode, MaxEncodedLen};
+use orml_asset_registry::DefaultAssetMetadata;
+use orml_traits::{asset_registry::AssetProcessor, GetByKey};
 use scale_info::TypeInfo;
 use sp_runtime::{DispatchError, RuntimeDebug};
 
@@ -78,10 +78,26 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer =>
-				!matches!(c, RuntimeCall::Balances { .. } | RuntimeCall::Assets { .. }),
+			ProxyType::NonTransfer => !matches!(
+				c,
+				RuntimeCall::Balances { .. } |
+					RuntimeCall::Tokens { .. } |
+					RuntimeCall::Currencies { .. }
+			),
 			ProxyType::CancelProxy =>
 				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
+		}
+	}
+}
+
+pub struct ExistentialDeposits;
+impl GetByKey<AssetId, Balance> for ExistentialDeposits {
+	fn get(asset: &AssetId) -> Balance {
+		if let Some(metadata) = OrmlAssetRegistry::metadata(asset) {
+			metadata.existential_deposit
+		} else {
+			// As restrictive as we can be. The asset must have associated metadata.
+			Balance::MAX
 		}
 	}
 }
