@@ -9366,6 +9366,7 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "pallet-asset-rate",
  "pallet-asset-tx-payment",
  "pallet-aura",
  "pallet-authorship",

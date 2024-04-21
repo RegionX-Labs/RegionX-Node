@@ -71,8 +71,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot, Phase,
 };
-use pallet_asset_tx_payment::FungiblesAdapter;
 use orml_currencies::BasicCurrencyAdapter;
+use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::{
 	mmr::primitives::{Leaf, LeafIndex},
 	primitives::Proof,
@@ -81,7 +81,6 @@ use pallet_ismp::{
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::H256;
-use sp_runtime::traits::ConvertInto;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
 
@@ -424,14 +423,22 @@ impl pallet_transaction_payment::Config for Runtime {
 	type OperationalFeeMultiplier = ConstU8<5>;
 }
 
+impl pallet_asset_rate::Config for Runtime {
+	type CreateOrigin = EnsureRoot<AccountId>;
+	type RemoveOrigin = EnsureRoot<AccountId>;
+	type UpdateOrigin = EnsureRoot<AccountId>;
+	type Currency = Balances;
+	type AssetKind = AssetId;
+	type RuntimeEvent = RuntimeEvent;
+	type WeightInfo = ();
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
 impl pallet_asset_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Fungibles = Assets;
-	type OnChargeAssetTransaction = FungiblesAdapter<
-		// This converts based on the minimum balance:
-		pallet_assets::BalanceToAssetBalance<Balances, Runtime, ConvertInto>,
-		AssetsToBlockAuthor,
-	>;
+	type Fungibles = Tokens;
+	type OnChargeAssetTransaction = FungiblesAdapter<TokenToNativeConverter, TokensToBlockAuthor>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -630,10 +637,11 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-    AssetTxPayment: pallet_asset_tx_payment = 12,
+		AssetTxPayment: pallet_asset_tx_payment = 12,
 		OrmlAssetRegistry: orml_asset_registry = 13,
 		Tokens: orml_tokens = 14,
 		Currencies: orml_currencies = 15,
+		AssetRate: pallet_asset_rate = 16,
 
 		// Governance
 		Sudo: pallet_sudo = 20,
