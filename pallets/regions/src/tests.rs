@@ -287,12 +287,9 @@ fn nonfungible_owner_works() {
 		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
 		assert!(Regions::owner(&0).is_none());
 
-		let item_id: u128 = region_id.into();
-		assert!(Regions::owner(&item_id).is_none());
-
-		assert_ok!(Regions::mint_into(&item_id, &1));
-
-		assert_eq!(Regions::owner(&item_id), Some(1));
+		assert!(Regions::owner(&region_id.into()).is_none());
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_eq!(Regions::owner(&region_id.into()), Some(1));
 	});
 }
 
