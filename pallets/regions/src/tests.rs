@@ -179,8 +179,30 @@ fn on_response_works() {
 
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Available(mock_record) }
+			Region { owner: 2, record: Record::Available(mock_record.clone()) }
 		);
+
+		// TODO: invalid region id
+		// let mut invalid_get_req = get.clone();
+		// invalid_get_req.keys.push(vec![0x23; 15]);
+		// invalid_get_req.keys.reverse();
+		// assert_err!(
+		// 	module.on_response(Response::Get(GetResponse {
+		// 		get: invalid_get_req.clone(),
+		// 		values: BTreeMap::from([(get.keys[0].clone(), Some(mock_record.clone().encode()))]),
+		// 	})),
+		// 	IsmpCustomError::DecodeFailed
+		// );
+
+		// // invalid record
+		// invalid_get_req.keys.pop();
+		// assert_err!(
+		// 	module.on_response(Response::Get(GetResponse {
+		// 		get: invalid_get_req.clone(),
+		// 		values: BTreeMap::from([(get.keys[0].clone(), Some(vec![1; 100]))]),
+		// 	})),
+		// 	IsmpCustomError::DecodeFailed
+		// );
 	});
 }
 
@@ -245,8 +267,6 @@ fn on_timeout_works() {
 			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
 			IsmpCustomError::RegionNotFound
 		);
-
-		// on_timeout handles Post requests
 
 		let post = Post {
 			source: <Test as crate::Config>::CoretimeChain::get(),
