@@ -1,5 +1,5 @@
 use crate::{
-	AccountId, AssetId, Authorship, Balance, OrmlAssetRegistry, Runtime, RuntimeCall, Tokens,
+	AccountId, AssetId, Authorship, Balance, AssetRegistry, Runtime, RuntimeCall, Tokens,
 };
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::{
@@ -51,7 +51,6 @@ impl HandleCredit<AccountId, Tokens> for TokensToBlockAuthor {
 	}
 }
 
-// TODO: maybe just use asset-rate pallet
 pub struct TokenToNativeConverter;
 impl ConversionToAssetBalance<Balance, AssetId, Balance> for TokenToNativeConverter {
 	type Error = DispatchError;
@@ -125,7 +124,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 pub struct ExistentialDeposits;
 impl GetByKey<AssetId, Balance> for ExistentialDeposits {
 	fn get(asset: &AssetId) -> Balance {
-		if let Some(metadata) = OrmlAssetRegistry::metadata(asset) {
+		if let Some(metadata) = AssetRegistry::metadata(asset) {
 			metadata.existential_deposit
 		} else {
 			// As restrictive as we can be. The asset must have associated metadata.

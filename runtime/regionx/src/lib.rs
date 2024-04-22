@@ -638,7 +638,7 @@ construct_runtime!(
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
 		AssetTxPayment: pallet_asset_tx_payment = 12,
-		OrmlAssetRegistry: orml_asset_registry = 13,
+		AssetRegistry: orml_asset_registry = 13,
 		Tokens: orml_tokens = 14,
 		Currencies: orml_currencies = 15,
 		AssetRate: pallet_asset_rate = 16,

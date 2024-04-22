@@ -21,12 +21,21 @@ async function run(nodeName, networkInfo, _jsArgs) {
   const keyring = new zombie.Keyring({ type: "sr25519" });
   const alice = keyring.addFromUri("//Alice");
 
-  const createCall = api.tx.assets.forceCreate(ASSET_ID, alice.address, true, 50);
-  const mintCall = api.tx.assets.mint(ASSET_ID, alice.address, 10n**6n);
+  const assetMetadata = {
+    decimals: 10,
+    name: "DOT",
+    symbol: "DOT",
+    existentialDeposit: 10n**3n,
+    location: null,
+    additional: null
+  };
 
+  const createCall = api.tx.assetRegistry.registerAsset(assetMetadata, ASSET_ID);
   const sudo = api.tx.sudo.sudo(createCall);
   await submitExtrinsic(alice, sudo, {});
-  await submitExtrinsic(alice, mintCall, {});
+
+  const setBalanceCall = api.tx.tokens.setBalance(alice.address, ASSET_ID, 10n**6n, 0);
+  await submitExtrinsic(alice, setBalanceCall, {});
 
   const transferCall = api.tx.balances.transferKeepAlive(BOB, 10n**6n);
   const feePaymentAsset = api.registry.createType('Option<u32>', ASSET_ID);
