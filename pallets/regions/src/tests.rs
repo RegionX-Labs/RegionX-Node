@@ -17,7 +17,7 @@ use crate::{
 	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Call as RegionsCall,
 	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
-use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::{Inspect, Mutate}};
+use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::{Inspect, Mutate, Transfer as NonFungibleTransfer}};
 use ismp::{
 	module::IsmpModule,
 	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
@@ -310,6 +310,19 @@ fn nonfungible_attribute_works() {
 		assert_eq!(Regions::attribute(&region_id.into(), "part".as_bytes()), Some(region_id.mask.encode()));
 		assert_eq!(Regions::attribute(&region_id.into(), "owner".as_bytes()), Some(record.owner.encode()));
 		assert_eq!(Regions::attribute(&region_id.into(), "paid".as_bytes()), Some(record.paid.encode()));
+	});
+}
+
+#[test]
+fn nonfungible_transfer_works() {
+	new_test_ext().execute_with(|| {
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_eq!(Regions::owner(&region_id.into()), Some(1));
+
+		assert_ok!(<Regions as NonFungibleTransfer::<<Test as frame_system::Config>::AccountId>>::transfer(&region_id.into(), &2));
+		assert_eq!(Regions::owner(&region_id.into()), Some(2));
 	});
 }
 
