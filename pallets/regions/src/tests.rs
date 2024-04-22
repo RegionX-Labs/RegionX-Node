@@ -17,7 +17,7 @@ use crate::{
 	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Call as RegionsCall,
 	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
-use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
+use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::{Inspect, Mutate}};
 use ismp::{
 	module::IsmpModule,
 	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
@@ -278,6 +278,21 @@ fn utlity_pallet_works() {
 			Regions::regions(&region2_id).unwrap(),
 			Region { owner: 2, record: Record::Pending }
 		);
+	});
+}
+
+#[test]
+fn nonfungible_owner_works() {
+	new_test_ext().execute_with(|| {
+		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
+		assert!(Regions::owner(&0).is_none());
+
+		let item_id: u128 = region_id.into();
+		assert!(Regions::owner(&item_id).is_none());
+
+		assert_ok!(Regions::mint_into(&item_id, &1));
+
+		assert_eq!(Regions::owner(&item_id), Some(1));
 	});
 }
 
