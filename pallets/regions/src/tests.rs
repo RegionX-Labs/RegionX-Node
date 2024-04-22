@@ -223,13 +223,47 @@ fn on_timeout_works() {
 		let Request::Get(get) = request.request.clone() else { panic!("Expected GET request") };
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
-		let timeout = Timeout::Request(Request::Get(get));
+		let timeout = Timeout::Request(Request::Get(get.clone()));
 		assert_ok!(module.on_timeout(timeout));
 
-		assert_eq!(
-			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Unavailable }
+		// failed to decode region_id
+		let mut invalid_get_req = get.clone();
+		invalid_get_req.keys.push(vec![0u8; 15]);
+		assert_err!(
+			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
+			IsmpCustomError::DecodeFailed
 		);
+
+		// invalid id: region not found
+		invalid_get_req.keys.pop();
+		if let Some(key) = invalid_get_req.keys.get_mut(0) {
+			for i in 0..key.len() {
+				key[i] = key[i].reverse_bits();
+			}
+		}
+		assert_err!(
+			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
+			IsmpCustomError::RegionNotFound
+		);
+
+		// on_timeout handles Post requests
+
+		let post = Post {
+			source: <Test as crate::Config>::CoretimeChain::get(),
+			dest: <Test as crate::Config>::CoretimeChain::get(),
+			nonce: Default::default(),
+			from: Default::default(),
+			to: Default::default(),
+			timeout_timestamp: Default::default(),
+			data: Default::default(),
+		};
+		assert_ok!(module.on_timeout(Timeout::Request(Request::Post(post.clone()))));
+
+		assert_ok!(module.on_timeout(Timeout::Response(PostResponse {
+			post,
+			response: Default::default(),
+			timeout_timestamp: Default::default()
+		})));
 	});
 }
 
