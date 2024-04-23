@@ -13,7 +13,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true }
 
 [dependencies]
-parity-scale-codec = { workspace = true }
+codec = { workspace = true }
 hex-literal = { workspace = true, optional = true }
 log = { workspace = true }
 scale-info = { workspace = true }
@@ -26,11 +26,13 @@ regionx-primitives = { workspace = true }
 ismp = { workspace = true, default-features = false }
 pallet-ismp = { workspace = true, default-features = false }
 ismp-parachain = { workspace = true, default-features = false }
-ismp-runtime-api = { workspace = true, default-features = false }
+pallet-ismp-runtime-api = { workspace = true, default-features = false }
 ismp-parachain-runtime-api = { workspace = true, default-features = false }
 
 # Orml
 orml-asset-registry = { workspace = true }
+orml-currencies = { workspace = true }
+orml-tokens = { workspace = true }
 orml-traits = { workspace = true }
 
 # Substrate
@@ -41,16 +43,18 @@ frame-system = { workspace = true }
 frame-system-benchmarking = { workspace = true, optional = true }
 frame-system-rpc-runtime-api = { workspace = true }
 frame-try-runtime = { workspace = true, optional = true }
-pallet-assets = { workspace = true }
 pallet-aura = { workspace = true }
 pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-message-queue = { workspace = true }
+pallet-multisig = { workspace = true }
+pallet-proxy = { workspace = true }
 pallet-session = { workspace = true }
 pallet-sudo = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
+pallet-utility = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
@@ -89,7 +93,7 @@ parachain-info = { workspace = true }
 [features]
 default = ["std"]
 std = [
-	"parity-scale-codec/std",
+	"codec/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-dmp-queue/std",
 	"cumulus-pallet-parachain-system/std",
@@ -100,7 +104,7 @@ std = [
 	"cumulus-primitives-utility/std",
 	"ismp/std",
 	"pallet-ismp/std",
-	"ismp-runtime-api/std",
+	"pallet-ismp-runtime-api/std",
 	"ismp-parachain/std",
 	"ismp-parachain-runtime-api/std",
 	"frame-benchmarking?/std",
@@ -112,15 +116,20 @@ std = [
 	"frame-try-runtime?/std",
 	"log/std",
 	"orml-asset-registry/std",
-	"pallet-assets/std",
+	"orml-currencies/std",
+	"orml-tokens/std",
+	"orml-traits/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
 	"pallet-balances/std",
 	"pallet-collator-selection/std",
 	"pallet-message-queue/std",
 	"regionx-primitives/std",
+	"pallet-multisig/std",
+	"pallet-proxy/std",
 	"pallet-session/std",
 	"pallet-sudo/std",
+	"pallet-utility/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
@@ -160,11 +169,14 @@ runtime-benchmarks = [
 	"frame-system/runtime-benchmarks",
 	"hex-literal",
 	"orml-asset-registry/runtime-benchmarks",
-	"pallet-assets/runtime-benchmarks",
+	"orml-tokens/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
+	"pallet-multisig/runtime-benchmarks",
+	"pallet-proxy/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
+	"pallet-utility/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
@@ -186,16 +198,20 @@ try-runtime = [
 	"frame-system/try-runtime",
 	"frame-try-runtime/try-runtime",
 	"orml-asset-registry/try-runtime",
+	"orml-currencies/try-runtime",
+	"orml-tokens/try-runtime",
 	"pallet-ismp/try-runtime",
 	"ismp-parachain/try-runtime",
-	"pallet-assets/try-runtime",
 	"pallet-aura/try-runtime",
 	"pallet-authorship/try-runtime",
 	"pallet-balances/try-runtime",
 	"pallet-collator-selection/try-runtime",
 	"pallet-message-queue/try-runtime",
+	"pallet-multisig/try-runtime",
+	"pallet-proxy/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
+	"pallet-utility/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-xcm/try-runtime",

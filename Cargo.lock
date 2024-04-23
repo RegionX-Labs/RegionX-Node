@@ -4162,7 +4162,7 @@ dependencies = [
 [[package]]
 name = "ismp"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "derive_more",
  "hex",
@@ -4176,7 +4176,7 @@ dependencies = [
 [[package]]
 name = "ismp-parachain"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "cumulus-pallet-parachain-system",
  "cumulus-primitives-core",
@@ -4200,7 +4200,7 @@ dependencies = [
 [[package]]
 name = "ismp-parachain-inherent"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -4219,23 +4219,9 @@ dependencies = [
 [[package]]
 name = "ismp-parachain-runtime-api"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "sp-api",
-]
-
-[[package]]
-name = "ismp-runtime-api"
-version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
-dependencies = [
- "ismp",
- "pallet-ismp",
- "parity-scale-codec",
- "serde",
- "sp-api",
- "sp-core",
- "sp-std",
 ]
 
 [[package]]
@@ -5916,6 +5902,42 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-currencies"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "496b4db60d9a5511bd04a97676f5de762d4712a8a9fa8b351d9add12cdbd7d45"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-traits",
+ "orml-utilities",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-io",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "orml-tokens"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "02dce1f619f42d2a520423da923fd8f2eb8abb8dc3f5cdff3f853c7791abef3e"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "log",
+ "orml-traits",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-arithmetic",
+ "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
 name = "orml-traits"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6460,7 +6482,7 @@ dependencies = [
 [[package]]
 name = "pallet-ismp"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "ckb-merkle-mountain-range",
  "derive_more",
@@ -6480,6 +6502,20 @@ dependencies = [
  "sp-core",
  "sp-io",
  "sp-runtime",
+ "sp-std",
+]
+
+[[package]]
+name = "pallet-ismp-runtime-api"
+version = "0.1.0"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
+dependencies = [
+ "ismp",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "serde",
+ "sp-api",
+ "sp-core",
  "sp-std",
 ]
 
@@ -9325,22 +9361,26 @@ dependencies = [
  "ismp",
  "ismp-parachain",
  "ismp-parachain-runtime-api",
- "ismp-runtime-api",
  "log",
  "orml-asset-registry",
+ "orml-currencies",
+ "orml-tokens",
  "orml-traits",
- "pallet-assets",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
  "pallet-ismp",
+ "pallet-ismp-runtime-api",
  "pallet-message-queue",
+ "pallet-multisig",
+ "pallet-proxy",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-utility",
  "pallet-xcm",
  "parachains-common",
  "parity-scale-codec",
@@ -12624,7 +12664,7 @@ dependencies = [
 [[package]]
 name = "substrate-state-machine"
 version = "0.1.0"
-source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-try-runtime#554bb4ba0e108ab4d4958ab45e38809e1a51f10f"
+source = "git+https://github.com/Szegoo/hyperbridge.git?branch=fix-to-string#ff5e3878bdda2ed61a28c24811e6bb0ecf0ec5ed"
 dependencies = [
  "ckb-merkle-mountain-range",
  "frame-support",
