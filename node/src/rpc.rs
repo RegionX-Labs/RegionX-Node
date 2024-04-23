@@ -1,3 +1,18 @@
+// This file is part of RegionX.
+//
+// RegionX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// RegionX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
+
 //! A collection of node-specific RPC methods.
 //! Substrate provides the `sc-rpc` crate, which defines the core RPC layer
 //! used by Substrate nodes. This file extends those RPC definitions with
@@ -7,10 +22,9 @@
 
 use std::sync::Arc;
 
-use parachain_template_runtime::{opaque::Block, AccountId, Balance, Nonce};
+use regionx_primitives::{opaque::Block, AccountId, Balance, Nonce};
 
-use sc_client_api::AuxStore;
-pub use sc_rpc::{DenyUnsafe, SubscriptionTaskExecutor};
+pub use sc_rpc::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -36,7 +50,6 @@ pub fn create_full<C, P>(
 where
 	C: ProvideRuntimeApi<Block>
 		+ HeaderBackend<Block>
-		+ AuxStore
 		+ HeaderMetadata<Block, Error = BlockChainError>
 		+ Send
 		+ Sync

@@ -13,17 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate Parachain Node Template CLI
-
-#![warn(missing_docs)]
-
-mod chain_spec;
-#[macro_use]
-mod service;
-mod cli;
-mod command;
-mod rpc;
-
-fn main() -> sc_cli::Result<()> {
-	command::run()
+#[cfg(feature = "std")]
+fn main() {
+	substrate_wasm_builder::WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.build()
 }
+
+/// The wasm builder is deactivated when compiling
+/// this crate for wasm to speed up the compilation.
+#[cfg(not(feature = "std"))]
+fn main() {}

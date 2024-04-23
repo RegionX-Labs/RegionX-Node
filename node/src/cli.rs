@@ -1,7 +1,23 @@
+// This file is part of RegionX.
+//
+// RegionX is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// RegionX is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
+
 use std::path::PathBuf;
 
 /// Sub-commands supported by the collator.
 #[derive(Debug, clap::Subcommand)]
+#[allow(clippy::large_enum_variant)]
 pub enum Subcommand {
 	/// Build a chain specification.
 	BuildSpec(sc_cli::BuildSpecCmd),
@@ -24,8 +40,11 @@ pub enum Subcommand {
 	/// Remove the whole chain.
 	PurgeChain(cumulus_client_cli::PurgeChainCmd),
 
-	/// Export the genesis state of the parachain.
-	ExportGenesisState(cumulus_client_cli::ExportGenesisStateCommand),
+	/// Export the genesis head data of the parachain.
+	///
+	/// Head data is the encoded block header.
+	#[command(alias = "export-genesis-state")]
+	ExportGenesisHead(cumulus_client_cli::ExportGenesisHeadCommand),
 
 	/// Export the genesis wasm of the parachain.
 	ExportGenesisWasm(cumulus_client_cli::ExportGenesisWasmCommand),
@@ -35,24 +54,21 @@ pub enum Subcommand {
 	#[command(subcommand)]
 	Benchmark(frame_benchmarking_cli::BenchmarkCmd),
 
-	/// Try some testing command against a specified runtime state.
-	#[cfg(feature = "try-runtime")]
-	TryRuntime(try_runtime_cli::TryRuntimeCmd),
-
-	/// Errors since the binary was not build with `--features try-runtime`.
-	#[cfg(not(feature = "try-runtime"))]
+	/// Try-runtime has migrated to a standalone
+	/// [CLI](<https://github.com/paritytech/try-runtime-cli>). The subcommand exists as a stub and
+	/// deprecation notice. It will be removed entirely some time after Janurary 2024.
 	TryRuntime,
 }
 
 const AFTER_HELP_EXAMPLE: &str = color_print::cstr!(
 	r#"<bold><underline>Examples:</></>
-   <bold>parachain-template-node build-spec --disable-default-bootnode > plain-parachain-chainspec.json</>
+   <bold>regionx-node build-spec --disable-default-bootnode > plain-parachain-chainspec.json</>
            Export a chainspec for a local testnet in json format.
-   <bold>parachain-template-node --chain plain-parachain-chainspec.json --tmp -- --chain rococo-local</>
+   <bold>regionx-node --chain plain-parachain-chainspec.json --tmp -- --chain rococo-local</>
            Launch a full node with chain specification loaded from plain-parachain-chainspec.json.
-   <bold>parachain-template-node</>
+   <bold>regionx-node</>
            Launch a full node with default parachain <italic>local-testnet</> and relay chain <italic>rococo-local</>.
-   <bold>parachain-template-node --collator</>
+   <bold>regionx-node --collator</>
            Launch a collator with default parachain <italic>local-testnet</> and relay chain <italic>rococo-local</>.
  "#
 );
