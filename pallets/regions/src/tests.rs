@@ -188,7 +188,10 @@ fn on_response_works() {
 		assert_err!(
 			module.on_response(Response::Get(GetResponse {
 				get: invalid_get_req.clone(),
-				values: BTreeMap::from([(invalid_get_req.keys[0].clone(), Some(mock_record.clone().encode()))]),
+				values: BTreeMap::from([(
+					invalid_get_req.keys[0].clone(),
+					Some(mock_record.clone().encode())
+				)]),
 			})),
 			IsmpCustomError::DecodeFailed
 		);
