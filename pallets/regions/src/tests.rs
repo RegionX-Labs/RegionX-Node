@@ -17,7 +17,11 @@ use crate::{
 	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Call as RegionsCall,
 	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
-use frame_support::{assert_err, assert_ok, pallet_prelude::*, traits::nonfungible::Mutate};
+use frame_support::{
+	assert_err, assert_ok,
+	pallet_prelude::*,
+	traits::nonfungible::{Inspect, Mutate, Transfer as NonFungibleTransfer},
+};
 use ismp::{
 	module::IsmpModule,
 	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
@@ -175,7 +179,27 @@ fn on_response_works() {
 
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Available(mock_record) }
+			Region { owner: 2, record: Record::Available(mock_record.clone()) }
+		);
+
+		// Fails when invalid region id is passed as response:
+		let mut invalid_get_req = get.clone();
+		invalid_get_req.keys[0] = vec![0x23; 15];
+		assert_err!(
+			module.on_response(Response::Get(GetResponse {
+				get: invalid_get_req.clone(),
+				values: BTreeMap::from([(invalid_get_req.keys[0].clone(), Some(mock_record.clone().encode()))]),
+			})),
+			IsmpCustomError::DecodeFailed
+		);
+
+		// Fails when invalid region record is passed as response:
+		assert_err!(
+			module.on_response(Response::Get(GetResponse {
+				get: get.clone(),
+				values: BTreeMap::from([(get.keys[0].clone(), Some(vec![0x42; 20]))]),
+			})),
+			IsmpCustomError::DecodeFailed
 		);
 	});
 }
@@ -219,13 +243,45 @@ fn on_timeout_works() {
 		let Request::Get(get) = request.request.clone() else { panic!("Expected GET request") };
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
-		let timeout = Timeout::Request(Request::Get(get));
+		let timeout = Timeout::Request(Request::Get(get.clone()));
 		assert_ok!(module.on_timeout(timeout));
 
-		assert_eq!(
-			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Unavailable }
+		// failed to decode region_id
+		let mut invalid_get_req = get.clone();
+		invalid_get_req.keys.push(vec![0u8; 15]);
+		assert_err!(
+			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
+			IsmpCustomError::DecodeFailed
 		);
+
+		// invalid id: region not found
+		invalid_get_req.keys.pop();
+		if let Some(key) = invalid_get_req.keys.get_mut(0) {
+			for i in 0..key.len() {
+				key[i] = key[i].reverse_bits();
+			}
+		}
+		assert_err!(
+			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
+			IsmpCustomError::RegionNotFound
+		);
+
+		let post = Post {
+			source: <Test as crate::Config>::CoretimeChain::get(),
+			dest: <Test as crate::Config>::CoretimeChain::get(),
+			nonce: Default::default(),
+			from: Default::default(),
+			to: Default::default(),
+			timeout_timestamp: Default::default(),
+			data: Default::default(),
+		};
+		assert_ok!(module.on_timeout(Timeout::Request(Request::Post(post.clone()))));
+
+		assert_ok!(module.on_timeout(Timeout::Response(PostResponse {
+			post,
+			response: Default::default(),
+			timeout_timestamp: Default::default()
+		})));
 	});
 }
 
@@ -278,6 +334,77 @@ fn utlity_pallet_works() {
 			Regions::regions(&region2_id).unwrap(),
 			Region { owner: 2, record: Record::Pending }
 		);
+	});
+}
+
+#[test]
+fn nonfungible_owner_works() {
+	new_test_ext().execute_with(|| {
+		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
+		assert!(Regions::owner(&0).is_none());
+
+		assert!(Regions::owner(&region_id.into()).is_none());
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_eq!(Regions::owner(&region_id.into()), Some(1));
+	});
+}
+
+#[test]
+fn nonfungible_attribute_works() {
+	new_test_ext().execute_with(|| {
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+		let record: RegionRecord<u64, u64> = RegionRecord { end: 123600, owner: 1, paid: None };
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_ok!(Regions::set_record(region_id, record.clone()));
+
+		assert!(Regions::attribute(&region_id.into(), "none".as_bytes().into()).is_none());
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "begin".as_bytes()),
+			Some(region_id.begin.encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "end".as_bytes()),
+			Some(record.end.encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "length".as_bytes()),
+			Some((record.end.saturating_sub(region_id.begin)).encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "core".as_bytes()),
+			Some(region_id.core.encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "part".as_bytes()),
+			Some(region_id.mask.encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "owner".as_bytes()),
+			Some(record.owner.encode())
+		);
+		assert_eq!(
+			Regions::attribute(&region_id.into(), "paid".as_bytes()),
+			Some(record.paid.encode())
+		);
+	});
+}
+
+#[test]
+fn nonfungible_transfer_works() {
+	new_test_ext().execute_with(|| {
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		assert_ok!(Regions::mint_into(&region_id.into(), &1));
+		assert_eq!(Regions::owner(&region_id.into()), Some(1));
+
+		assert_ok!(
+			<Regions as NonFungibleTransfer::<<Test as frame_system::Config>::AccountId>>::transfer(
+				&region_id.into(),
+				&2
+			)
+		);
+		assert_eq!(Regions::owner(&region_id.into()), Some(2));
 	});
 }
 
