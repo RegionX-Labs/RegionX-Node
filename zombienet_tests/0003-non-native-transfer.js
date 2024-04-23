@@ -30,8 +30,12 @@ async function run(nodeName, networkInfo, _jsArgs) {
     additional: null
   };
 
-  const createCall = api.tx.assetRegistry.registerAsset(assetMetadata, ASSET_ID);
-  const sudo = api.tx.sudo.sudo(createCall);
+  const assetSetupCalls = [
+    api.tx.assetRegistry.registerAsset(assetMetadata, ASSET_ID),
+    api.tx.assetRate.create(ASSET_ID, 2)
+  ];
+  const batchCall = api.tx.utility.batch(assetSetupCalls);
+  const sudo = api.tx.sudo.sudo(batchCall);
   await submitExtrinsic(alice, sudo, {});
 
   const setBalanceCall = api.tx.tokens.setBalance(alice.address, ASSET_ID, 10n**6n, 0);
