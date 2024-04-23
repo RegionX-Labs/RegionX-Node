@@ -182,27 +182,25 @@ fn on_response_works() {
 			Region { owner: 2, record: Record::Available(mock_record.clone()) }
 		);
 
-		// TODO: invalid region id
-		// let mut invalid_get_req = get.clone();
-		// invalid_get_req.keys.push(vec![0x23; 15]);
-		// invalid_get_req.keys.reverse();
-		// assert_err!(
-		// 	module.on_response(Response::Get(GetResponse {
-		// 		get: invalid_get_req.clone(),
-		// 		values: BTreeMap::from([(get.keys[0].clone(), Some(mock_record.clone().encode()))]),
-		// 	})),
-		// 	IsmpCustomError::DecodeFailed
-		// );
+		// Fails when invalid region id is passed as response:
+		let mut invalid_get_req = get.clone();
+		invalid_get_req.keys[0] = vec![0x23; 15];
+		assert_err!(
+			module.on_response(Response::Get(GetResponse {
+				get: invalid_get_req.clone(),
+				values: BTreeMap::from([(invalid_get_req.keys[0].clone(), Some(mock_record.clone().encode()))]),
+			})),
+			IsmpCustomError::DecodeFailed
+		);
 
-		// // invalid record
-		// invalid_get_req.keys.pop();
-		// assert_err!(
-		// 	module.on_response(Response::Get(GetResponse {
-		// 		get: invalid_get_req.clone(),
-		// 		values: BTreeMap::from([(get.keys[0].clone(), Some(vec![1; 100]))]),
-		// 	})),
-		// 	IsmpCustomError::DecodeFailed
-		// );
+		// Fails when invalid region record is passed as response:
+		assert_err!(
+			module.on_response(Response::Get(GetResponse {
+				get: get.clone(),
+				values: BTreeMap::from([(get.keys[0].clone(), Some(vec![0x42; 20]))]),
+			})),
+			IsmpCustomError::DecodeFailed
+		);
 	});
 }
 
