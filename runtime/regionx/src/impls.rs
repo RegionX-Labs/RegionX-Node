@@ -1,6 +1,4 @@
-use crate::{
-	AccountId, AssetId, Authorship, Balance, AssetRegistry, Runtime, RuntimeCall, Tokens,
-};
+use crate::{AccountId, AssetId, AssetRegistry, Authorship, Balance, Runtime, RuntimeCall, Tokens};
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::{
 	fungibles, tokens::ConversionToAssetBalance, Defensive, InstanceFilter,
