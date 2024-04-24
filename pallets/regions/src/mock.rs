@@ -31,7 +31,6 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances,
-		Utility: pallet_utility,
 		Regions: crate::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -83,13 +82,6 @@ impl pallet_balances::Config for Test {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
-}
-
-impl pallet_utility::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type RuntimeCall = RuntimeCall;
-	type PalletsOrigin = OriginCaller;
-	type WeightInfo = pallet_utility::weights::SubstrateWeight<Test>;
 }
 
 parameter_types! {

@@ -14,8 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Call as RegionsCall,
-	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
+	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, utils, Error, Event,
+	IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
 use frame_support::{
 	assert_err, assert_ok,
@@ -28,6 +28,9 @@ use ismp::{
 };
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use std::collections::BTreeMap;
+
+// pallet hash + storage item hash
+const REGION_PREFIX_KEY: &str = "4dcb50595177a3177648411a42aca0f53dc63b0b76ffd6f80704a090da6f8719";
 
 #[test]
 fn nonfungibles_implementation_works() {
@@ -47,8 +50,12 @@ fn nonfungibles_implementation_works() {
 		// NOTE: Burning occurs when placing the region into the XCM holding registrar at the time of
 		// reserve transfer.
 
+		assert_err!(Regions::burn(&region_id.into(), Some(&1)), Error::<Test>::NotOwner);
+
 		assert_ok!(Regions::burn(&region_id.into(), Some(&2)));
 		assert!(Regions::regions(&region_id).is_none());
+
+		assert_err!(Regions::burn(&region_id.into(), None), Error::<Test>::UnknownRegion);
 	});
 }
 
@@ -61,7 +68,8 @@ fn set_record_works() {
 		// The region with the given `region_id` does not exist.
 		assert_err!(Regions::set_record(region_id, record.clone()), Error::<Test>::UnknownRegion);
 
-		// `set_record` succeeds
+		// `set_record` succeeds:
+
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 
 		assert!(Regions::regions(region_id).is_some());
@@ -95,10 +103,11 @@ fn request_region_record_works() {
 		);
 
 		assert_ok!(Regions::mint_into(&region_id.into(), &1));
-
 		assert!(Regions::regions(region_id).is_some());
+
 		let region = Regions::regions(region_id).unwrap();
 		assert!(region.record.is_pending());
+		// Cannot request if there is already a request pending.
 		assert_err!(
 			Regions::request_region_record(RuntimeOrigin::signed(1), region_id),
 			Error::<Test>::NotUnavailable
@@ -111,6 +120,16 @@ fn request_region_record_works() {
 		});
 
 		assert_ok!(Regions::request_region_record(RuntimeOrigin::signed(1), region_id));
+		let request = &requests()[0];
+		let Request::Get(get) = request.request.clone() else { panic!("Expected GET request") };
+
+		// ensure correct storage key prefix:
+		let hex_encoded = hex::encode(get.keys[0].clone());
+		let key_length = hex_encoded.len();
+		// `key_length - 64` because the key contains the hash and the encoded region id.
+		// The hash is 16 bytes (32 nibbles), and the region id is also 16 bytes (32 nibbles).
+		let key_prefix = &hex_encoded[..(key_length - 64)];
+		assert_eq!(key_prefix, REGION_PREFIX_KEY);
 
 		System::assert_last_event(
 			Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into(),
@@ -248,6 +267,10 @@ fn on_timeout_works() {
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 		let timeout = Timeout::Request(Request::Get(get.clone()));
 		assert_ok!(module.on_timeout(timeout));
+		assert_eq!(
+			Regions::regions(&region_id).unwrap(),
+			Region { owner: 2, record: Record::Unavailable }
+		);
 
 		// failed to decode region_id
 		let mut invalid_get_req = get.clone();
@@ -302,41 +325,6 @@ fn on_accept_works() {
 		};
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 		assert_err!(module.on_accept(post), IsmpCustomError::NotSupported);
-	});
-}
-
-#[test]
-fn utlity_pallet_works() {
-	new_test_ext().execute_with(|| {
-		let region1_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
-		let region2_id = RegionId { begin: 112830, core: 82, mask: CoreMask::complete() };
-
-		assert_ok!(Regions::mint_into(&region1_id.into(), &1));
-		assert_ok!(Regions::mint_into(&region2_id.into(), &1));
-
-		assert_ok!(Utility::batch(
-			RuntimeOrigin::signed(1),
-			vec![
-				RuntimeCall::Regions(RegionsCall::transfer {
-					region_id: region1_id.clone(),
-					new_owner: 2
-				}),
-				RuntimeCall::Regions(RegionsCall::transfer {
-					region_id: region2_id.clone(),
-					new_owner: 2
-				})
-			]
-		));
-
-		// check the new owners
-		assert_eq!(
-			Regions::regions(&region1_id).unwrap(),
-			Region { owner: 2, record: Record::Pending }
-		);
-		assert_eq!(
-			Regions::regions(&region2_id).unwrap(),
-			Region { owner: 2, record: Record::Pending }
-		);
 	});
 }
 
