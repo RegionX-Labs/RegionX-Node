@@ -8,3 +8,5 @@ bob: is up
 alice: parachain 2000 is registered within 225 seconds
 
 regionx-collator01: js-script ./0003-non-native-transfer.js return is 0 within 400 seconds
+
+sleep 1000 seconds

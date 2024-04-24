@@ -3,13 +3,16 @@ const ASSET_ID = 42;
 
 async function run(nodeName, networkInfo, _jsArgs) {
   const { wsUri, userDefinedTypes } = networkInfo.nodesByName[nodeName];
-  const api = await zombie.connect(wsUri, {
-    ...userDefinedTypes,
+  console.log(userDefinedTypes);
+  const api = await zombie.connect(wsUri, { 
+    types: {
+      AssetId: 'u32',
+    },
     signedExtensions: {
     ChargeAssetTxPayment: {
       extrinsic: {
         tip: 'Compact<Balance>',
-        assetId: 'Option<u32>'
+        assetId: 'Option<AssetId>'
       },
       payload: {}
     }
@@ -32,18 +35,17 @@ async function run(nodeName, networkInfo, _jsArgs) {
 
   const assetSetupCalls = [
     api.tx.assetRegistry.registerAsset(assetMetadata, ASSET_ID),
-    api.tx.assetRate.create(ASSET_ID, 2)
+    api.tx.assetRate.create(ASSET_ID, 1000000000000000000n), // 1 on 1
+    api.tx.tokens.setBalance(alice.address, ASSET_ID, 10n**12n, 0),
   ];
   const batchCall = api.tx.utility.batch(assetSetupCalls);
   const sudo = api.tx.sudo.sudo(batchCall);
   await submitExtrinsic(alice, sudo, {});
 
-  const setBalanceCall = api.tx.tokens.setBalance(alice.address, ASSET_ID, 10n**6n, 0);
-  await submitExtrinsic(alice, setBalanceCall, {});
-
+  /*
   const transferCall = api.tx.balances.transferKeepAlive(BOB, 10n**6n);
-  const feePaymentAsset = api.registry.createType('Option<u32>', ASSET_ID);
-  await submitExtrinsic(alice, transferCall, {assetId: feePaymentAsset});
+  await submitExtrinsic(alice, transferCall, {assetId: ASSET_ID});
+  */
 
   return 0;
 }
