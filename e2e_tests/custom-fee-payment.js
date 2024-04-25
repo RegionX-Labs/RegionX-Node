@@ -8,7 +8,9 @@ async function run(nodeName, networkInfo, _jsArgs) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
   const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
 
-  const rococoApi = await ApiPromise.create({provider: new WsProvider(rococoUri)});
+  const rococoApi = await ApiPromise.create({
+    provider: new WsProvider(rococoUri),
+  });
   const regionXApi = await ApiPromise.create({
     provider: new WsProvider(regionXUri),
     signedExtensions: {
@@ -33,15 +35,20 @@ async function run(nodeName, networkInfo, _jsArgs) {
     decimals: 12,
     name: "ROC",
     symbol: "ROC",
-    existentialDeposit: 10n**3n,
+    existentialDeposit: 10n ** 3n,
     location: null,
-    additional: null
+    additional: null,
   };
 
   const assetSetupCalls = [
     regionXApi.tx.assetRegistry.registerAsset(assetMetadata, RELAY_ASSET_ID),
     regionXApi.tx.assetRate.create(RELAY_ASSET_ID, 1000000000000000000n), // 1 on 1
-    regionXApi.tx.tokens.setBalance(alice.address, RELAY_ASSET_ID, 10n**12n, 0),
+    regionXApi.tx.tokens.setBalance(
+      alice.address,
+      RELAY_ASSET_ID,
+      10n ** 12n,
+      0,
+    ),
   ];
   const batchCall = regionXApi.tx.utility.batch(assetSetupCalls);
   const sudo = regionXApi.tx.sudo.sudo(batchCall);
@@ -52,18 +59,33 @@ async function run(nodeName, networkInfo, _jsArgs) {
   receiverKeypair.addFromAddress(alice.address);
 
   const feeAssetItem = 0;
-  const weightLimit = 'Unlimited';
+  const weightLimit = "Unlimited";
   const reserveTransfer = rococoApi.tx.xcmPallet.limitedReserveTransferAssets(
-    {V3: {parents: 0, interior: {X1: {Parachain: 2000}}}}, //dest
-    {V3: {parents: 0, interior: {X1: {AccountId32: {chain: 'Any', id: receiverKeypair.pairs[0].publicKey}}}}}, //beneficiary
-    {V3: [{
-      id: {
-        Concrete: {parents: 0, interior: "Here"}
+    { V3: { parents: 0, interior: { X1: { Parachain: 2000 } } } }, //dest
+    {
+      V3: {
+        parents: 0,
+        interior: {
+          X1: {
+            AccountId32: {
+              chain: "Any",
+              id: receiverKeypair.pairs[0].publicKey,
+            },
+          },
+        },
       },
-      fun: {
-        Fungible: 10n ** 9n
-      }
-    }]
+    }, //beneficiary
+    {
+      V3: [
+        {
+          id: {
+            Concrete: { parents: 0, interior: "Here" },
+          },
+          fun: {
+            Fungible: 10n ** 9n,
+          },
+        },
+      ],
     }, //asset
     feeAssetItem,
     weightLimit,
@@ -72,7 +94,7 @@ async function run(nodeName, networkInfo, _jsArgs) {
 
   // Try to pay for fees with relay asset.
   const remarkCall = regionXApi.tx.system.remark("0x44");
-  await submitExtrinsic(alice, remarkCall, {assetId: RELAY_ASSET_ID});
+  await submitExtrinsic(alice, remarkCall, { assetId: RELAY_ASSET_ID });
 }
 
 module.exports = { run };
