@@ -54,7 +54,7 @@ impl ConversionToAssetBalance<Balance, AssetId, Balance> for TokenToNativeConver
 	type Error = DispatchError;
 
 	fn to_asset_balance(balance: Balance, asset_id: AssetId) -> Result<Balance, Self::Error> {
-		// NOTE: in the never version of the asset-rate pallet the `ConversionToAssetBalance`
+		// NOTE: in the newer version of the asset-rate pallet the `ConversionToAssetBalance`
 		// is implemented.
 		//
 		// However, that version is not matching with the rest of the versions we use, so we
