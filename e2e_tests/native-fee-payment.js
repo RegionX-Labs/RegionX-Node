@@ -8,8 +8,9 @@ async function run(nodeName, networkInfo, _jsArgs) {
   // account to submit tx
   const keyring = new zombie.Keyring({ type: "sr25519" });
   const alice = keyring.addFromUri("//Alice");
+  const bob = keyring.addFromUri("//Bob");
 
-  const call = api.tx.balances.transferKeepAlive(BOB, 10n**6n);
+  const call = api.tx.balances.transferKeepAlive(bob.address, 10n**6n);
   const sudo = api.tx.sudo.sudo(call);
   await submitExtrinsic(alice, sudo, {});
 }

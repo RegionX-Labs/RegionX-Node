@@ -1,5 +1,5 @@
 Description: Native currency fee payment
-Network: ./0002-native-fee-payment.zndsl
+Network: ./0002-native-fee-payment.toml
 Creds: config
 
 alice: is up
