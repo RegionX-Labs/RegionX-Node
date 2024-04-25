@@ -5997,6 +5997,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-xcm-support"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbb61790b9ce5698f7026bbf9ebd932df782a425b3551e9dd04300cb4eace179"
+dependencies = [
+ "frame-support",
+ "orml-traits",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-executor",
+]
+
+[[package]]
 name = "pallet-asset-rate"
 version = "7.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9412,6 +9427,7 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "orml-xcm-support",
  "pallet-asset-rate",
  "pallet-asset-tx-payment",
  "pallet-aura",

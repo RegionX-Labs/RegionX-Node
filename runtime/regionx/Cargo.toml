@@ -35,6 +35,7 @@ orml-asset-registry = { workspace = true }
 orml-currencies = { workspace = true }
 orml-tokens = { workspace = true }
 orml-traits = { workspace = true }
+orml-xcm-support = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -123,6 +124,7 @@ std = [
 	"orml-currencies/std",
 	"orml-tokens/std",
 	"orml-traits/std",
+	"orml-xcm-support/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
 	"pallet-asset-rate/std",
