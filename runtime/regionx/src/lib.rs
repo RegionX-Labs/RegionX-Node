@@ -26,6 +26,7 @@ extern crate alloc;
 mod weights;
 pub mod xcm_config;
 
+mod governance;
 mod impls;
 mod ismp;
 
@@ -74,6 +75,7 @@ use frame_system::{
 	EnsureRoot, Phase,
 };
 use orml_currencies::BasicCurrencyAdapter;
+use orml_tokens::CurrencyAdapter;
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::{
 	dispatcher::Dispatcher,
@@ -99,7 +101,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_primitives::{
-	assets::{AssetId, CustomMetadata, REGX_ASSET_ID},
+	assets::{AssetId, CustomMetadata, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
@@ -654,6 +656,10 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+//CurrencyAdapter<Self, ConstU32<RELAY_CHAIN_ASSET_ID>>
+
+
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -675,7 +681,8 @@ construct_runtime!(
 		UnknownTokens: orml_unknown_tokens = 17,
 
 		// Governance
-		Sudo: pallet_sudo = 20,
+		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
+
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 30,

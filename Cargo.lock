@@ -9456,6 +9456,7 @@ dependencies = [
  "pallet-message-queue",
  "pallet-multisig",
  "pallet-proxy",
+ "pallet-referenda",
  "pallet-regions",
  "pallet-session",
  "pallet-sudo",
