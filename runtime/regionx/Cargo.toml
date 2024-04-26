@@ -52,8 +52,10 @@ pallet-balances = { workspace = true }
 pallet-message-queue = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
+pallet-preimage = { workspace = true }
 pallet-session = { workspace = true }
 pallet-sudo = { workspace = true }
+pallet-scheduler = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
@@ -134,8 +136,10 @@ std = [
 	"regionx-primitives/std",
 	"pallet-multisig/std",
 	"pallet-proxy/std",
+	"pallet-preimage/std",
 	"pallet-session/std",
 	"pallet-sudo/std",
+	"pallet-scheduler/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
