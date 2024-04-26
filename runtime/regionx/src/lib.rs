@@ -235,6 +235,8 @@ const MAXIMUM_BLOCK_WEIGHT: Weight = Weight::from_parts(
 	cumulus_primitives_core::relay_chain::MAX_POV_SIZE as u64,
 );
 
+pub const CORETIME_CHAIN_PARA_ID: u32 = 1005;
+
 /// The version information used to identify this runtime when compiled natively.
 #[cfg(feature = "std")]
 pub fn native_version() -> NativeVersion {
@@ -584,7 +586,7 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
 }
 
 impl pallet_regions::Config for Runtime {
