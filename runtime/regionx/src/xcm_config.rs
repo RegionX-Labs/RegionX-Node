@@ -14,20 +14,22 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, AssetId, Balances, Currencies, ParachainInfo, ParachainSystem,
-	PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
+	AccountId, AllPalletsWithSystem, AssetId, Balance, Balances, Currencies, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
+	XcmpQueue, UnknownTokens
 };
 use frame_support::{
 	match_types, parameter_types,
 	traits::{ConstU32, Everything, Nothing},
+	PalletId,
 };
 use frame_system::EnsureRoot;
-use orml_xcm_support::{IsNativeConcrete, MultiCurrencyAdapter};
+use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
 use regionx_primitives::assets::{REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID};
-use sp_runtime::traits::Convert;
+use sp_runtime::traits::{AccountIdConversion, Convert};
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
@@ -58,16 +60,21 @@ pub type LocationToAccountId = (
 	AccountId32Aliases<RelayNetwork, AccountId>,
 );
 
+parameter_types! {
+	// The account which receives multi-currency tokens from failed attempts to deposit them
+	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
+}
+
 /// Means for transacting assets on this chain.
 pub type FungiblesAssetTransactor = MultiCurrencyAdapter<
 	Currencies,
-	(), // TODO: handle unknown tokens
+	UnknownTokens,
 	IsNativeConcrete<AssetId, AssetIdConverter>,
 	AccountId,
 	LocationToAccountId,
 	AssetId,
 	AssetIdConverter,
-	(),
+	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
 >;
 
 pub struct AssetIdConverter;

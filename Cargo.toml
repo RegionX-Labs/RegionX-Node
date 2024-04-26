@@ -139,6 +139,7 @@ orml-asset-registry = { version = "0.7.0", default-features = false }
 orml-currencies = { version = "0.7.0", default-features = false }
 orml-tokens = { version = "0.7.0", default-features = false }
 orml-traits = { version = "0.7.0", default-features = false }
+orml-unknown-tokens = { version = "0.7.0", default-features = false }
 orml-xcm-support = { version = "0.7.0", default-features = false }
 
 # Polytope Labs
