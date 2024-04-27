@@ -53,7 +53,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for TracksInfo {
 				_ => Err(()),
 			}
 		} else {
-            // Root is the only avaialable origin for relay chain asset holders.
+			// Root is the only avaialable origin for relay chain asset holders.
 			Err(())
 		}
 	}
