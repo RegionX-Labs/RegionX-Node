@@ -252,4 +252,7 @@ try-runtime = [
 	"sp-runtime/try-runtime",
 ]
 
+# Reducing waiting times for governance or other
+fast-runtime = []
+
 experimental = ["pallet-aura/experimental"]
