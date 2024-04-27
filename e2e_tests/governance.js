@@ -50,10 +50,10 @@ async function run(nodeName, networkInfo, _jsArgs) {
   );
   await submitExtrinsic(anna, submitProposal, {});
 
-  const placeDeposit = api.tx.referenda.placeDecisionDeposit(1);
+  const placeDeposit = api.tx.referenda.placeDecisionDeposit(0);
   await submitExtrinsic(anna, placeDeposit, {});
 
-  const voteCall = api.tx.convictionVoting.vote(1, {
+  const voteCall = api.tx.convictionVoting.vote(0, {
     // Voting with relay chain tokens. We know this is true; otherwise, this call 
     // would fail, given that Anna doesn't have 10^16 RegionX tokens.
     Standard: { vote: { aye: true, conviction: "None" }, balance: 10n ** 16n },
