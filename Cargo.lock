@@ -9451,6 +9451,7 @@ dependencies = [
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-conviction-voting",
  "pallet-ismp",
  "pallet-ismp-runtime-api",
  "pallet-message-queue",
