@@ -4,7 +4,6 @@ const { submitExtrinsic } = require("./common");
 const RELAY_ASSET_ID = 1;
 
 async function run(nodeName, networkInfo, _jsArgs) {
-  console.log(nodeName);
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
   const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
 
@@ -42,7 +41,7 @@ async function run(nodeName, networkInfo, _jsArgs) {
 
   const assetSetupCalls = [
     regionXApi.tx.assetRegistry.registerAsset(assetMetadata, RELAY_ASSET_ID),
-    regionXApi.tx.assetRate.create(RELAY_ASSET_ID, 1000000000000000000n), // 1 on 1
+    regionXApi.tx.assetRate.create(RELAY_ASSET_ID, 1_000_000_000_000_000_000n), // 1 on 1
     regionXApi.tx.tokens.setBalance(
       alice.address,
       RELAY_ASSET_ID,
@@ -51,9 +50,9 @@ async function run(nodeName, networkInfo, _jsArgs) {
     ),
   ];
   const batchCall = regionXApi.tx.utility.batch(assetSetupCalls);
-  const sudo = regionXApi.tx.sudo.sudo(batchCall);
+  const sudoCall = regionXApi.tx.sudo.sudo(batchCall);
 
-  await submitExtrinsic(alice, sudo, {});
+  await submitExtrinsic(alice, sudoCall, {});
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);
@@ -92,7 +91,7 @@ async function run(nodeName, networkInfo, _jsArgs) {
   );
   await submitExtrinsic(alice, reserveTransfer, {});
 
-  // Try to pay for fees with relay asset.
+  // Try to pay for fees with relay chain asset.
   const remarkCall = regionXApi.tx.system.remark("0x44");
   await submitExtrinsic(alice, remarkCall, { assetId: RELAY_ASSET_ID });
 }
