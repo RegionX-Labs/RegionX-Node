@@ -28,6 +28,11 @@ pub type GeneralCouncilInstance = pallet_collective::Instance2;
 pub type GeneralCouncilMembershipInstance = pallet_membership::Instance1;
 pub type TechnicalCommitteeMembershipInstance = pallet_membership::Instance2;
 
+type EnsureTwoThirdGeneralCouncil =
+	pallet_collective::EnsureProportionAtLeast<AccountId, GeneralCouncilInstance, 2, 3>;
+type EnsureTwoThirdTechnicalCommittee =
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
+
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1);
 }
@@ -58,8 +63,10 @@ impl pallet_referenda::Config for Runtime {
 	type Scheduler = Scheduler;
 	type Currency = RelayChainCurrency;
 	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
-	type CancelOrigin = EnsureRoot<AccountId>; // TODO: Or Technical fellowship
-	type KillOrigin = EnsureRoot<AccountId>; // TODO: Or Technical fellowship
+	type CancelOrigin =
+		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
+	type KillOrigin =
+		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
 	type Slash = (); // TODO: treasury
 	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime>;
@@ -77,11 +84,6 @@ parameter_types! {
 	pub const MaxProposals: u32 = 10;
 	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
 }
-
-type EnsureTwoThirdGeneralCouncil =
-	pallet_collective::EnsureProportionAtLeast<AccountId, GeneralCouncilInstance, 2, 3>;
-type EnsureTwoThirdTechnicalCommittee =
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
 
 impl pallet_collective::Config<GeneralCouncilInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;

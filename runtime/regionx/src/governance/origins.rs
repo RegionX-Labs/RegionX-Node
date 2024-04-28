@@ -4,7 +4,7 @@ pub use pallet_custom_origins::*;
 #[allow(unused_imports)]
 #[frame_support::pallet]
 pub mod pallet_custom_origins {
-    use crate::{Balance, REGX};
+	use crate::{Balance, REGX};
 	use frame_support::pallet_prelude::*;
 
 	#[pallet::config]
@@ -18,7 +18,7 @@ pub mod pallet_custom_origins {
 	pub enum Origin {
 		/// Origin able to dispatch a whitelisted call.
 		WhitelistedCaller,
-        /// Origin able to spend up to 500 REGX from the treasury at once.
+		/// Origin able to spend up to 500 REGX from the treasury at once.
 		SmallTipper,
 		/// Origin able to spend up to 2,000 REGX from the treasury at once.
 		BigTipper,
@@ -62,7 +62,7 @@ pub mod pallet_custom_origins {
 	}
 	decl_unit_ensures!(WhitelistedCaller);
 
-    macro_rules! decl_ensure {
+	macro_rules! decl_ensure {
 		(
 			$vis:vis type $name:ident: EnsureOrigin<Success = $success_type:ty> {
 				$( $item:ident = $success:expr, )*
