@@ -27,6 +27,8 @@ mod weights;
 pub mod xcm_config;
 
 mod governance;
+use governance::pallet_custom_origins;
+
 mod impls;
 mod ismp;
 
@@ -733,6 +735,7 @@ construct_runtime!(
 		TechnicalCommittee: pallet_collective::<Instance2> = 24,
 		GeneralCouncilMembership: pallet_membership::<Instance1> = 25,
 		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 26,
+		Origins: pallet_custom_origins = 27,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 30,

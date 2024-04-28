@@ -13,8 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::*;
+use super::*;
 
+mod origins;
+pub use origins::pallet_custom_origins;
 mod tracks;
 use tracks::*;
 
@@ -62,7 +64,7 @@ impl pallet_referenda::Config for Runtime {
 	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime>;
 	type SubmissionDeposit = SubmissionDeposit;
-	type MaxQueued = ConstU32<100>;
+	type MaxQueued = ConstU32<50>;
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
@@ -130,3 +132,5 @@ impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime
 	type MaxMembers = MaxMembers;
 	type WeightInfo = ();
 }
+
+impl pallet_custom_origins::Config for Runtime {}
