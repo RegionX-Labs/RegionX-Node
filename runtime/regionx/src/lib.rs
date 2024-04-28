@@ -729,8 +729,10 @@ construct_runtime!(
 		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
 		Referenda: pallet_referenda = 21,
 		ConvictionVoting: pallet_conviction_voting = 22,
-		TechnicalCommittee: pallet_collective::<Instance1> = 23,
-		TechnicalCommitteeMembership: pallet_membership::<Instance1> = 24,
+		GeneralCouncil: pallet_collective::<Instance1> = 23,
+		TechnicalCommittee: pallet_collective::<Instance2> = 24,
+		GeneralCouncilMembership: pallet_membership::<Instance1> = 25,
+		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 26,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 30,

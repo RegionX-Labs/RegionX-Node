@@ -21,7 +21,10 @@ use tracks::*;
 use polkadot_runtime_common::prod_or_fast;
 
 pub type TechnicalCommitteeInstance = pallet_collective::Instance1;
-pub type TechnicalCommitteeMembershipInstance = pallet_membership::Instance1;
+pub type GeneralCouncilInstance = pallet_collective::Instance2;
+
+pub type GeneralCouncilMembershipInstance = pallet_membership::Instance1;
+pub type TechnicalCommitteeMembershipInstance = pallet_membership::Instance2;
 
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1);
@@ -67,37 +70,63 @@ impl pallet_referenda::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TechnicalCommitteeMotionDuration: BlockNumber = 3 * DAYS;
-	pub const TechnicalCommitteeMaxMembers: u32 = 30;
-	pub const TechnicalCommitteeMaxProposals: u32 = 10;
+	pub const MotionDuration: BlockNumber = 3 * DAYS;
+	pub const MaxMembers: u32 = 30;
+	pub const MaxProposals: u32 = 10;
 	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
+}
+
+type EnsureTwoThirdGeneralCouncil =
+	pallet_collective::EnsureProportionAtLeast<AccountId, GeneralCouncilInstance, 2, 3>;
+
+impl pallet_collective::Config<GeneralCouncilInstance> for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type Proposal = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type MotionDuration = MotionDuration;
+	type MaxProposals = MaxProposals;
+	type MaxMembers = MaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type SetMembersOrigin = EnsureTwoThirdGeneralCouncil;
+	type WeightInfo = ();
+	type MaxProposalWeight = MaxProposalWeight;
 }
 
 impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
 	type Proposal = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
-	type MotionDuration = TechnicalCommitteeMotionDuration;
-	type MaxProposals = TechnicalCommitteeMaxProposals;
-	type MaxMembers = TechnicalCommitteeMaxMembers;
+	type MotionDuration = MotionDuration;
+	type MaxProposals = MaxProposals;
+	type MaxMembers = MaxMembers;
 	type DefaultVote = pallet_collective::PrimeDefaultVote;
-	type SetMembersOrigin = EnsureRoot<AccountId>;
+	type SetMembersOrigin = EnsureTwoThirdGeneralCouncil;
 	type WeightInfo = ();
 	type MaxProposalWeight = MaxProposalWeight;
 }
 
-type EnsureTwoThirdTechnicalCommittee =
-	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
+impl pallet_membership::Config<GeneralCouncilMembershipInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type AddOrigin = EnsureTwoThirdGeneralCouncil;
+	type RemoveOrigin = EnsureTwoThirdGeneralCouncil;
+	type SwapOrigin = EnsureTwoThirdGeneralCouncil;
+	type ResetOrigin = EnsureTwoThirdGeneralCouncil;
+	type PrimeOrigin = EnsureTwoThirdGeneralCouncil;
+	type MembershipInitialized = GeneralCouncil;
+	type MembershipChanged = GeneralCouncil;
+	type MaxMembers = MaxMembers;
+	type WeightInfo = ();
+}
 
 impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type AddOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
-	type RemoveOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
-	type SwapOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
-	type ResetOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
-	type PrimeOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type AddOrigin = EnsureTwoThirdGeneralCouncil;
+	type RemoveOrigin = EnsureTwoThirdGeneralCouncil;
+	type SwapOrigin = EnsureTwoThirdGeneralCouncil;
+	type ResetOrigin = EnsureTwoThirdGeneralCouncil;
+	type PrimeOrigin = EnsureTwoThirdGeneralCouncil;
 	type MembershipInitialized = TechnicalCommittee;
 	type MembershipChanged = TechnicalCommittee;
-	type MaxMembers = TechnicalCommitteeMaxMembers;
+	type MaxMembers = MaxMembers;
 	type WeightInfo = ();
 }
