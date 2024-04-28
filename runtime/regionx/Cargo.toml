@@ -51,8 +51,10 @@ pallet-authorship = { workspace = true }
 pallet-asset-rate = { workspace = true }
 pallet-asset-tx-payment = { workspace = true }
 pallet-balances = { workspace = true }
+pallet-collective = { workspace = true }
 pallet-conviction-voting = { workspace = true }
 pallet-referenda = { workspace = true }
+pallet-membership = { workspace = true }
 pallet-message-queue = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
@@ -136,12 +138,14 @@ std = [
 	"pallet-asset-rate/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-balances/std",
+	"pallet-collective/std",
 	"pallet-conviction-voting/std",
 	"pallet-collator-selection/std",
-	"pallet-message-queue/std",
 	"pallet-referenda/std",
 	"pallet-regions/std",
 	"regionx-primitives/std",
+	"pallet-membership/std",
+	"pallet-message-queue/std",
 	"pallet-multisig/std",
 	"pallet-proxy/std",
 	"pallet-preimage/std",
@@ -193,8 +197,10 @@ runtime-benchmarks = [
   	"pallet-asset-rate/runtime-benchmarks",
   	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
 	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
+	"pallet-membership/std",
 	"pallet-message-queue/runtime-benchmarks",
   	"pallet-multisig/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
@@ -233,8 +239,10 @@ try-runtime = [
 	"pallet-asset-rate/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-balances/try-runtime",
+	"pallet-collective/try-runtime",
 	"pallet-conviction-voting/try-runtime",
 	"pallet-collator-selection/try-runtime",
+	"pallet-membership/std",
 	"pallet-message-queue/try-runtime",
   	"pallet-multisig/try-runtime",
 	"pallet-proxy/try-runtime",

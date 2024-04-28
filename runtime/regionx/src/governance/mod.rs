@@ -20,6 +20,8 @@ use tracks::*;
 
 use polkadot_runtime_common::prod_or_fast;
 
+pub type TechnicalCommitteeInstance = pallet_collective::Instance1;
+
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1);
 }
@@ -61,4 +63,24 @@ impl pallet_referenda::Config for Runtime {
 	type AlarmInterval = AlarmInterval;
 	type Tracks = TracksInfo;
 	type Preimages = Preimage;
+}
+
+parameter_types! {
+	pub const TechnicalCommitteeMotionDuration: BlockNumber = 3 * DAYS;
+	pub const TechnicalCommitteeMaxMembers: u32 = 30;
+	pub const TechnicalCommitteeMaxProposals: u32 = 10;
+	pub MaxProposalWeight: Weight = Perbill::from_percent(50) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
+	type RuntimeOrigin = RuntimeOrigin;
+	type Proposal = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type MotionDuration = TechnicalCommitteeMotionDuration;
+	type MaxProposals = TechnicalCommitteeMaxProposals;
+	type MaxMembers = TechnicalCommitteeMaxMembers;
+	type DefaultVote = pallet_collective::PrimeDefaultVote;
+	type SetMembersOrigin = EnsureRoot<AccountId>;
+	type WeightInfo = ();
+	type MaxProposalWeight = MaxProposalWeight;
 }
