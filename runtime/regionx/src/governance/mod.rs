@@ -18,7 +18,7 @@ use super::*;
 mod origins;
 pub use origins::{pallet_custom_origins, WhitelistedCaller};
 mod tracks;
-use tracks::*;
+pub use tracks::*;
 
 use polkadot_runtime_common::prod_or_fast;
 
