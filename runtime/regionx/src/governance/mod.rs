@@ -16,7 +16,7 @@
 use super::*;
 
 mod origins;
-pub use origins::pallet_custom_origins;
+pub use origins::{pallet_custom_origins, WhitelistedCaller};
 mod tracks;
 use tracks::*;
 
@@ -80,6 +80,8 @@ parameter_types! {
 
 type EnsureTwoThirdGeneralCouncil =
 	pallet_collective::EnsureProportionAtLeast<AccountId, GeneralCouncilInstance, 2, 3>;
+type EnsureTwoThirdTechnicalCommittee =
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
 
 impl pallet_collective::Config<GeneralCouncilInstance> for Runtime {
 	type RuntimeOrigin = RuntimeOrigin;
@@ -134,3 +136,12 @@ impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime
 }
 
 impl pallet_custom_origins::Config for Runtime {}
+
+impl pallet_whitelist::Config for Runtime {
+	type WeightInfo = ();
+	type RuntimeCall = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type WhitelistOrigin = EnsureTwoThirdTechnicalCommittee;
+	type DispatchWhitelistedOrigin = WhitelistedCaller;
+	type Preimages = Preimage;
+}

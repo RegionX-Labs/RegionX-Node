@@ -736,6 +736,7 @@ construct_runtime!(
 		GeneralCouncilMembership: pallet_membership::<Instance1> = 25,
 		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 26,
 		Origins: pallet_custom_origins = 27,
+		Whitelist: pallet_whitelist = 28,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 30,
