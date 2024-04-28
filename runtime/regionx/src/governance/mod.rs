@@ -21,6 +21,7 @@ use tracks::*;
 use polkadot_runtime_common::prod_or_fast;
 
 pub type TechnicalCommitteeInstance = pallet_collective::Instance1;
+pub type TechnicalCommitteeMembershipInstance = pallet_membership::Instance1;
 
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1);
@@ -83,4 +84,20 @@ impl pallet_collective::Config<TechnicalCommitteeInstance> for Runtime {
 	type SetMembersOrigin = EnsureRoot<AccountId>;
 	type WeightInfo = ();
 	type MaxProposalWeight = MaxProposalWeight;
+}
+
+type EnsureTwoThirdTechnicalCommittee =
+	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
+
+impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type AddOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type RemoveOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type SwapOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type ResetOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type PrimeOrigin = EnsureTwoThirdTechnicalCommittee; // Or general council
+	type MembershipInitialized = TechnicalCommittee;
+	type MembershipChanged = TechnicalCommittee;
+	type MaxMembers = TechnicalCommitteeMaxMembers;
+	type WeightInfo = ();
 }

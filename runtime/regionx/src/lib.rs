@@ -730,6 +730,7 @@ construct_runtime!(
 		Referenda: pallet_referenda = 21,
 		ConvictionVoting: pallet_conviction_voting = 22,
 		TechnicalCommittee: pallet_collective::<Instance1> = 23,
+		TechnicalCommitteeMembership: pallet_membership::<Instance1> = 24,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 30,
