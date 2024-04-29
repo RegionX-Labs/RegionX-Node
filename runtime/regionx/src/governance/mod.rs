@@ -56,10 +56,22 @@ impl pallet_conviction_voting::Config<DelegatedConvictionVotingInstance> for Run
 	type Polls = DelegatedReferenda;
 }
 
+impl pallet_conviction_voting::Config<NativeConvictionVotingInstance> for Runtime {
+	type WeightInfo = ();
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type VoteLockingPeriod = VoteLockingPeriod;
+	type MaxVotes = ConstU32<512>;
+	type MaxTurnout =
+		frame_support::traits::tokens::currency::ActiveIssuanceOf<Balances, Self::AccountId>;
+	type Polls = NativeReferenda;
+}
+
 parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
-	pub const SubmissionDeposit: Balance = 5 * KSM;
 	pub const UndecidingTimeout: BlockNumber = 14 * DAYS;
+	pub const DelegatedReferendaSubmissionDeposit: Balance = 5 * KSM;
+	pub const NativeReferendaSubmissionDeposit: Balance = 50 * REGX;
 }
 
 impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
@@ -76,11 +88,31 @@ impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
 	type Slash = (); // TODO: treasury
 	type Votes = pallet_conviction_voting::VotesOf<Runtime, DelegatedConvictionVotingInstance>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime, DelegatedConvictionVotingInstance>;
-	type SubmissionDeposit = SubmissionDeposit;
+	type SubmissionDeposit = DelegatedReferendaSubmissionDeposit;
 	type MaxQueued = ConstU32<50>;
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
 	type Tracks = DelegatedReferendaTrackInfo;
+	type Preimages = Preimage;
+}
+
+impl pallet_referenda::Config<NativeReferendaInstance> for Runtime {
+	type WeightInfo = ();
+	type RuntimeCall = RuntimeCall;
+	type RuntimeEvent = RuntimeEvent;
+	type Scheduler = Scheduler;
+	type Currency = Balances;
+	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
+	type CancelOrigin = EnsureTwoThirdGeneralCouncil;
+	type KillOrigin = EnsureTwoThirdGeneralCouncil;
+	type Slash = Treasury;
+	type Votes = pallet_conviction_voting::VotesOf<Runtime, NativeConvictionVotingInstance>;
+	type Tally = pallet_conviction_voting::TallyOf<Runtime, NativeConvictionVotingInstance>;
+	type SubmissionDeposit = NativeReferendaSubmissionDeposit;
+	type MaxQueued = ConstU32<50>;
+	type UndecidingTimeout = UndecidingTimeout;
+	type AlarmInterval = AlarmInterval;
+	type Tracks = NativeReferendaTrackInfo;
 	type Preimages = Preimage;
 }
 
@@ -153,5 +185,3 @@ impl pallet_whitelist::Config for Runtime {
 	type DispatchWhitelistedOrigin = WhitelistedCaller;
 	type Preimages = Preimage;
 }
-
-// TODO: add new referenda instance

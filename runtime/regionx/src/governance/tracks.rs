@@ -181,9 +181,36 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for DelegatedReferendaTr
 				_ => Err(()),
 			}
 		} else {
-			// Root is the only avaialable origin for relay chain asset holders.
 			Err(())
 		}
 	}
 }
 pallet_referenda::impl_tracksinfo_get!(DelegatedReferendaTrackInfo, Balance, BlockNumber);
+
+pub struct NativeReferendaTrackInfo;
+impl pallet_referenda::TracksInfo<Balance, BlockNumber> for NativeReferendaTrackInfo {
+	type Id = u16;
+	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
+	fn tracks() -> &'static [(Self::Id, pallet_referenda::TrackInfo<Balance, BlockNumber>)] {
+		&NATIVE_REFERENDA_TRACKS[..]
+	}
+	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
+		if let Ok(_system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
+			// Root is the only avaialable origin for relay chain asset holders.
+			Err(())
+		} else if let Ok(custom_origin) = origins::Origin::try_from(id.clone()) {
+			match custom_origin {
+				origins::Origin::Treasurer => Ok(0),
+				origins::Origin::SmallTipper => Ok(1),
+				origins::Origin::BigTipper => Ok(2),
+				origins::Origin::SmallSpender => Ok(3),
+				origins::Origin::MediumSpender => Ok(4),
+				origins::Origin::BigSpender => Ok(5),
+				_ => Err(()),
+			}
+		} else {
+			Err(())
+		}
+	}
+}
+pallet_referenda::impl_tracksinfo_get!(NativeReferendaTrackInfo, Balance, BlockNumber);

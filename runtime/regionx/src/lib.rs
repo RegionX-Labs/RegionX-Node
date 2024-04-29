@@ -771,41 +771,43 @@ construct_runtime!(
 		// Governance
 		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
 		DelegatedReferenda: pallet_referenda::<Instance1> = 21,
-		DelegatedConvictionVoting: pallet_conviction_voting::<Instance1> = 22,
-		GeneralCouncil: pallet_collective::<Instance1> = 23,
-		TechnicalCommittee: pallet_collective::<Instance2> = 24,
-		GeneralCouncilMembership: pallet_membership::<Instance1> = 25,
-		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 26,
-		Origins: pallet_custom_origins = 27,
-		Whitelist: pallet_whitelist = 28,
+		NativeReferenda: pallet_referenda::<Instance2> = 22,
+		DelegatedConvictionVoting: pallet_conviction_voting::<Instance1> = 23,
+		NativeConvictionVoting: pallet_conviction_voting::<Instance2> = 24,
+		GeneralCouncil: pallet_collective::<Instance1> = 25,
+		TechnicalCommittee: pallet_collective::<Instance2> = 26,
+		GeneralCouncilMembership: pallet_membership::<Instance1> = 27,
+		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 28,
+		Origins: pallet_custom_origins = 29,
+		Whitelist: pallet_whitelist = 30,
 
 		// Collator support. The order of these 4 are important and shall not change.
-		Authorship: pallet_authorship = 30,
-		CollatorSelection: pallet_collator_selection = 31,
-		Session: pallet_session = 32,
-		Aura: pallet_aura = 33,
-		AuraExt: cumulus_pallet_aura_ext = 34,
+		Authorship: pallet_authorship = 40,
+		CollatorSelection: pallet_collator_selection = 41,
+		Session: pallet_session = 42,
+		Aura: pallet_aura = 43,
+		AuraExt: cumulus_pallet_aura_ext = 44,
 
 		// Treasury
-		Treasury: pallet_treasury = 40,
+		Treasury: pallet_treasury = 50,
 
 		// Handy utilities
-		Utility: pallet_utility = 50,
-		Multisig: pallet_multisig = 51,
-		Proxy: pallet_proxy = 52,
+		Utility: pallet_utility = 60,
+		Multisig: pallet_multisig = 61,
+		Proxy: pallet_proxy = 62,
 
 		// XCM helpers.
-		XcmpQueue: cumulus_pallet_xcmp_queue = 60,
-		PolkadotXcm: pallet_xcm = 61,
-		CumulusXcm: cumulus_pallet_xcm = 62,
-		MessageQueue: pallet_message_queue = 63,
+		XcmpQueue: cumulus_pallet_xcmp_queue = 70,
+		PolkadotXcm: pallet_xcm = 71,
+		CumulusXcm: cumulus_pallet_xcm = 72,
+		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Ismp: pallet_ismp = 70,
-		IsmpParachain: ismp_parachain = 71,
+		Ismp: pallet_ismp = 80,
+		IsmpParachain: ismp_parachain = 81,
 
 		// Main stage:
-		Regions: pallet_regions = 80,
+		Regions: pallet_regions = 90,
 	}
 );
 
