@@ -744,8 +744,8 @@ construct_runtime!(
 
 		// Governance
 		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
-		Referenda: pallet_referenda = 21,
-		ConvictionVoting: pallet_conviction_voting = 22,
+		DelegatedReferenda: pallet_referenda::<Instance1> = 21,
+		DelegatedConvictionVoting: pallet_conviction_voting::<Instance1> = 22,
 		GeneralCouncil: pallet_collective::<Instance1> = 23,
 		TechnicalCommittee: pallet_collective::<Instance2> = 24,
 		GeneralCouncilMembership: pallet_membership::<Instance1> = 25,

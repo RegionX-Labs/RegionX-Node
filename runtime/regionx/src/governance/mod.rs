@@ -33,11 +33,17 @@ type EnsureTwoThirdGeneralCouncil =
 type EnsureTwoThirdTechnicalCommittee =
 	pallet_collective::EnsureProportionAtLeast<AccountId, TechnicalCommitteeInstance, 2, 3>;
 
+pub type DelegatedReferendaInstance = pallet_referenda::Instance1;
+pub type NativeReferendaInstance = pallet_referenda::Instance2;
+
+pub type DelegatedConvictionVotingInstance = pallet_conviction_voting::Instance1;
+pub type NativeConvictionVotingInstance = pallet_conviction_voting::Instance2;
+
 parameter_types! {
 	pub const VoteLockingPeriod: BlockNumber = prod_or_fast!(7 * DAYS, 1);
 }
 
-impl pallet_conviction_voting::Config for Runtime {
+impl pallet_conviction_voting::Config<DelegatedConvictionVotingInstance> for Runtime {
 	type WeightInfo = ();
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = RelayChainCurrency;
@@ -47,7 +53,7 @@ impl pallet_conviction_voting::Config for Runtime {
 		RelayChainCurrency,
 		Self::AccountId,
 	>;
-	type Polls = Referenda;
+	type Polls = DelegatedReferenda;
 }
 
 parameter_types! {
@@ -56,7 +62,7 @@ parameter_types! {
 	pub const UndecidingTimeout: BlockNumber = 14 * DAYS;
 }
 
-impl pallet_referenda::Config for Runtime {
+impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
 	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
@@ -68,8 +74,8 @@ impl pallet_referenda::Config for Runtime {
 	type KillOrigin =
 		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
 	type Slash = (); // TODO: treasury
-	type Votes = pallet_conviction_voting::VotesOf<Runtime>;
-	type Tally = pallet_conviction_voting::TallyOf<Runtime>;
+	type Votes = pallet_conviction_voting::VotesOf<Runtime, DelegatedConvictionVotingInstance>;
+	type Tally = pallet_conviction_voting::TallyOf<Runtime, DelegatedConvictionVotingInstance>;
 	type SubmissionDeposit = SubmissionDeposit;
 	type MaxQueued = ConstU32<50>;
 	type UndecidingTimeout = UndecidingTimeout;
