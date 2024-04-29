@@ -27,7 +27,7 @@ mod weights;
 pub mod xcm_config;
 
 mod governance;
-use governance::pallet_custom_origins;
+use governance::{pallet_custom_origins, Spender};
 
 mod impls;
 mod ismp;
@@ -47,7 +47,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -705,9 +705,15 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-/*
 parameter_types! {
 	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
+	pub RegionXTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 100 * REGX;
+	pub const ProposalBondMaximum: Balance = 5_000 * REGX;
+	pub const SpendPeriod: BlockNumber = 7 * DAYS;
+	pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+	pub const MaxApprovals: u32 = 50;
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -717,9 +723,26 @@ impl pallet_treasury::Config for Runtime {
 	type RejectOrigin = Spender;
 	type RuntimeEvent = RuntimeEvent;
 	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = Treasury;
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+	type SpendOrigin = Spender;
+	type AssetKind = (); // TODO: add support for relay chain asset.
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+	type Paymaster = PayFromAccount<Balances, RegionXTreasuryAccount>;
+	type BalanceConverter = (); // TODO
+	type PayoutPeriod = PayoutPeriod;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
 }
-*/
- 
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
