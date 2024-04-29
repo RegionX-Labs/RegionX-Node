@@ -80,7 +80,7 @@ impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
 	type MaxQueued = ConstU32<50>;
 	type UndecidingTimeout = UndecidingTimeout;
 	type AlarmInterval = AlarmInterval;
-	type Tracks = TracksInfo;
+	type Tracks = DelegatedReferendaTrackInfo;
 	type Preimages = Preimage;
 }
 
