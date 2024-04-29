@@ -705,6 +705,21 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
+/*
+parameter_types! {
+	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = Spender;
+	type RejectOrigin = Spender;
+	type RuntimeEvent = RuntimeEvent;
+	type OnSlash = Treasury;
+}
+*/
+ 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime

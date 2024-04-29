@@ -147,3 +147,5 @@ impl pallet_whitelist::Config for Runtime {
 	type DispatchWhitelistedOrigin = WhitelistedCaller;
 	type Preimages = Preimage;
 }
+
+// TODO: add new referenda instance
