@@ -22,8 +22,8 @@ pub use tracks::*;
 
 use polkadot_runtime_common::prod_or_fast;
 
-pub type TechnicalCommitteeInstance = pallet_collective::Instance1;
-pub type GeneralCouncilInstance = pallet_collective::Instance2;
+pub type GeneralCouncilInstance = pallet_collective::Instance1;
+pub type TechnicalCommitteeInstance = pallet_collective::Instance2;
 
 pub type GeneralCouncilMembershipInstance = pallet_membership::Instance1;
 pub type TechnicalCommitteeMembershipInstance = pallet_membership::Instance2;
