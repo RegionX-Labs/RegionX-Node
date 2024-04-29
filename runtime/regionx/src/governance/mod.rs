@@ -16,7 +16,7 @@
 use super::*;
 
 mod origins;
-pub use origins::{pallet_custom_origins, WhitelistedCaller};
+pub use origins::{pallet_custom_origins, Spender, WhitelistedCaller};
 mod tracks;
 pub use tracks::*;
 

@@ -37,7 +37,9 @@ use impls::*;
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::{
-	fungible::HoldConsideration, EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
+	fungible::HoldConsideration,
+	tokens::{PayFromAccount, UnityAssetBalanceConversion},
+	EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
 };
 use pallet_regions::primitives::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -47,7 +49,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, IdentityLookup},
+	traits::{AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -712,8 +714,9 @@ parameter_types! {
 	pub const ProposalBondMinimum: Balance = 100 * REGX;
 	pub const ProposalBondMaximum: Balance = 5_000 * REGX;
 	pub const SpendPeriod: BlockNumber = 7 * DAYS;
-	pub const PayoutSpendPeriod: BlockNumber = 30 * DAYS;
+	pub const PayoutPeriod: BlockNumber = 30 * DAYS;
 	pub const MaxApprovals: u32 = 50;
+	pub const Burn: Permill = Permill::from_percent(0);
 }
 
 impl pallet_treasury::Config for Runtime {
@@ -727,17 +730,17 @@ impl pallet_treasury::Config for Runtime {
 	type ProposalBondMinimum = ProposalBondMinimum;
 	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
-	type Burn = Treasury;
+	type Burn = Burn;
 	type BurnDestination = ();
 	type MaxApprovals = MaxApprovals;
 	type WeightInfo = ();
 	type SpendFunds = ();
 	type SpendOrigin = Spender;
-	type AssetKind = (); // TODO: add support for relay chain asset.
+	type AssetKind = ();
 	type Beneficiary = AccountId;
 	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
 	type Paymaster = PayFromAccount<Balances, RegionXTreasuryAccount>;
-	type BalanceConverter = (); // TODO
+	type BalanceConverter = UnityAssetBalanceConversion; // TODO: should use AssetRate
 	type PayoutPeriod = PayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
@@ -783,23 +786,26 @@ construct_runtime!(
 		Aura: pallet_aura = 33,
 		AuraExt: cumulus_pallet_aura_ext = 34,
 
+		// Treasury
+		Treasury: pallet_treasury = 40,
+
 		// Handy utilities
-		Utility: pallet_utility = 40,
-		Multisig: pallet_multisig = 41,
-		Proxy: pallet_proxy = 42,
+		Utility: pallet_utility = 50,
+		Multisig: pallet_multisig = 51,
+		Proxy: pallet_proxy = 52,
 
 		// XCM helpers.
-		XcmpQueue: cumulus_pallet_xcmp_queue = 50,
-		PolkadotXcm: pallet_xcm = 51,
-		CumulusXcm: cumulus_pallet_xcm = 52,
-		MessageQueue: pallet_message_queue = 53,
+		XcmpQueue: cumulus_pallet_xcmp_queue = 60,
+		PolkadotXcm: pallet_xcm = 61,
+		CumulusXcm: cumulus_pallet_xcm = 62,
+		MessageQueue: pallet_message_queue = 63,
 
 		// ISMP
-		Ismp: pallet_ismp = 60,
-		IsmpParachain: ismp_parachain = 61,
+		Ismp: pallet_ismp = 70,
+		IsmpParachain: ismp_parachain = 71,
 
 		// Main stage:
-		Regions: pallet_regions = 70,
+		Regions: pallet_regions = 80,
 	}
 );
 
