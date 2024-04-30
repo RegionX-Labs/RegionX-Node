@@ -44,7 +44,7 @@ const SUP_MEDIUM_SPENDER: Curve =
 const APP_BIG_SPENDER: Curve = Curve::make_linear(28, 28, percent(50), percent(100));
 const SUP_BIG_SPENDER: Curve = Curve::make_reciprocal(20, 28, percent(1), percent(0), percent(50));
 
-const DELEGATE_REFERENDA_TRACKS: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 2] = [
+const DELEGATED_REFERENDA_TRACKS: [(u16, pallet_referenda::TrackInfo<Balance, BlockNumber>); 2] = [
 	(
 		0,
 		pallet_referenda::TrackInfo {
@@ -167,7 +167,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for DelegatedReferendaTr
 	type Id = u16;
 	type RuntimeOrigin = <RuntimeOrigin as frame_support::traits::OriginTrait>::PalletsOrigin;
 	fn tracks() -> &'static [(Self::Id, pallet_referenda::TrackInfo<Balance, BlockNumber>)] {
-		&DELEGATE_REFERENDA_TRACKS[..]
+		&DELEGATED_REFERENDA_TRACKS[..]
 	}
 	fn track_for(id: &Self::RuntimeOrigin) -> Result<Self::Id, ()> {
 		if let Ok(system_origin) = frame_system::RawOrigin::try_from(id.clone()) {
