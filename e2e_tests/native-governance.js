@@ -1,22 +1,11 @@
 const { ApiPromise, WsProvider, Keyring } = require("@polkadot/api");
 const { submitExtrinsic, setupRelayAsset, RELAY_ASSET_ID } = require("./common");
 
-const PREIMAGE_HASH = "0xb8375f7ca0c64a384f2dd643a0d520977f3aae06e64afb8c960891eee5147bd1";
+const PREIMAGE_HASH = "0x0ccf4369e9a9f88f035828ba0dd5da645d5c0fa7baa86bdc8d7a80c183ab84c9";
 
 async function run(nodeName, networkInfo, _jsArgs) {
   const { wsUri } = networkInfo.nodesByName[nodeName];
-  const api = await ApiPromise.create({
-    provider: new WsProvider(wsUri),
-    signedExtensions: {
-      ChargeAssetTxPayment: {
-        extrinsic: {
-          tip: "Compact<Balance>",
-          assetId: "Option<AssetId>",
-        },
-        payload: {},
-      },
-    },
-  });
+  const api = await ApiPromise.create({provider: new WsProvider(wsUri)});
 
   // account to submit tx
   const keyring = new Keyring({ type: "sr25519" });
