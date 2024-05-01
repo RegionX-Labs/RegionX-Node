@@ -96,7 +96,7 @@ const NATIVE_REFERENDA_TRACKS: [(u16, pallet_referenda::TrackInfo<Balance, Block
 			name: "small_tipper",
 			max_deciding: 50,
 			decision_deposit: 100 * REGX,
-			prepare_period: 14 * MINUTES,
+			prepare_period: 30 * MINUTES,
 			decision_period: 7 * DAYS,
 			confirm_period: 4 * HOURS,
 			min_enactment_period: 30 * MINUTES,
@@ -113,7 +113,7 @@ const NATIVE_REFERENDA_TRACKS: [(u16, pallet_referenda::TrackInfo<Balance, Block
 			prepare_period: 2 * HOURS,
 			decision_period: 10 * DAYS,
 			confirm_period: 8 * HOURS,
-			min_enactment_period: 2 * HOURS,
+			min_enactment_period: 4 * HOURS,
 			min_approval: APP_BIG_TIPPER,
 			min_support: SUP_BIG_TIPPER,
 		},
@@ -181,6 +181,7 @@ impl pallet_referenda::TracksInfo<Balance, BlockNumber> for DelegatedReferendaTr
 				_ => Err(()),
 			}
 		} else {
+			// Treasury is only controlable with native tokens.
 			Err(())
 		}
 	}
