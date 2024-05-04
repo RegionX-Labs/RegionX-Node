@@ -16,7 +16,7 @@ command = "polkadot"
 [[parachains]]
 id = 1005
 chain = "coretime-rococo-local"
-addToGenesis = true
+addToGenesis = false
 
   [parachains.collator]
   name = "coretime-collator01"
