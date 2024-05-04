@@ -16,7 +16,7 @@
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, ParachainInfo, ParachainSystem, PolkadotXcm,
 	Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee, XcmpQueue,
-	CORETIME_CHAIN_PARA_ID,
+	CORETIME_CHAIN_PARA_ID, NonFungibleAdapter,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -33,7 +33,7 @@ use xcm_builder::{
 	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, ParentIsPreset,
 	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic, NonFungibleAdapter,
+	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::XcmExecutor;
 
