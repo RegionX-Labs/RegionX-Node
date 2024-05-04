@@ -1,5 +1,5 @@
 // TODO: remove this file
-// This has been temporarily added here because the NonFungibleAdapter is in release 1.7.0 
+// This has been temporarily added here because the NonFungibleAdapter is in release 1.7.0
 // or later, but we cannot update to that version now because of ISMP.
 
 // Copyright (C) Parity Technologies (UK) Ltd.
@@ -20,13 +20,13 @@
 
 //! Adapters to work with [`frame_support::traits::tokens::nonfungible`] through XCM.
 
-use xcm_builder::MintLocation;
 use frame_support::{
 	ensure,
 	traits::{tokens::nonfungible, Get},
 };
 use sp_std::{marker::PhantomData, prelude::*, result};
 use xcm::latest::prelude::*;
+use xcm_builder::MintLocation;
 use xcm_executor::traits::{
 	ConvertLocation, Error as MatchError, MatchesNonFungible, TransactAsset,
 };
