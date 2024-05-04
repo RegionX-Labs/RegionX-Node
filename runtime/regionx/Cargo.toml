@@ -35,6 +35,8 @@ orml-asset-registry = { workspace = true }
 orml-currencies = { workspace = true }
 orml-tokens = { workspace = true }
 orml-traits = { workspace = true }
+orml-unknown-tokens = { workspace = true }
+orml-xcm-support = { workspace = true }
 
 # Substrate
 frame-benchmarking = { workspace = true, optional = true }
@@ -49,15 +51,23 @@ pallet-authorship = { workspace = true }
 pallet-asset-rate = { workspace = true }
 pallet-asset-tx-payment = { workspace = true }
 pallet-balances = { workspace = true }
+pallet-collective = { workspace = true }
+pallet-conviction-voting = { workspace = true }
+pallet-referenda = { workspace = true }
+pallet-membership = { workspace = true }
 pallet-message-queue = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
+pallet-preimage = { workspace = true }
 pallet-session = { workspace = true }
 pallet-sudo = { workspace = true }
+pallet-scheduler = { workspace = true }
+pallet-treasury = { workspace = true }
 pallet-timestamp = { workspace = true }
 pallet-transaction-payment = { workspace = true }
 pallet-transaction-payment-rpc-runtime-api = { workspace = true }
 pallet-utility = { workspace = true }
+pallet-whitelist = { workspace = true }
 sp-api = { workspace = true }
 sp-block-builder = { workspace = true }
 sp-consensus-aura = { workspace = true }
@@ -123,24 +133,34 @@ std = [
 	"orml-currencies/std",
 	"orml-tokens/std",
 	"orml-traits/std",
+	"orml-unknown-tokens/std",
+	"orml-xcm-support/std",
 	"pallet-aura/std",
 	"pallet-authorship/std",
 	"pallet-asset-rate/std",
 	"pallet-asset-tx-payment/std",
 	"pallet-balances/std",
+	"pallet-collective/std",
+	"pallet-conviction-voting/std",
 	"pallet-collator-selection/std",
-	"pallet-message-queue/std",
+	"pallet-referenda/std",
 	"pallet-regions/std",
 	"regionx-primitives/std",
+	"pallet-membership/std",
+	"pallet-message-queue/std",
 	"pallet-multisig/std",
 	"pallet-proxy/std",
+	"pallet-preimage/std",
 	"pallet-session/std",
 	"pallet-sudo/std",
+	"pallet-scheduler/std",
+	"pallet-treasury/std",
 	"pallet-timestamp/std",
 	"pallet-transaction-payment-rpc-runtime-api/std",
 	"pallet-transaction-payment/std",
 	"pallet-utility/std",
 	"pallet-xcm/std",
+	"pallet-whitelist/std",
 	"parachain-info/std",
 	"parachains-common/std",
 	"polkadot-parachain-primitives/std",
@@ -181,15 +201,22 @@ runtime-benchmarks = [
   	"pallet-asset-rate/runtime-benchmarks",
   	"pallet-asset-tx-payment/runtime-benchmarks",
 	"pallet-balances/runtime-benchmarks",
+	"pallet-collective/runtime-benchmarks",
+	"pallet-conviction-voting/runtime-benchmarks",
 	"pallet-collator-selection/runtime-benchmarks",
+	"pallet-membership/std",
 	"pallet-message-queue/runtime-benchmarks",
   	"pallet-multisig/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
+	"pallet-preimage/runtime-benchmarks",
 	"pallet-regions/runtime-benchmarks",
 	"pallet-sudo/runtime-benchmarks",
+	"pallet-scheduler/runtime-benchmarks",
+	"pallet-treasury/runtime-benchmarks",
 	"pallet-timestamp/runtime-benchmarks",
 	"pallet-utility/runtime-benchmarks",
 	"pallet-xcm/runtime-benchmarks",
+	"pallet-whitelist/runtime-benchmarks",
 	"parachains-common/runtime-benchmarks",
 	"polkadot-parachain-primitives/runtime-benchmarks",
 	"polkadot-runtime-common/runtime-benchmarks",
@@ -218,20 +245,30 @@ try-runtime = [
 	"pallet-asset-rate/try-runtime",
 	"pallet-asset-tx-payment/try-runtime",
 	"pallet-balances/try-runtime",
+	"pallet-collective/try-runtime",
+	"pallet-conviction-voting/try-runtime",
 	"pallet-collator-selection/try-runtime",
+	"pallet-membership/std",
 	"pallet-message-queue/try-runtime",
   	"pallet-multisig/try-runtime",
 	"pallet-proxy/try-runtime",
+	"pallet-preimage/try-runtime",
 	"pallet-regions/try-runtime",
 	"pallet-session/try-runtime",
 	"pallet-sudo/try-runtime",
+	"pallet-scheduler/try-runtime",
+	"pallet-treasury/try-runtime",
 	"pallet-timestamp/try-runtime",
 	"pallet-transaction-payment/try-runtime",
 	"pallet-utility/try-runtime",
 	"pallet-xcm/try-runtime",
+	"pallet-whitelist/try-runtime",
 	"parachain-info/try-runtime",
 	"polkadot-runtime-common/try-runtime",
 	"sp-runtime/try-runtime",
 ]
+
+# Reducing waiting times for governance or other
+fast-runtime = []
 
 experimental = ["pallet-aura/experimental"]
