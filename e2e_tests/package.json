@@ -11,6 +11,6 @@
   "license": "ISC",
   "dependencies": {
     "@polkadot/api": "^11.0.1",
-    "coretime-utils": "^0.2.8"
+    "coretime-utils": "^0.3.0"
   }
 }

@@ -1,13 +1,15 @@
 const { ApiPromise, WsProvider, Keyring } = require("@polkadot/api");
 const { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } = require("./consts");
 const { submitExtrinsic } = require("./common");
-const { CoreMask, Region, Id } = require("coretime-utils");
+const { CoreMask, getEncodedRegionId, Id } = require("coretime-utils");
 
 async function run(nodeName, networkInfo, _jsArgs) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
   const { wsUri: coretimeUri } = networkInfo.nodesByName["coretime-collator01"];
+  const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
 
   const regionXApi = await ApiPromise.create({ provider: new WsProvider(regionXUri) });
+  const rococoApi = await ApiPromise.create({ provider: new WsProvider(rococoUri) });
   const coretimeApi = await ApiPromise.create({ provider: new WsProvider(coretimeUri), types: { Id } });
 
   // account to submit tx
@@ -17,14 +19,18 @@ async function run(nodeName, networkInfo, _jsArgs) {
   const setCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setCoretimeXcmVersion), {});
 
+  // TODO: open hrmp channel
+  await openHrmpChannel(alice, rococoApi, 1005, 2000);
+  await openHrmpChannel(alice, rococoApi, 2000, 1005);
+
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);
 
-  const setBalanceCall = coretimeApi.tx.tokens.forceSetBalance(alice.address, 1000 * UNIT);
+  const setBalanceCall = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000 * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
 
   const regionId = await purchaseRegion(coretimeApi, alice);
-  const encodedId = new Region(regionId, {end: 0, owner: '', paid: null}).getEncodedRegionId(coretimeApi);
+  const encodedId = getEncodedRegionId(regionId, coretimeApi);
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);
@@ -69,6 +75,29 @@ async function run(nodeName, networkInfo, _jsArgs) {
   await submitExtrinsic(alice, reserveTransfer, {});
 }
 
+async function openHrmpChannel(signer, relayApi, sender, recipient) {
+  const newHrmpChannel = [
+    sender,
+    recipient,
+    8, // Max capacity
+    102400, // Max message size
+  ];
+
+  const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(...newHrmpChannel);
+  const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
+
+  const callTx = async (resolve) => {
+    const unsub = await sudoCall.signAndSend(signer, (result) => {
+      if (result.status.isInBlock) {
+        unsub();
+        resolve();
+      }
+    });
+  };
+
+  return new Promise(callTx);
+}
+
 async function configureBroker(coretimeApi, signer) {
   const configCall = coretimeApi.tx.broker.configure(CONFIG);
   const sudo = coretimeApi.tx.sudo.sudo(configCall)
@@ -102,7 +131,8 @@ async function getRegionId(coretimeApi) {
   for (const record of events) {
     const { event } = record;
     if (event.section === "broker" && event.method === "Purchased") {
-      return event.data[1];
+      const data =  event.data[1].toHuman();
+      return { begin: data.begin, core: data.core, mask: new CoreMask(data.mask) }
     }
   }
 
