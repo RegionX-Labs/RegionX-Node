@@ -5981,6 +5981,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "orml-unknown-tokens"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "12c26e74a7407bd6bccc8d123a4f6d60e5b01188c135804dc1e48ca98c49dbf6"
+dependencies = [
+ "frame-support",
+ "frame-system",
+ "orml-xcm-support",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-std",
+ "staging-xcm",
+]
+
+[[package]]
 name = "orml-utilities"
 version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5994,6 +6010,21 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "orml-xcm-support"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dbb61790b9ce5698f7026bbf9ebd932df782a425b3551e9dd04300cb4eace179"
+dependencies = [
+ "frame-support",
+ "orml-traits",
+ "parity-scale-codec",
+ "sp-runtime",
+ "sp-std",
+ "staging-xcm",
+ "staging-xcm-executor",
 ]
 
 [[package]]
@@ -6268,15 +6299,16 @@ dependencies = [
 
 [[package]]
 name = "pallet-collator-selection"
-version = "9.0.0"
+version = "9.0.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f4199122c135e161d2e2f4cbc9339c54a11ac4b11e0beb67e53b49a3c90d566b"
+checksum = "05cc67e8233b748a0c0b1ecc2cbecfc6deb08be633fedba9c3d6b1ade6c2a036"
 dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
  "pallet-authorship",
+ "pallet-balances",
  "pallet-session",
  "parity-scale-codec",
  "rand",
@@ -9412,24 +9444,34 @@ dependencies = [
  "orml-currencies",
  "orml-tokens",
  "orml-traits",
+ "orml-unknown-tokens",
+ "orml-xcm-support",
  "pallet-asset-rate",
  "pallet-asset-tx-payment",
  "pallet-aura",
  "pallet-authorship",
  "pallet-balances",
  "pallet-collator-selection",
+ "pallet-collective",
+ "pallet-conviction-voting",
  "pallet-ismp",
  "pallet-ismp-runtime-api",
+ "pallet-membership",
  "pallet-message-queue",
  "pallet-multisig",
+ "pallet-preimage",
  "pallet-proxy",
+ "pallet-referenda",
  "pallet-regions",
+ "pallet-scheduler",
  "pallet-session",
  "pallet-sudo",
  "pallet-timestamp",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
+ "pallet-treasury",
  "pallet-utility",
+ "pallet-whitelist",
  "pallet-xcm",
  "parachains-common",
  "parity-scale-codec",
