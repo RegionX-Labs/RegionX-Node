@@ -21,7 +21,7 @@ async function submitExtrinsic(signer: KeyringPair, call: SubmittableExtrinsic<"
       } else if (result.isError) {
         console.log(`Transaction error`);
         unsub();
-        return resolve();
+        return reject();
       }
     });
   });

@@ -1,5 +1,5 @@
 const { ApiPromise, WsProvider, Keyring } = require("@polkadot/api");
-const { submitExtrinsic, setupRelayAsset, RELAY_ASSET_ID } = require("./common");
+const { submitExtrinsic, setupRelayAsset, RELAY_ASSET_ID } = require("../common");
 
 async function run(nodeName, networkInfo, _jsArgs) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
