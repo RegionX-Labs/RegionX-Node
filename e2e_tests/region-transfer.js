@@ -19,7 +19,6 @@ async function run(nodeName, networkInfo, _jsArgs) {
   const setCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setCoretimeXcmVersion), {});
 
-  // TODO: open hrmp channel
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
 
@@ -30,7 +29,7 @@ async function run(nodeName, networkInfo, _jsArgs) {
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
 
   const regionId = await purchaseRegion(coretimeApi, alice);
-  const encodedId = getEncodedRegionId(regionId, coretimeApi);
+  const encodedId = getEncodedRegionId(regionId, coretimeApi).toString();
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);

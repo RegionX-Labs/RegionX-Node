@@ -30,4 +30,4 @@ addToGenesis = false
   [parachains.collator]
   name = "regionx-collator01"
   command = "regionx-node"
-  args = [ "-lruntime=debug,parachain=trace" ]
+  args = [ "--log=xcm=trace,regions=trace" ]
