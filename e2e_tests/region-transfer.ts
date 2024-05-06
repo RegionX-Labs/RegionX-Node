@@ -1,10 +1,11 @@
-const { ApiPromise, WsProvider, Keyring } = require("@polkadot/api");
-const { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } = require("./consts");
-const { submitExtrinsic, sleep } = require("./common");
-const { CoreMask, getEncodedRegionId, Id } = require("coretime-utils");
-const assert = require('node:assert');
+import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
+import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "./consts";
+import { submitExtrinsic, sleep } from "./common";
+import { KeyringPair } from "@polkadot/keyring/types";
+import { CoreMask, getEncodedRegionId, Id, RegionId } from "coretime-utils";
+import assert from 'node:assert';
 
-async function run(_nodeName, networkInfo, _jsArgs) {
+async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
   const { wsUri: coretimeUri } = networkInfo.nodesByName["coretime-collator01"];
   const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
@@ -82,10 +83,10 @@ async function run(_nodeName, networkInfo, _jsArgs) {
   assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
 }
 
-async function openHrmpChannel(signer, relayApi, sender, recipient) {
+async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, senderParaId: number, recipientParaId: number) {
   const newHrmpChannel = [
-    sender,
-    recipient,
+    senderParaId,
+    recipientParaId,
     8, // Max capacity
     102400, // Max message size
   ];
@@ -93,7 +94,7 @@ async function openHrmpChannel(signer, relayApi, sender, recipient) {
   const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(...newHrmpChannel);
   const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
 
-  const callTx = async (resolve) => {
+  const callTx = async (resolve: any) => {
     const unsub = await sudoCall.signAndSend(signer, (result) => {
       if (result.status.isInBlock) {
         unsub();
@@ -105,22 +106,22 @@ async function openHrmpChannel(signer, relayApi, sender, recipient) {
   return new Promise(callTx);
 }
 
-async function configureBroker(coretimeApi, signer) {
+async function configureBroker(coretimeApi: ApiPromise, signer: KeyringPair): Promise<void> {
   const configCall = coretimeApi.tx.broker.configure(CONFIG);
   const sudo = coretimeApi.tx.sudo.sudo(configCall)
   return submitExtrinsic(signer, sudo, {});
 }
 
-async function startSales(coretimeApi, signer) {
+async function startSales(coretimeApi: ApiPromise, signer: KeyringPair): Promise<void> {
   const startSaleCall = coretimeApi.tx.broker.startSales(INITIAL_PRICE, CORE_COUNT);
   const sudo = coretimeApi.tx.sudo.sudo(startSaleCall)
   return submitExtrinsic(signer, sudo, {});
 }
 
-async function purchaseRegion(coretimeApi, buyer) {
-  const callTx = async (resolve) => {
+async function purchaseRegion(coretimeApi: ApiPromise, buyer: KeyringPair): Promise<RegionId> {
+  const callTx = async (resolve: (regionId: RegionId) => void) => {
     const purchase = coretimeApi.tx.broker.purchase(INITIAL_PRICE * 2);
-    const unsub = await purchase.signAndSend(buyer, async (result) => {
+    const unsub = await purchase.signAndSend(buyer, async (result: any) => {
       if (result.status.isInBlock) {
         const regionId = await getRegionId(coretimeApi);
         unsub();
@@ -132,8 +133,8 @@ async function purchaseRegion(coretimeApi, buyer) {
   return new Promise(callTx);
 }
 
-async function getRegionId(coretimeApi) {
-  const events = await coretimeApi.query.system.events();
+async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId> {
+  const events: any = await coretimeApi.query.system.events();
 
   for (const record of events) {
     const { event } = record;
@@ -146,4 +147,4 @@ async function getRegionId(coretimeApi) {
   return { begin: 0, core: 0, mask: CoreMask.voidMask() };
 }
 
-module.exports = { run };
+export { run };

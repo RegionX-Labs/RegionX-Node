@@ -1,6 +1,10 @@
+import { ApiPromise } from "@polkadot/api";
+import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { KeyringPair } from "@polkadot/keyring/types";
+
 const RELAY_ASSET_ID = 1;
 
-async function submitExtrinsic(signer, call, options) {
+async function submitExtrinsic(signer: KeyringPair, call: SubmittableExtrinsic<"promise">, options: any): Promise<void> {
   return new Promise(async (resolve, reject) => {
     const unsub = await call.signAndSend(signer, options, (result) => {
       console.log(`Current status is ${result.status}`);
@@ -23,7 +27,7 @@ async function submitExtrinsic(signer, call, options) {
   });
 }
 
-async function setupRelayAsset(api, signer) {
+async function setupRelayAsset(api: ApiPromise, signer: KeyringPair) {
   const assetMetadata = {
     decimals: 12,
     name: "ROC",
@@ -50,8 +54,8 @@ async function setupRelayAsset(api, signer) {
   await submitExtrinsic(signer, sudoCall, {});
 }
 
-async function sleep(milliseconds) {
+async function sleep(milliseconds: number) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-module.exports = { submitExtrinsic, setupRelayAsset, sleep, RELAY_ASSET_ID }
+export { submitExtrinsic, setupRelayAsset, sleep, RELAY_ASSET_ID }
