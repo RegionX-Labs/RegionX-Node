@@ -1,10 +1,11 @@
 const { ApiPromise, WsProvider, Keyring } = require("@polkadot/api");
 const { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } = require("./consts");
-const { submitExtrinsic } = require("./common");
+const { submitExtrinsic, sleep } = require("./common");
 const { CoreMask, getEncodedRegionId, Id } = require("coretime-utils");
+const assert = require('node:assert');
 
-async function run(nodeName, networkInfo, _jsArgs) {
-  const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
+async function run(_nodeName, networkInfo, _jsArgs) {
+  const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
   const { wsUri: coretimeUri } = networkInfo.nodesByName["coretime-collator01"];
   const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
 
@@ -13,7 +14,7 @@ async function run(nodeName, networkInfo, _jsArgs) {
   const coretimeApi = await ApiPromise.create({ provider: new WsProvider(coretimeUri), types: { Id } });
 
   // account to submit tx
-  const keyring = new zombie.Keyring({ type: "sr25519" });
+  const keyring = new Keyring({ type: "sr25519" });
   const alice = keyring.addFromUri("//Alice");
 
   const setCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
@@ -72,6 +73,13 @@ async function run(nodeName, networkInfo, _jsArgs) {
     weightLimit,
   );
   await submitExtrinsic(alice, reserveTransfer, {});
+
+  await sleep(5000);
+
+  const regions = (await regionXApi.query.regions.regions.entries());
+  assert.equal(regions.length, 1);
+  assert.deepStrictEqual(regions[0][0].toHuman(), [{ begin: '34', core: '0', mask: "0xffffffffffffffffffff" }]);
+  assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
 }
 
 async function openHrmpChannel(signer, relayApi, sender, recipient) {

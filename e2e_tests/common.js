@@ -50,4 +50,8 @@ async function setupRelayAsset(api, signer) {
   await submitExtrinsic(signer, sudoCall, {});
 }
 
-module.exports = { submitExtrinsic, setupRelayAsset, RELAY_ASSET_ID }
+async function sleep(milliseconds) {
+  return new Promise(resolve => setTimeout(resolve, milliseconds));
+}
+
+module.exports = { submitExtrinsic, setupRelayAsset, sleep, RELAY_ASSET_ID }
