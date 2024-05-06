@@ -26,6 +26,9 @@ extern crate alloc;
 mod weights;
 pub mod xcm_config;
 
+mod governance;
+use governance::{pallet_custom_origins, Spender};
+
 mod impls;
 mod ismp;
 
@@ -33,7 +36,11 @@ use impls::*;
 
 use cumulus_pallet_parachain_system::RelayNumberStrictlyIncreases;
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
-use frame_support::traits::TransformOrigin;
+use frame_support::traits::{
+	fungible::HoldConsideration,
+	tokens::{PayFromAccount, UnityAssetBalanceConversion},
+	EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
+};
 use pallet_regions::primitives::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
@@ -42,7 +49,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, OpaqueMetadata};
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT},
+	traits::{AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, IdentityLookup},
 	transaction_validity::{TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -74,6 +81,7 @@ use frame_system::{
 	EnsureRoot, Phase,
 };
 use orml_currencies::BasicCurrencyAdapter;
+use orml_tokens::CurrencyAdapter;
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::{
 	dispatcher::Dispatcher,
@@ -99,7 +107,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_primitives::{
-	assets::{AssetId, CustomMetadata, REGX_ASSET_ID},
+	assets::{AssetId, CustomMetadata, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
@@ -136,6 +144,9 @@ pub type Executive = frame_executive::Executive<
 	Runtime,
 	AllPalletsWithSystem,
 >;
+
+/// The relay chain currency on the RegionX parachain.
+pub type RelayChainCurrency = CurrencyAdapter<Runtime, ConstU32<RELAY_CHAIN_ASSET_ID>>;
 
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
@@ -203,6 +214,10 @@ pub const DAYS: BlockNumber = HOURS * 24;
 pub const REGX: Balance = 1_000_000_000_000;
 pub const MILLIREGX: Balance = 1_000_000_000;
 pub const MICROREGX: Balance = 1_000_000;
+
+pub const KSM: Balance = 1_000_000_000_000;
+pub const MILLI_KSM: Balance = 1_000_000_000;
+pub const MICRO_KSM: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
@@ -413,6 +428,7 @@ impl orml_asset_registry::Config for Runtime {
 }
 
 parameter_types! {
+	// TODO: set to a reasonable value.
 	/// Relay Chain `TransactionByteFee` / 10
 	pub const TransactionByteFee: Balance = 10 * MICROREGX;
 }
@@ -437,6 +453,10 @@ impl pallet_asset_rate::Config for Runtime {
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+}
+
+impl orml_unknown_tokens::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
 }
 
 impl pallet_asset_tx_payment::Config for Runtime {
@@ -650,6 +670,82 @@ impl pallet_proxy::Config for Runtime {
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
 
+parameter_types! {
+	pub const PreimageBaseDeposit: Balance = deposit(2, 64);
+	pub const PreimageByteDeposit: Balance = deposit(0, 1);
+	pub const PreimageHoldReason: RuntimeHoldReason =
+		RuntimeHoldReason::Preimage(pallet_preimage::HoldReason::Preimage);
+}
+
+impl pallet_preimage::Config for Runtime {
+	type WeightInfo = ();
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type ManagerOrigin = EnsureRoot<AccountId>;
+	type Consideration = HoldConsideration<
+		AccountId,
+		Balances,
+		PreimageHoldReason,
+		LinearStoragePrice<PreimageBaseDeposit, PreimageByteDeposit, Balance>,
+	>;
+}
+
+parameter_types! {
+	pub MaximumSchedulerWeight: Weight = Perbill::from_percent(80) * RuntimeBlockWeights::get().max_block;
+}
+
+impl pallet_scheduler::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type RuntimeOrigin = RuntimeOrigin;
+	type PalletsOrigin = OriginCaller;
+	type RuntimeCall = RuntimeCall;
+	type MaximumWeight = MaximumSchedulerWeight;
+	type ScheduleOrigin = EnsureRoot<AccountId>;
+	type MaxScheduledPerBlock = ConstU32<10>;
+	type WeightInfo = ();
+	type OriginPrivilegeCmp = EqualPrivilegeOnly;
+	type Preimages = Preimage;
+}
+
+parameter_types! {
+	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
+	pub RegionXTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
+	pub const ProposalBond: Permill = Permill::from_percent(5);
+	pub const ProposalBondMinimum: Balance = 100 * REGX;
+	pub const ProposalBondMaximum: Balance = 5_000 * REGX;
+	pub const SpendPeriod: BlockNumber = 7 * DAYS;
+	pub const PayoutPeriod: BlockNumber = 30 * DAYS;
+	pub const MaxApprovals: u32 = 50;
+	pub const Burn: Permill = Permill::from_percent(0);
+}
+
+impl pallet_treasury::Config for Runtime {
+	type PalletId = TreasuryPalletId;
+	type Currency = Balances;
+	type ApproveOrigin = Spender;
+	type RejectOrigin = Spender;
+	type RuntimeEvent = RuntimeEvent;
+	type OnSlash = Treasury;
+	type ProposalBond = ProposalBond;
+	type ProposalBondMinimum = ProposalBondMinimum;
+	type ProposalBondMaximum = ProposalBondMaximum;
+	type SpendPeriod = SpendPeriod;
+	type Burn = Burn;
+	type BurnDestination = ();
+	type MaxApprovals = MaxApprovals;
+	type WeightInfo = ();
+	type SpendFunds = ();
+	type SpendOrigin = Spender;
+	type AssetKind = ();
+	type Beneficiary = AccountId;
+	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
+	type Paymaster = PayFromAccount<Balances, RegionXTreasuryAccount>;
+	type BalanceConverter = UnityAssetBalanceConversion;
+	type PayoutPeriod = PayoutPeriod;
+	#[cfg(feature = "runtime-benchmarks")]
+	type BenchmarkHelper = ();
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -659,6 +755,8 @@ construct_runtime!(
 		ParachainSystem: cumulus_pallet_parachain_system = 1,
 		Timestamp: pallet_timestamp = 2,
 		ParachainInfo: parachain_info = 3,
+		Preimage: pallet_preimage = 4,
+		Scheduler: pallet_scheduler = 5,
 
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
@@ -668,34 +766,48 @@ construct_runtime!(
 		Tokens: orml_tokens = 14,
 		Currencies: orml_currencies = 15,
 		AssetRate: pallet_asset_rate = 16,
+		UnknownTokens: orml_unknown_tokens = 17,
 
 		// Governance
-		Sudo: pallet_sudo = 20,
+		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
+		DelegatedReferenda: pallet_referenda::<Instance1> = 21,
+		NativeReferenda: pallet_referenda::<Instance2> = 22,
+		DelegatedConvictionVoting: pallet_conviction_voting::<Instance1> = 23,
+		NativeConvictionVoting: pallet_conviction_voting::<Instance2> = 24,
+		GeneralCouncil: pallet_collective::<Instance1> = 25,
+		TechnicalCommittee: pallet_collective::<Instance2> = 26,
+		GeneralCouncilMembership: pallet_membership::<Instance1> = 27,
+		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 28,
+		Origins: pallet_custom_origins = 29,
+		Whitelist: pallet_whitelist = 30,
 
 		// Collator support. The order of these 4 are important and shall not change.
-		Authorship: pallet_authorship = 30,
-		CollatorSelection: pallet_collator_selection = 31,
-		Session: pallet_session = 32,
-		Aura: pallet_aura = 33,
-		AuraExt: cumulus_pallet_aura_ext = 34,
+		Authorship: pallet_authorship = 40,
+		CollatorSelection: pallet_collator_selection = 41,
+		Session: pallet_session = 42,
+		Aura: pallet_aura = 43,
+		AuraExt: cumulus_pallet_aura_ext = 44,
+
+		// Treasury
+		Treasury: pallet_treasury = 50,
 
 		// Handy utilities
-		Utility: pallet_utility = 40,
-		Multisig: pallet_multisig = 41,
-		Proxy: pallet_proxy = 42,
+		Utility: pallet_utility = 60,
+		Multisig: pallet_multisig = 61,
+		Proxy: pallet_proxy = 62,
 
 		// XCM helpers.
-		XcmpQueue: cumulus_pallet_xcmp_queue = 50,
-		PolkadotXcm: pallet_xcm = 51,
-		CumulusXcm: cumulus_pallet_xcm = 52,
-		MessageQueue: pallet_message_queue = 53,
+		XcmpQueue: cumulus_pallet_xcmp_queue = 70,
+		PolkadotXcm: pallet_xcm = 71,
+		CumulusXcm: cumulus_pallet_xcm = 72,
+		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Ismp: pallet_ismp = 60,
-		IsmpParachain: ismp_parachain = 61,
+		Ismp: pallet_ismp = 80,
+		IsmpParachain: ismp_parachain = 81,
 
 		// Main stage:
-		Regions: pallet_regions = 70,
+		Regions: pallet_regions = 90,
 	}
 );
 
@@ -707,9 +819,11 @@ mod benches {
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]
 		[pallet_proxy, Proxy]
+		[pallet_proxy, Preimage]
 		[pallet_timestamp, Timestamp]
 		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]
+		[pallet_proxy, Scheduler]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_regions, Regions]
