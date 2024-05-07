@@ -11,7 +11,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
 
   const regionXApi = await ApiPromise.create({ provider: new WsProvider(regionXUri) });
-  const rococoApi = await ApiPromise.create({ provider: new WsProvider(rococoUri) });
+  const rococoApi = await ApiPromise.create({ provider: new WsProvider(rococoUri), types: { Id } });
   const coretimeApi = await ApiPromise.create({ provider: new WsProvider(coretimeUri), types: { Id } });
 
   // account to submit tx
@@ -31,7 +31,6 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
 
   const regionId = await purchaseRegion(coretimeApi, alice);
-  const encodedId = getEncodedRegionId(regionId, coretimeApi).toString();
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);
@@ -64,7 +63,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
           },
           fun: {
             NonFungible: {
-              Index: encodedId
+              Index: getEncodedRegionId(regionId, coretimeApi).toString()
             }
           },
         },
@@ -82,8 +81,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   assert.deepStrictEqual(regions[0][0].toHuman(), [{ begin: '34', core: '0', mask: "0xffffffffffffffffffff" }]);
   assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
 
-  const reserveTransferToCoretime = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
-    { V3: { parents: 1, interior: { X1: { Parachain: 1005 } } } }, //dest
+  const reserveTransferToCoretime = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
+    { V3: { parents: 1, interior: { X1: { Parachain: 1005 } } } }, // dest
     {
       V3: {
         parents: 0,
@@ -96,24 +95,24 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
           },
         },
       },
-    }, //beneficiary
+    }, // ^^ beneficiary
     {
       V3: [
         {
           id: {
             Concrete: {
               parents: 1,
-              interior: { X2: [ {Parachain: 2000}, { PalletInstance: 50 }] },
+              interior: { X2: [ {Parachain: 1005}, { PalletInstance: 50 }] },
             },
           },
           fun: {
             NonFungible: {
-              Index: encodedId
+              Index: getEncodedRegionId(regionId, regionXApi).toString()
             }
           },
         },
       ],
-    }, //asset
+    }, // ^^ asset
     feeAssetItem,
     weightLimit,
   );

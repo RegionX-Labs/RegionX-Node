@@ -21,7 +21,7 @@ addToGenesis = false
   [parachains.collator]
   name = "coretime-collator01"
   command = "polkadot-parachain"
-  args = [ "-lruntime=debug,parachain=trace" ]
+  args = [ "--log=xcm=trace" ]
 
 [[parachains]]
 id = 2000
