@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
-import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "./consts";
-import { submitExtrinsic, sleep } from "./common";
+import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
+import { submitExtrinsic, sleep } from "../common";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { CoreMask, getEncodedRegionId, Id, RegionId } from "coretime-utils";
 import assert from 'node:assert';
@@ -38,7 +38,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   const feeAssetItem = 0;
   const weightLimit = "Unlimited";
-  const reserveTransfer = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
+  const reserveTransferToRegionX = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
     { V3: { parents: 1, interior: { X1: { Parachain: 2000 } } } }, //dest
     {
       V3: {
@@ -73,7 +73,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
     feeAssetItem,
     weightLimit,
   );
-  await submitExtrinsic(alice, reserveTransfer, {});
+  await submitExtrinsic(alice, reserveTransferToRegionX, {});
 
   await sleep(5000);
 
@@ -81,6 +81,43 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   assert.equal(regions.length, 1);
   assert.deepStrictEqual(regions[0][0].toHuman(), [{ begin: '34', core: '0', mask: "0xffffffffffffffffffff" }]);
   assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
+
+  const reserveTransferToCoretime = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
+    { V3: { parents: 1, interior: { X1: { Parachain: 1005 } } } }, //dest
+    {
+      V3: {
+        parents: 0,
+        interior: {
+          X1: {
+            AccountId32: {
+              chain: "Any",
+              id: receiverKeypair.pairs[0].publicKey,
+            },
+          },
+        },
+      },
+    }, //beneficiary
+    {
+      V3: [
+        {
+          id: {
+            Concrete: {
+              parents: 1,
+              interior: { X2: [ {Parachain: 2000}, { PalletInstance: 50 }] },
+            },
+          },
+          fun: {
+            NonFungible: {
+              Index: encodedId
+            }
+          },
+        },
+      ],
+    }, //asset
+    feeAssetItem,
+    weightLimit,
+  );
+  await submitExtrinsic(alice, reserveTransferToCoretime, {});
 }
 
 async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, senderParaId: number, recipientParaId: number) {
