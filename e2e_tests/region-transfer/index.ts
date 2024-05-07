@@ -2,8 +2,10 @@ import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
 import { submitExtrinsic, sleep, transferRelayAssetToRegionX, setupRelayAsset } from "../common";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { getEncodedRegionId, Id, RegionId, voidMask } from "coretime-utils";
+import { getEncodedRegionId, Id, RegionId } from "coretime-utils";
 import assert from 'node:assert';
+
+const PARA_SOVEREIGN_ACCOUNT = "5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8";
 
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
@@ -19,7 +21,9 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const alice = keyring.addFromUri("//Alice");
 
   const setCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
+  const setRelayXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setCoretimeXcmVersion), {});
+  await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setRelayXcmVersion), {});
 
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
@@ -28,6 +32,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);
+
+  await sleep(2000);
 
   const setBalanceCall = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000 * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
@@ -78,7 +84,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await submitExtrinsic(alice, reserveTransferToRegionX, {});
 
   await transferRelayAssetToRegionX((10n**12n).toString(), rococoApi, alice);
-  await sleep(5000);
+  const fundSovereignAccount = coretimeApi.tx.balances.forceSetBalance(PARA_SOVEREIGN_ACCOUNT, 1000 * UNIT);
+  await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(fundSovereignAccount), {});
 
   const regions = (await regionXApi.query.regions.regions.entries());
   assert.equal(regions.length, 1);
