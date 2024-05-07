@@ -2,7 +2,7 @@ import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
 import { submitExtrinsic, sleep, transferRelayAssetToRegionX, setupRelayAsset } from "../common";
 import { KeyringPair } from "@polkadot/keyring/types";
-import { CoreMask, getEncodedRegionId, Id, RegionId } from "coretime-utils";
+import { getEncodedRegionId, Id, RegionId, voidMask } from "coretime-utils";
 import assert from 'node:assert';
 
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
@@ -33,6 +33,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
 
   const regionId = await purchaseRegion(coretimeApi, alice);
+  if(!regionId) throw new Error("RegionId not found");
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);
@@ -81,7 +82,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   const regions = (await regionXApi.query.regions.regions.entries());
   assert.equal(regions.length, 1);
-  assert.deepStrictEqual(regions[0][0].toHuman(), [{ begin: '34', core: '0', mask: "0xffffffffffffffffffff" }]);
+  assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
   assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
 
   const reserveTransferToCoretime = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
@@ -168,8 +169,8 @@ async function startSales(coretimeApi: ApiPromise, signer: KeyringPair): Promise
   return submitExtrinsic(signer, sudo, {});
 }
 
-async function purchaseRegion(coretimeApi: ApiPromise, buyer: KeyringPair): Promise<RegionId> {
-  const callTx = async (resolve: (regionId: RegionId) => void) => {
+async function purchaseRegion(coretimeApi: ApiPromise, buyer: KeyringPair): Promise<RegionId | null> {
+  const callTx = async (resolve: (regionId: RegionId | null) => void) => {
     const purchase = coretimeApi.tx.broker.purchase(INITIAL_PRICE * 2);
     const unsub = await purchase.signAndSend(buyer, async (result: any) => {
       if (result.status.isInBlock) {
@@ -183,18 +184,18 @@ async function purchaseRegion(coretimeApi: ApiPromise, buyer: KeyringPair): Prom
   return new Promise(callTx);
 }
 
-async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId> {
+async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId | null> {
   const events: any = await coretimeApi.query.system.events();
 
   for (const record of events) {
     const { event } = record;
     if (event.section === "broker" && event.method === "Purchased") {
       const data =  event.data[1].toHuman();
-      return { begin: data.begin, core: data.core, mask: new CoreMask(data.mask) }
+      return data;
     }
   }
 
-  return { begin: 0, core: 0, mask: CoreMask.voidMask() };
+  return null;
 }
 
 export { run };
