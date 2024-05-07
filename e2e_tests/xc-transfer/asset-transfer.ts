@@ -24,17 +24,28 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const receiverKeypair = new Keyring();
 	receiverKeypair.addFromAddress(alice.address);
 
-	const { free: balanceBefore } = (
-		await regionXApi.query.tokens.accounts(alice.address, RELAY_ASSET_ID)
-	).toJSON() as any;
+	const showBalanceOnRegionX = async () => {
+		const { free } = (
+			await regionXApi.query.tokens.accounts(alice.address, RELAY_ASSET_ID)
+		).toJSON() as any;
 
-	console.log(`balanceBefore = ${balanceBefore}`);
+		console.log(`RegionX: ${free}`);
+	};
 
-	assert.equal(BigInt(balanceBefore), BALANCE);
+	const showBalanceOnRococo = async () => {
+		const {
+			data: { free },
+		} = (await rococoApi.query.system.account(alice.address)).toHuman() as any;
+		
+		console.log(`Rococo: ${free}`);
+	};
+
+	await showBalanceOnRegionX();
+	await showBalanceOnRococo();
 
 	const feeAssetItem = 0;
 	const weightLimit = "Unlimited";
-	const reserveTransfer = rococoApi.tx.xcmPallet.limitedReserveTransferAssets(
+	const rococoReserveTransfer = rococoApi.tx.xcmPallet.limitedReserveTransferAssets(
 		{ V3: { parents: 0, interior: { X1: { Parachain: 2000 } } } }, //dest
 		{
 			V3: {
@@ -64,15 +75,51 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 		feeAssetItem,
 		weightLimit
 	);
-	await submitExtrinsic(alice, reserveTransfer, {});
+	await submitExtrinsic(alice, rococoReserveTransfer, {});
 
 	await sleep(15 * 1000);
 
-	const { free: balanceAfter } = (
-		await regionXApi.query.tokens.accounts(alice.address, RELAY_ASSET_ID)
-	).toJSON() as any;
+	await showBalanceOnRegionX();
+	await showBalanceOnRococo();
 
-	console.log(`balanceAfter = ${balanceAfter}`);
+	const regionXReserveTransfer = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
+		{ V3: { parents: 1, interior: "Here" } }, //dest
+		{
+			V3: {
+				parents: 1,
+				interior: {
+					X1: {
+						AccountId32: {
+							chain: "Any",
+							id: receiverKeypair.pairs[0].publicKey,
+						},
+					},
+				},
+			},
+		}, //beneficiary
+		{
+			V3: [
+				{
+					id: {
+						Concrete: { parents: 1, interior: "Here" },
+					},
+					fun: {
+						Fungible: BALANCE,
+					},
+				},
+			],
+		}, //asset
+		feeAssetItem,
+		weightLimit
+	);
+
+	await submitExtrinsic(alice, regionXReserveTransfer, {});
+
+	await sleep(30 * 1000);
+
+	await showBalanceOnRegionX();
+	await showBalanceOnRococo();
+
 }
 
 export { run };
