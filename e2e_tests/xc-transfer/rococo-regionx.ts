@@ -73,8 +73,6 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	).toJSON() as any;
 
 	console.log(`balanceAfter = ${balanceAfter}`);
-
-	await sleep(60 * 1000);
 }
 
 export { run };
