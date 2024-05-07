@@ -1,10 +1,10 @@
 import { ApiPromise, Keyring } from "@polkadot/api";
-import { SubmittableExtrinsic } from "@polkadot/api/types";
+import { SubmittableExtrinsic, SignerOptions } from "@polkadot/api/types";
 import { KeyringPair } from "@polkadot/keyring/types";
 
-const RELAY_ASSET_ID = 1;
+const RELAY_ASSET_ID = 1;   
 
-async function submitExtrinsic(signer: KeyringPair, call: SubmittableExtrinsic<"promise">, options: any): Promise<void> {
+async function submitExtrinsic(signer: KeyringPair, call: SubmittableExtrinsic<"promise">, options: Partial<SignerOptions>): Promise<void> {
   return new Promise(async (resolve, reject) => {
     const unsub = await call.signAndSend(signer, options, (result) => {
       console.log(`Current status is ${result.status}`);
