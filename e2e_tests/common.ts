@@ -1,4 +1,4 @@
-import { ApiPromise } from "@polkadot/api";
+import { ApiPromise, Keyring } from "@polkadot/api";
 import { SubmittableExtrinsic } from "@polkadot/api/types";
 import { KeyringPair } from "@polkadot/keyring/types";
 
@@ -54,8 +54,47 @@ async function setupRelayAsset(api: ApiPromise, signer: KeyringPair) {
   await submitExtrinsic(signer, sudoCall, {});
 }
 
+async function transferRelayAssetToRegionX(amount: string, relayApi: ApiPromise, signer: KeyringPair) {
+  const receiverKeypair = new Keyring();
+  receiverKeypair.addFromAddress(signer.address);
+
+  const feeAssetItem = 0;
+  const weightLimit = "Unlimited";
+  const reserveTransfer = relayApi.tx.xcmPallet.limitedReserveTransferAssets(
+    { V3: { parents: 0, interior: { X1: { Parachain: 2000 } } } }, //dest
+    {
+      V3: {
+        parents: 0,
+        interior: {
+          X1: {
+            AccountId32: {
+              chain: "Any",
+              id: receiverKeypair.pairs[0].publicKey,
+            },
+          },
+        },
+      },
+    }, //beneficiary
+    {
+      V3: [
+        {
+          id: {
+            Concrete: { parents: 0, interior: "Here" },
+          },
+          fun: {
+            Fungible: amount,
+          },
+        },
+      ],
+    }, //asset
+    feeAssetItem,
+    weightLimit,
+  );
+  await submitExtrinsic(signer, reserveTransfer, {});
+}
+
 async function sleep(milliseconds: number) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-export { submitExtrinsic, setupRelayAsset, sleep, RELAY_ASSET_ID }
+export { submitExtrinsic, setupRelayAsset, transferRelayAssetToRegionX, sleep, RELAY_ASSET_ID }

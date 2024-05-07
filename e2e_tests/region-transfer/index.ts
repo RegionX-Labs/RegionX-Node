@@ -1,6 +1,6 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
-import { submitExtrinsic, sleep } from "../common";
+import { submitExtrinsic, sleep, transferRelayAssetToRegionX, setupRelayAsset } from "../common";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { CoreMask, getEncodedRegionId, Id, RegionId } from "coretime-utils";
 import assert from 'node:assert';
@@ -23,6 +23,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
+
+  await setupRelayAsset(regionXApi, alice);
 
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);
@@ -74,6 +76,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   );
   await submitExtrinsic(alice, reserveTransferToRegionX, {});
 
+  await transferRelayAssetToRegionX((10n**12n).toString(), rococoApi, alice);
   await sleep(5000);
 
   const regions = (await regionXApi.query.regions.regions.entries());
@@ -98,6 +101,17 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
     }, // ^^ beneficiary
     {
       V3: [
+        {
+          id: {
+            Concrete: {
+              parents: 1,
+              interior: "Here",
+            },
+          },
+          fun: {
+            Fungible: 10n**10n
+          },
+        },
         {
           id: {
             Concrete: {

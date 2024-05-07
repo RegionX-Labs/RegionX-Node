@@ -4,10 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc --outDir build > /dev/null",
-    "test:block-production": "zombienet-linux -p native test ./zombienet_tests/0001-block-production.zndsl",
-    "test:native-fee-payment": "zombienet-linux -p native test ./zombienet_tests/0002-block-production.zndsl",
-    "test:custom-fee-payment": "zombienet-linux -p native test ./zombienet_tests/0001-block-production.zndsl"
+    "build": "npx tsc --outDir build > /dev/null"
   },
   "keywords": [],
   "author": "",
