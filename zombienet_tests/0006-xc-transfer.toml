@@ -7,10 +7,12 @@ command = "polkadot"
 
   [[relaychain.nodes]]
   name = "rococo-validator01"
+  args = [ "--log=xcm=trace" ]
   validator = true
 
   [[relaychain.nodes]]
   name = "rococo-validator02"
+  args = [ "--log=xcm=trace" ]
   validator = true
 
 [[parachains]]
@@ -20,4 +22,4 @@ addToGenesis = false
   [parachains.collator]
   name = "regionx-collator01"
   command = "regionx-node"
-  args = [ "-lruntime=debug,parachain=trace" ]
+  args = [ "--log=xcm=trace" ]

@@ -17,9 +17,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const setXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
 	await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setXcmVersion), {});
 
-	const BALANCE = 10n ** 9n;
-
-	await setupRelayAsset(regionXApi, alice, BALANCE);
+	await setupRelayAsset(regionXApi, alice);
 
 	const receiverKeypair = new Keyring();
 	receiverKeypair.addFromAddress(alice.address);
@@ -27,7 +25,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const showBalanceOnRegionX = async () => {
 		const { free } = (
 			await regionXApi.query.tokens.accounts(alice.address, RELAY_ASSET_ID)
-		).toJSON() as any;
+		).toHuman() as any;
 
 		console.log(`RegionX: ${free}`);
 	};
@@ -67,7 +65,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 						Concrete: { parents: 0, interior: "Here" },
 					},
 					fun: {
-						Fungible: BALANCE,
+						Fungible: 3n * 10n ** 12n,
 					},
 				},
 			],
@@ -77,7 +75,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	);
 	await submitExtrinsic(alice, rococoReserveTransfer, {});
 
-	await sleep(15 * 1000);
+	await sleep(5 * 1000);
 
 	await showBalanceOnRegionX();
 	await showBalanceOnRococo();
@@ -86,7 +84,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 		{ V3: { parents: 1, interior: "Here" } }, //dest
 		{
 			V3: {
-				parents: 1,
+				parents: 0,
 				interior: {
 					X1: {
 						AccountId32: {
@@ -104,7 +102,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 						Concrete: { parents: 1, interior: "Here" },
 					},
 					fun: {
-						Fungible: BALANCE,
+						Fungible: 10n ** 12n,
 					},
 				},
 			],
@@ -115,7 +113,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
 	await submitExtrinsic(alice, regionXReserveTransfer, {});
 
-	await sleep(30 * 1000);
+	await sleep(5 * 1000);
 
 	await showBalanceOnRegionX();
 	await showBalanceOnRococo();
