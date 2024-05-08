@@ -58,6 +58,8 @@ async function setupRelayAsset(
 	await submitExtrinsic(signer, sudoCall, {});
 }
 
+// Transfer the relay chain asset to the parachain specified by paraId.
+// Receiver address is same as the sender's.
 async function transferRelayAssetToPara(amount: bigint, paraId: number, relayApi: ApiPromise, signer: KeyringPair) {
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(signer.address);
