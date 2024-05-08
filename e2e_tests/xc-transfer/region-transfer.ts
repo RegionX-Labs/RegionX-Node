@@ -28,6 +28,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
 
+  // Needed for fee payment
   await transferRelayAssetToPara(10n**12n, 2000, rococoApi, alice);
   await transferRelayAssetToPara(10n**12n, 1005, rococoApi, alice);
 
@@ -169,16 +170,7 @@ async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, sender
   const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(...newHrmpChannel);
   const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
 
-  const callTx = async (resolve: any) => {
-    const unsub = await sudoCall.signAndSend(signer, (result) => {
-      if (result.status.isInBlock) {
-        unsub();
-        resolve();
-      }
-    });
-  };
-
-  return new Promise(callTx);
+  return submitExtrinsic(signer, sudoCall, {});
 }
 
 async function configureBroker(coretimeApi: ApiPromise, signer: KeyringPair): Promise<void> {
