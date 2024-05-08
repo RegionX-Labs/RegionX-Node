@@ -22,24 +22,26 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const receiverKeypair = new Keyring();
 	receiverKeypair.addFromAddress(alice.address);
 
-	const showBalanceOnRegionX = async () => {
+	const assertRegionXBalance = async (address: string, balance: BigInt) => {
 		const { free } = (
-			await regionXApi.query.tokens.accounts(alice.address, RELAY_ASSET_ID)
+			await regionXApi.query.tokens.accounts(address, RELAY_ASSET_ID)
 		).toHuman() as any;
 
 		console.log(`RegionX: ${free}`);
+		assert.equal(BigInt(free.toString().replace(/,/g, "")), balance);
 	};
 
-	const showBalanceOnRococo = async () => {
+	const assertRococoBalance = async (address: string, balance: BigInt) => {
 		const {
 			data: { free },
-		} = (await rococoApi.query.system.account(alice.address)).toHuman() as any;
-		
+		} = (await rococoApi.query.system.account(address)).toHuman() as any;
+
 		console.log(`Rococo: ${free}`);
+		assert.equal(BigInt(free.toString().replace(/,/g, "")), balance);
 	};
 
-	await showBalanceOnRegionX();
-	await showBalanceOnRococo();
+	await assertRegionXBalance(alice.address, 10n ** 12n);
+	await assertRococoBalance(alice.address, 10n ** 18n);
 
 	const feeAssetItem = 0;
 	const weightLimit = "Unlimited";
@@ -77,8 +79,8 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
 	await sleep(5 * 1000);
 
-	await showBalanceOnRegionX();
-	await showBalanceOnRococo();
+	await assertRegionXBalance(alice.address, 4n * 10n ** 12n);
+	await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 
 	const regionXReserveTransfer = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
 		{ V3: { parents: 1, interior: "Here" } }, //dest
@@ -115,9 +117,8 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
 	await sleep(5 * 1000);
 
-	await showBalanceOnRegionX();
-	await showBalanceOnRococo();
-
+	await assertRegionXBalance(alice.address, 4n * 10n ** 12n);
+	await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 }
 
 export { run };
