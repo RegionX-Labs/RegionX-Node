@@ -5,6 +5,8 @@ import { KeyringPair } from "@polkadot/keyring/types";
 import { getEncodedRegionId, Id, RegionId } from "coretime-utils";
 import assert from "node:assert";
 
+const REGIONX_SOVEREIGN_ACCOUNT = "5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8";
+
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
 	const { wsUri: coretimeUri } = networkInfo.nodesByName["coretime-collator01"];
@@ -106,6 +108,11 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	assert.equal(regions.length, 1);
 	assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
 	assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: "Pending" });
+
+	var regions = await coretimeApi.query.broker.regions.entries();
+	assert.equal(regions.length, 1);
+	assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
+	assert.equal((regions[0][1].toHuman() as any).owner, REGIONX_SOVEREIGN_ACCOUNT);
 
 	const reserveTransferToCoretime = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
 		{ V3: { parents: 1, interior: { X1: { Parachain: 1005 } } } }, // dest

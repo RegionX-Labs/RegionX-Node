@@ -34,7 +34,7 @@ use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
-	FrameTransactionalProcessor, IsConcrete, ParentIsPreset, RelayChainAsNative,
+	FrameTransactionalProcessor, IsConcrete, NativeAsset, ParentIsPreset, RelayChainAsNative,
 	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
 	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
 	UsingComponents, WithComputedOrigin, WithUniqueTopic,
@@ -48,9 +48,19 @@ parameter_types! {
 		interior: X2(Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50))
 	};
 	pub const RelayNetwork: Option<NetworkId> = None;
+	pub const CoretimeChainLocation: MultiLocation = MultiLocation {
+		parents: 1,
+		interior: X1(Parachain(CORETIME_CHAIN_PARA_ID))
+	};
+	pub AssetsFromCoretimeChain: (MultiAssetFilter, MultiLocation) = (
+		Wild(All), // We can trust system parachains.
+		CoretimeChainLocation::get()
+	);
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 }
+
+pub type TrustedReserves = (NativeAsset, xcm_builder::Case<AssetsFromCoretimeChain>);
 
 /// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
@@ -187,7 +197,7 @@ impl xcm_executor::Config for XcmConfig {
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
-	type IsReserve = Everything; // TODO
+	type IsReserve = TrustedReserves;
 	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
