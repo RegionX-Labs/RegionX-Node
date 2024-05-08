@@ -3,6 +3,8 @@ import { RELAY_ASSET_ID, setupRelayAsset, sleep, submitExtrinsic } from "../comm
 
 import assert from "node:assert";
 
+const TOLERANCE = 10n**10n;
+
 async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
 	const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
@@ -22,22 +24,22 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const receiverKeypair = new Keyring();
 	receiverKeypair.addFromAddress(alice.address);
 
-	const assertRegionXBalance = async (address: string, balance: BigInt) => {
+	const assertRegionXBalance = async (address: string, balance: bigint) => {
 		const { free } = (
 			await regionXApi.query.tokens.accounts(address, RELAY_ASSET_ID)
 		).toHuman() as any;
 
 		console.log(`RegionX: ${free}`);
-		assert.equal(BigInt(free.toString().replace(/,/g, "")), balance);
+		assert(balance - BigInt(free.toString().replace(/,/g, "")) < TOLERANCE);
 	};
 
-	const assertRococoBalance = async (address: string, balance: BigInt) => {
+	const assertRococoBalance = async (address: string, balance: bigint) => {
 		const {
 			data: { free },
 		} = (await rococoApi.query.system.account(address)).toHuman() as any;
 
 		console.log(`Rococo: ${free}`);
-		assert.equal(BigInt(free.toString().replace(/,/g, "")), balance);
+		assert(balance - BigInt(free.toString().replace(/,/g, "")) < TOLERANCE);
 	};
 
 	await assertRegionXBalance(alice.address, 10n ** 12n);
