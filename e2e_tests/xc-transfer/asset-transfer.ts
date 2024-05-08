@@ -1,5 +1,5 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
-import { RELAY_ASSET_ID, setupRelayAsset, sleep, submitExtrinsic } from "../common";
+import { RELAY_ASSET_ID, setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToRegionX } from "../common";
 
 import assert from "node:assert";
 
@@ -45,40 +45,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	await assertRegionXBalance(alice.address, 10n ** 12n);
 	await assertRococoBalance(alice.address, 10n ** 18n);
 
-	const feeAssetItem = 0;
-	const weightLimit = "Unlimited";
-	const rococoReserveTransfer = rococoApi.tx.xcmPallet.limitedReserveTransferAssets(
-		{ V3: { parents: 0, interior: { X1: { Parachain: 2000 } } } }, //dest
-		{
-			V3: {
-				parents: 0,
-				interior: {
-					X1: {
-						AccountId32: {
-							chain: "Any",
-							id: receiverKeypair.pairs[0].publicKey,
-						},
-					},
-				},
-			},
-		}, //beneficiary
-		{
-			V3: [
-				{
-					id: {
-						Concrete: { parents: 0, interior: "Here" },
-					},
-					fun: {
-						Fungible: 3n * 10n ** 12n,
-					},
-				},
-			],
-		}, //asset
-		feeAssetItem,
-		weightLimit
-	);
-	await submitExtrinsic(alice, rococoReserveTransfer, {});
-
+	transferRelayAssetToRegionX(3n * 10n ** 12n, rococoApi, alice);
 	await sleep(5 * 1000);
 
 	await assertRegionXBalance(alice.address, 4n * 10n ** 12n);
@@ -111,8 +78,8 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 				},
 			],
 		}, //asset
-		feeAssetItem,
-		weightLimit
+		0,
+		"Unlimited"
 	);
 
 	await submitExtrinsic(alice, regionXReserveTransfer, {});

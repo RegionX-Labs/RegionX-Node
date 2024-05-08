@@ -58,11 +58,7 @@ async function setupRelayAsset(
 	await submitExtrinsic(signer, sudoCall, {});
 }
 
-async function sleep(milliseconds: number) {
-	return new Promise((resolve) => setTimeout(resolve, milliseconds));
-}
-
-async function transferRelayAssetToRegionX(amount: string, relayApi: ApiPromise, signer: KeyringPair) {
+async function transferRelayAssetToRegionX(amount: bigint, relayApi: ApiPromise, signer: KeyringPair) {
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(signer.address);
 

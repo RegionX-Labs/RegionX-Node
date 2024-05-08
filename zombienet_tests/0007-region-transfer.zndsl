@@ -1,5 +1,5 @@
 Description: Native currency fee payment
-Network: ./0006-region-transfer.toml
+Network: ./0007-region-transfer.toml
 Creds: config
 
 rococo-validator01: is up

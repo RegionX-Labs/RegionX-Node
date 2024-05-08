@@ -83,7 +83,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   );
   await submitExtrinsic(alice, reserveTransferToRegionX, {});
 
-  await transferRelayAssetToRegionX((10n**12n).toString(), rococoApi, alice);
+  await transferRelayAssetToRegionX(10n**12n, rococoApi, alice);
   const fundSovereignAccount = coretimeApi.tx.balances.forceSetBalance(PARA_SOVEREIGN_ACCOUNT, 1000 * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(fundSovereignAccount), {});
 
