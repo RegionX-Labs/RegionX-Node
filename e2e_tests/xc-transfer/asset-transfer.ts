@@ -1,5 +1,5 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
-import { RELAY_ASSET_ID, setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToRegionX } from "../common";
+import { RELAY_ASSET_ID, setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToPara } from "../common";
 
 import assert from "node:assert";
 
@@ -45,7 +45,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	await assertRegionXBalance(alice.address, 10n ** 12n);
 	await assertRococoBalance(alice.address, 10n ** 18n);
 
-	transferRelayAssetToRegionX(3n * 10n ** 12n, rococoApi, alice);
+	transferRelayAssetToPara(3n * 10n ** 12n, 2000, rococoApi, alice);
 	await sleep(5 * 1000);
 
 	await assertRegionXBalance(alice.address, 4n * 10n ** 12n);

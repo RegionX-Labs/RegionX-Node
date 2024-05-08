@@ -1,11 +1,9 @@
 import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
 import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
-import { submitExtrinsic, sleep, transferRelayAssetToRegionX, setupRelayAsset } from "../common";
+import { submitExtrinsic, sleep, setupRelayAsset, transferRelayAssetToPara } from "../common";
 import { KeyringPair } from "@polkadot/keyring/types";
 import { getEncodedRegionId, Id, RegionId } from "coretime-utils";
 import assert from 'node:assert';
-
-const PARA_SOVEREIGN_ACCOUNT = "5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8";
 
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
@@ -25,15 +23,16 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setCoretimeXcmVersion), {});
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setRelayXcmVersion), {});
 
+  await setupRelayAsset(regionXApi, alice);
+
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
 
-  await setupRelayAsset(regionXApi, alice);
+  await transferRelayAssetToPara(10n**12n, 2000, rococoApi, alice);
+  await transferRelayAssetToPara(10n**12n, 1005, rococoApi, alice);
 
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);
-
-  await sleep(2000);
 
   const setBalanceCall = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000 * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(setBalanceCall), {});
@@ -66,6 +65,17 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
         {
           id: {
             Concrete: {
+              parents: 1,
+              interior: "Here",
+            },
+          },
+          fun: {
+            Fungible: 10n**10n
+          },
+        }, // ^^ fee payment asset
+        {
+          id: {
+            Concrete: {
               parents: 0,
               interior: { X1: { PalletInstance: 50 } },
             },
@@ -83,11 +93,9 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   );
   await submitExtrinsic(alice, reserveTransferToRegionX, {});
 
-  await transferRelayAssetToRegionX(10n**12n, rococoApi, alice);
-  const fundSovereignAccount = coretimeApi.tx.balances.forceSetBalance(PARA_SOVEREIGN_ACCOUNT, 1000 * UNIT);
-  await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(fundSovereignAccount), {});
+  await sleep(5000);
 
-  const regions = (await regionXApi.query.regions.regions.entries());
+  var regions = (await regionXApi.query.regions.regions.entries());
   assert.equal(regions.length, 1);
   assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
   assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
@@ -119,7 +127,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
           fun: {
             Fungible: 10n**10n
           },
-        },
+        }, // ^^ fee payment asset
         {
           id: {
             Concrete: {
@@ -139,6 +147,15 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
     weightLimit,
   );
   await submitExtrinsic(alice, reserveTransferToCoretime, {});
+  await sleep(5000);
+
+  var regions = (await regionXApi.query.regions.regions.entries());
+  assert.equal(regions.length, 0);
+
+  var regions = (await coretimeApi.query.broker.regions.entries());
+  assert.equal(regions.length, 1);
+  assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
+  assert.equal((regions[0][1].toHuman() as any).owner, alice.address);
 }
 
 async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, senderParaId: number, recipientParaId: number) {

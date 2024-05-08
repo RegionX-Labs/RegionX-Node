@@ -7,6 +7,4 @@ rococo-validator02: is up
 
 rococo-validator01: parachain 2000 is registered within 225 seconds
 
-regionx-collator01: js-script ../e2e_tests/build/region-transfer/index.js return is 0 within 600 seconds
-
-sleep 1000 seconds
+regionx-collator01: js-script ../e2e_tests/build/xc-transfer/region-transfer.js return is 0 within 600 seconds

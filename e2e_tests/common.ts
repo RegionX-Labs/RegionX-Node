@@ -58,14 +58,14 @@ async function setupRelayAsset(
 	await submitExtrinsic(signer, sudoCall, {});
 }
 
-async function transferRelayAssetToRegionX(amount: bigint, relayApi: ApiPromise, signer: KeyringPair) {
+async function transferRelayAssetToPara(amount: bigint, paraId: number, relayApi: ApiPromise, signer: KeyringPair) {
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(signer.address);
 
   const feeAssetItem = 0;
   const weightLimit = "Unlimited";
   const reserveTransfer = relayApi.tx.xcmPallet.limitedReserveTransferAssets(
-    { V3: { parents: 0, interior: { X1: { Parachain: 2000 } } } }, //dest
+    { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
       V3: {
         parents: 0,
@@ -101,4 +101,4 @@ async function sleep(milliseconds: number) {
   return new Promise(resolve => setTimeout(resolve, milliseconds));
 }
 
-export { submitExtrinsic, setupRelayAsset, transferRelayAssetToRegionX, sleep, RELAY_ASSET_ID }
+export { submitExtrinsic, setupRelayAsset, transferRelayAssetToPara, sleep, RELAY_ASSET_ID }
