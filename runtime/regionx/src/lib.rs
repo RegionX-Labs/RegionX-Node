@@ -31,7 +31,7 @@ mod weights;
 pub mod xcm_config;
 
 mod governance;
-use governance::{pallet_custom_origins, Spender, EnsureTwoThirdTechnicalCommittee};
+use governance::{pallet_custom_origins, EnsureTwoThirdTechnicalCommittee, Spender};
 
 mod impls;
 mod ismp;
