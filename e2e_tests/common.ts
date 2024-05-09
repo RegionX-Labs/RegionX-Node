@@ -30,7 +30,7 @@ async function submitExtrinsic(
 async function setupRelayAsset(
 	api: ApiPromise,
 	signer: KeyringPair,
-	initialBalance: bigint = 10n ** 12n
+	initialBalance: bigint = 0n
 ) {
 	const assetMetadata = {
 		decimals: 12,
@@ -64,9 +64,12 @@ async function transferRelayAssetToPara(amount: bigint, paraId: number, relayApi
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(signer.address);
 
+  // If system parachain we use teleportation, otherwise we do a reserve transfer.
+  const transferKind = paraId < 2000 ? 'limitedTeleportAssets' : 'limitedReserveTransferAssets';
+
   const feeAssetItem = 0;
   const weightLimit = "Unlimited";
-  const reserveTransfer = relayApi.tx.xcmPallet.limitedReserveTransferAssets(
+  const reserveTransfer = relayApi.tx.xcmPallet[transferKind](
     { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
       V3: {

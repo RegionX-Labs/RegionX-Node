@@ -37,8 +37,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	await openHrmpChannel(alice, rococoApi, 2000, 1005);
 
 	// Needed for fee payment
+	// The Coretime chain account by default has tokens for fee payment.
 	await transferRelayAssetToPara(10n ** 12n, 2000, rococoApi, alice);
-	await transferRelayAssetToPara(10n ** 12n, 1005, rococoApi, alice);
 
 	await configureBroker(coretimeApi, alice);
 	await startSales(coretimeApi, alice);
