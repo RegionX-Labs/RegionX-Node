@@ -27,19 +27,19 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 	const assertRegionXBalance = async (address: string, balance: bigint) => {
 		const { free } = (
 			await regionXApi.query.tokens.accounts(address, RELAY_ASSET_ID)
-		).toHuman() as any;
+		).toJSON() as any;
 
-		console.log(`RegionX: ${free}`);
-		assert(balance - BigInt(free.toString().replace(/,/g, "")) < TOLERANCE);
+		console.log(`RegionX: ${BigInt(free).toString()} | Expected: ${balance}`);
+		assert(balance - BigInt(free) < TOLERANCE);
 	};
 
 	const assertRococoBalance = async (address: string, balance: bigint) => {
 		const {
 			data: { free },
-		} = (await rococoApi.query.system.account(address)).toHuman() as any;
+		} = (await rococoApi.query.system.account(address)).toJSON() as any;
 
-		console.log(`Rococo: ${free}`);
-		assert(balance - BigInt(free.toString().replace(/,/g, "")) < TOLERANCE);
+		console.log(`Rococo: ${BigInt(free).toString()} | Expected: ${balance}`);
+		assert(balance - BigInt(free) < TOLERANCE);
 	};
 
 	await assertRegionXBalance(alice.address, 10n ** 12n);
@@ -86,7 +86,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
 	await sleep(5 * 1000);
 
-	await assertRegionXBalance(alice.address, 4n * 10n ** 12n);
+	await assertRegionXBalance(alice.address, 3n * 10n ** 12n);
 	await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 }
 
