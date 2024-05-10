@@ -24,11 +24,11 @@ regionx-primitives = { workspace = true, default-features = false }
 pallet-regions = { workspace = true, default-features = false }
 
 # Polytope Labs
-ismp = { workspace = true, default-features = false }
-pallet-ismp = { workspace = true, default-features = false }
-ismp-parachain = { workspace = true, default-features = false }
-pallet-ismp-runtime-api = { workspace = true, default-features = false }
-ismp-parachain-runtime-api = { workspace = true, default-features = false }
+ismp = { workspace = true }
+pallet-ismp = { workspace = true, features = ["unsigned"] }
+ismp-parachain = { workspace = true }
+pallet-ismp-runtime-api = { workspace = true }
+ismp-parachain-runtime-api = { workspace = true }
 
 # Orml
 orml-asset-registry = { workspace = true }

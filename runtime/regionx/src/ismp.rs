@@ -42,8 +42,8 @@ impl Get<Option<StateMachine>> for Coprocessor {
 }
 
 impl ismp_parachain::Config for Runtime {
-	type IsmpHost = Ismp;
 	type RuntimeEvent = RuntimeEvent;
+	type IsmpHost = Ismp;
 }
 
 impl pallet_ismp::Config for Runtime {
@@ -62,7 +62,7 @@ impl pallet_ismp::Config for Runtime {
 }
 
 #[derive(Default)]
-struct Router;
+pub struct Router;
 impl IsmpRouter for Router {
 	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
 		let module = match id.as_slice() {
