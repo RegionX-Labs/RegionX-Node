@@ -19,7 +19,7 @@ async function submitExtrinsic(
 				unsub.then();
 				return resolve();
 			} else if (result.isError) {
-				console.log(`Transaction error`);
+				console.log('Transaction error');
 				unsub.then();
 				return reject();
 			}

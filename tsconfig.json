@@ -1,15 +1,11 @@
 {
   "compilerOptions": {
     "module": "commonjs",
-    "outDir": "build",
+    "outDir": "e2e_tests/build",
     "target": "ES2020",
     "strict": true,
     "esModuleInterop": true
   },
-  "include": [
-    "**/*.ts"
-  ],
-  "exclude": [
-    "node_modules"
-  ]
+  "include": ["e2e_tests/**/*.ts"],
+  "exclude": ["node_modules"]
 }
