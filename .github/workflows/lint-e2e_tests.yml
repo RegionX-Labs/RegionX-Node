@@ -20,15 +20,9 @@ jobs:
     defaults:
       run:
         working-directory: ./e2e_tests
-    strategy:
-      matrix:
-        node-version: [18.x]
     steps:
-      - uses: actions/checkout@v3.1.0
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v3
-        with:
-          node-version: ${{ matrix.node-version }}
+      - name: Checkout
+        uses: actions/checkout@v3.1.0
       - run: yarn install
-      # - run: "CI=false yarn build"
+      - run: "CI=false yarn build"
       - run: yarn lint
