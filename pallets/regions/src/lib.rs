@@ -57,7 +57,7 @@ pub use weights::WeightInfo;
 const LOG_TARGET: &str = "runtime::regions";
 
 /// Constant Pallet ID
-pub const PALLET_ID: &'static [u8] = b"region-pallet";
+pub const PALLET_ID: &[u8] = b"region-pallet";
 
 #[frame_support::pallet]
 pub mod pallet {
