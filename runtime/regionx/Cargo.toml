@@ -14,7 +14,6 @@ substrate-wasm-builder = { workspace = true }
 
 [dependencies]
 codec = { workspace = true }
-hex-literal = { workspace = true, optional = true }
 log = { workspace = true }
 scale-info = { workspace = true }
 smallvec = { workspace = true }
@@ -197,7 +196,6 @@ runtime-benchmarks = [
 	"frame-support/runtime-benchmarks",
 	"frame-system-benchmarking/runtime-benchmarks",
 	"frame-system/runtime-benchmarks",
-	"hex-literal",
 	"orml-asset-registry/runtime-benchmarks",
 	"orml-tokens/runtime-benchmarks",
   	"pallet-asset-rate/runtime-benchmarks",
@@ -241,6 +239,7 @@ try-runtime = [
 	"orml-asset-registry/try-runtime",
 	"orml-currencies/try-runtime",
 	"orml-tokens/try-runtime",
+	"orml-unknown-tokens/try-runtime",
 	"pallet-ismp/try-runtime",
 	"ismp-parachain/try-runtime",
 	"pallet-aura/try-runtime",
@@ -251,7 +250,7 @@ try-runtime = [
 	"pallet-collective/try-runtime",
 	"pallet-conviction-voting/try-runtime",
 	"pallet-collator-selection/try-runtime",
-	"pallet-membership/std",
+	"pallet-membership/try-runtime",
 	"pallet-message-queue/try-runtime",
   	"pallet-multisig/try-runtime",
 	"pallet-proxy/try-runtime",
