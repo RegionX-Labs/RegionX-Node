@@ -67,7 +67,7 @@ impl IsmpRouter for Router {
 	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
 		let module = match id.as_slice() {
 			pallet_regions::PALLET_ID =>
-				Box::new(pallet_regions::IsmpModuleCallback::<Runtime>::default()),
+				Box::<pallet_regions::IsmpModuleCallback::<Runtime>>::default(),
 			_ => Err(Error::ModuleNotFound(id))?,
 		};
 		Ok(module)
