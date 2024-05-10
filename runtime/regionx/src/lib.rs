@@ -43,8 +43,7 @@ use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::{
 	fungible::HoldConsideration,
 	tokens::{PayFromAccount, UnityAssetBalanceConversion},
-	Currency as PalletCurrency, EqualPrivilegeOnly, Imbalance, LinearStoragePrice, OnUnbalanced,
-	TransformOrigin,
+	Currency as PalletCurrency, EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
 };
 use pallet_regions::primitives::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
@@ -438,20 +437,6 @@ parameter_types! {
 	// TODO: set to a reasonable value.
 	/// Relay Chain `TransactionByteFee` / 10
 	pub const TransactionByteFee: Balance = 10 * MICROREGX;
-}
-
-type NegativeImbalance = <Balances as PalletCurrency<AccountId>>::NegativeImbalance;
-pub struct DealWithFees;
-impl OnUnbalanced<NegativeImbalance> for DealWithFees {
-	fn on_unbalanceds<B>(mut fees_then_tips: impl Iterator<Item = NegativeImbalance>) {
-		if let Some(mut fees) = fees_then_tips.next() {
-			if let Some(tips) = fees_then_tips.next() {
-				tips.merge_into(&mut fees);
-			}
-			// for fees and tips, 100% to treasury
-			Treasury::on_unbalanced(fees);
-		}
-	}
 }
 
 impl pallet_transaction_payment::Config for Runtime {
