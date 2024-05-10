@@ -19,6 +19,7 @@ jobs:
     runs-on: ubuntu-22.04
     defaults:
       run:
+        shell: bash
         working-directory: ./e2e_tests
     steps:
       - name: Checkout
