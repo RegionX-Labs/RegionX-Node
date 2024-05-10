@@ -14,7 +14,7 @@
     "@polkadot/api": "^11.0.2",
     "@polkadot/keyring": "^12.6.2",
     "coretime-utils": "^0.3.2",
-    "typescript": "^5.4.5"
+    "typescript": "^4.1.6"
   },
   "devDependencies": {
     "eslint": "8.31.0",

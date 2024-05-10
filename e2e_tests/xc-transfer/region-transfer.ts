@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { Id, RegionId, getEncodedRegionId } from 'coretime-utils';
+import { getEncodedRegionId, Id, RegionId } from 'coretime-utils';
 import assert from 'node:assert';
 import { setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
 import { CONFIG, CORE_COUNT, INITIAL_PRICE, UNIT } from '../consts';

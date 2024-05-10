@@ -24,6 +24,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3.1.0
-      - run: yarn install
-      - run: "CI=false yarn build"
-      - run: yarn lint
+      - run: npm i
+      - run: npm run build
+      - run: npm run lint
