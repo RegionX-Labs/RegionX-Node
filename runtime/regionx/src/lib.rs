@@ -825,6 +825,13 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_regions, Regions]
+		[pallet_referenda, NativeReferenda]
+		[pallet_referenda, DelegatedReferenda]
+		[pallet_conviction_voting, NativeConvictionVoting]
+		[pallet_conviction_voting, DelegatedConvictionVoting]
+		[pallet_collective, GeneralCouncil]
+		[pallet_collective, TechnicalCommittee]
+		[pallet_whitelist, Whitelist]
 	);
 }
 
