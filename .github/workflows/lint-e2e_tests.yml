@@ -25,4 +25,5 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v3.1.0
       - run: npm i
+      - run: npm run format
       - run: npm run lint
