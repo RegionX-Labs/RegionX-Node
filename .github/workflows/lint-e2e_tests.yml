@@ -20,6 +20,9 @@ jobs:
     defaults:
       run:
         working-directory: ./e2e_tests
+    strategy:
+      matrix:
+        node-version: [18.x]
     steps:
       - uses: actions/checkout@v3.1.0
       - name: Use Node.js ${{ matrix.node-version }}
