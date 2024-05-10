@@ -6,14 +6,14 @@ const TIMESLICE_PERIOD = 80;
 const IDEAL_CORES_SOLD = 5;
 
 const CONFIG = {
-  advance_notice: 20,
-  interlude_length: 0,
-  leadin_length: 10,
-  ideal_bulk_proportion: 0,
-  limit_cores_offered: 50,
-  region_length: 30,
-  renewal_bump: 10,
-  contribution_timeout: 5,
+	advance_notice: 20,
+	interlude_length: 0,
+	leadin_length: 10,
+	ideal_bulk_proportion: 0,
+	limit_cores_offered: 50,
+	region_length: 30,
+	renewal_bump: 10,
+	contribution_timeout: 5,
 };
 
-export {UNIT, INITIAL_PRICE, CORE_COUNT, TIMESLICE_PERIOD, IDEAL_CORES_SOLD, CONFIG};
+export { CONFIG, CORE_COUNT, IDEAL_CORES_SOLD, INITIAL_PRICE, TIMESLICE_PERIOD, UNIT };

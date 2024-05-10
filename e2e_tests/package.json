@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build": "npx tsc --outDir build > /dev/null"
+    "build": "npx tsc --outDir build > /dev/null",
+    "lint": "eslint ./ --fix && npx prettier --write ./"
   },
   "keywords": [],
   "author": "",
@@ -14,5 +15,18 @@
     "@polkadot/keyring": "^12.6.2",
     "coretime-utils": "^0.3.2",
     "typescript": "^5.4.5"
+  },
+  "devDependencies": {
+    "eslint": "8.31.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.6.0",
+    "eslint-import-resolver-typescript": "^3.5.3",
+    "eslint-plugin-import": "^2.27.4",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.8.1",
+    "prettier-plugin-organize-imports": "^3.2.0",
+    "@typescript-eslint/eslint-plugin": "^5.48.1",
+    "@typescript-eslint/parser": "^5.48.1"
   }
 }

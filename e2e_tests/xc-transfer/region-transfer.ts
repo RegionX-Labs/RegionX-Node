@@ -1,16 +1,16 @@
-import { ApiPromise, WsProvider, Keyring } from "@polkadot/api";
-import { CONFIG, INITIAL_PRICE, UNIT, CORE_COUNT } from "../consts";
-import { submitExtrinsic, sleep, setupRelayAsset, transferRelayAssetToPara } from "../common";
-import { KeyringPair } from "@polkadot/keyring/types";
-import { getEncodedRegionId, Id, RegionId } from "coretime-utils";
-import assert from "node:assert";
+import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
+import { KeyringPair } from '@polkadot/keyring/types';
+import { Id, RegionId, getEncodedRegionId } from 'coretime-utils';
+import assert from 'node:assert';
+import { setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
+import { CONFIG, CORE_COUNT, INITIAL_PRICE, UNIT } from '../consts';
 
-const REGIONX_SOVEREIGN_ACCOUNT = "5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8";
+const REGIONX_SOVEREIGN_ACCOUNT = '5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8';
 
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
-	const { wsUri: regionXUri } = networkInfo.nodesByName["regionx-collator01"];
-	const { wsUri: coretimeUri } = networkInfo.nodesByName["coretime-collator01"];
-	const { wsUri: rococoUri } = networkInfo.nodesByName["rococo-validator01"];
+	const { wsUri: regionXUri } = networkInfo.nodesByName['regionx-collator01'];
+	const { wsUri: coretimeUri } = networkInfo.nodesByName['coretime-collator01'];
+	const { wsUri: rococoUri } = networkInfo.nodesByName['rococo-validator01'];
 
 	const regionXApi = await ApiPromise.create({ provider: new WsProvider(regionXUri) });
 	const rococoApi = await ApiPromise.create({
@@ -23,8 +23,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	});
 
 	// account to submit tx
-	const keyring = new Keyring({ type: "sr25519" });
-	const alice = keyring.addFromUri("//Alice");
+	const keyring = new Keyring({ type: 'sr25519' });
+	const alice = keyring.addFromUri('//Alice');
 
 	const txSetCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
 	const txSetRelayXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
@@ -47,13 +47,13 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetBalance), {});
 
 	const regionId = await purchaseRegion(coretimeApi, alice);
-	if (!regionId) throw new Error("RegionId not found");
+	if (!regionId) throw new Error('RegionId not found');
 
 	const receiverKeypair = new Keyring();
 	receiverKeypair.addFromAddress(alice.address);
 
 	const feeAssetItem = 0;
-	const weightLimit = "Unlimited";
+	const weightLimit = 'Unlimited';
 	const reserveTransferToRegionX = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
 		{ V3: { parents: 1, interior: { X1: { Parachain: 2000 } } } }, //dest
 		{
@@ -62,7 +62,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 				interior: {
 					X1: {
 						AccountId32: {
-							chain: "Any",
+							chain: 'Any',
 							id: receiverKeypair.pairs[0].publicKey,
 						},
 					},
@@ -75,7 +75,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 					id: {
 						Concrete: {
 							parents: 1,
-							interior: "Here",
+							interior: 'Here',
 						},
 					},
 					fun: {
@@ -104,12 +104,12 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
 	await sleep(5000);
 
-	var regions = await regionXApi.query.regions.regions.entries();
+	let regions = await regionXApi.query.regions.regions.entries();
 	assert.equal(regions.length, 1);
 	assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
-	assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: "Pending" });
+	assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
 
-	var regions = await coretimeApi.query.broker.regions.entries();
+	regions = await coretimeApi.query.broker.regions.entries();
 	assert.equal(regions.length, 1);
 	assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
 	assert.equal((regions[0][1].toHuman() as any).owner, REGIONX_SOVEREIGN_ACCOUNT);
@@ -122,7 +122,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 				interior: {
 					X1: {
 						AccountId32: {
-							chain: "Any",
+							chain: 'Any',
 							id: receiverKeypair.pairs[0].publicKey,
 						},
 					},
@@ -135,7 +135,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 					id: {
 						Concrete: {
 							parents: 1,
-							interior: "Here",
+							interior: 'Here',
 						},
 					},
 					fun: {
@@ -164,10 +164,10 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 	await submitExtrinsic(alice, reserveTransferToCoretime, {});
 	await sleep(5000);
 
-	var regions = await regionXApi.query.regions.regions.entries();
+	regions = await regionXApi.query.regions.regions.entries();
 	assert.equal(regions.length, 0);
 
-	var regions = await coretimeApi.query.broker.regions.entries();
+	regions = await coretimeApi.query.broker.regions.entries();
 	assert.equal(regions.length, 1);
 	assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
 	assert.equal((regions[0][1].toHuman() as any).owner, alice.address);
@@ -225,7 +225,7 @@ async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId | null> {
 
 	for (const record of events) {
 		const { event } = record;
-		if (event.section === "broker" && event.method === "Purchased") {
+		if (event.section === 'broker' && event.method === 'Purchased') {
 			const data = event.data[1].toHuman();
 			return data;
 		}

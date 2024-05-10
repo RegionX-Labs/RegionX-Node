@@ -1,0 +1,15 @@
+*.css
+*.svg
+*.png
+*.json
+*.log
+*.lock
+*.md
+*.ico
+*.ttf
+*.xml
+*.txt
+*.html
+*.webmanifest
+LICENSE
+build
