@@ -24,15 +24,14 @@ use std::sync::Arc;
 
 use regionx_primitives::{opaque::Block, AccountId, Balance, Nonce};
 
-pub use sc_rpc::DenyUnsafe;
+use pallet_ismp_rpc::{IsmpApiServer, IsmpRpcHandler};
 use sc_client_api::{AuxStore, BlockBackend, ProofProvider};
+pub use sc_rpc::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
 use sp_blockchain::{Error as BlockChainError, HeaderBackend, HeaderMetadata};
 use sp_core::H256;
-use pallet_ismp_rpc::IsmpRpcHandler;
-use pallet_ismp_rpc::IsmpApiServer;
 
 /// A type representing all RPC extensions.
 pub type RpcExtension = jsonrpsee::RpcModule<()>;
@@ -46,7 +45,7 @@ pub struct FullDeps<C, P, B> {
 	/// Whether to deny unsafe calls
 	pub deny_unsafe: DenyUnsafe,
 	/// Backend used by the node.
-    pub backend: Arc<B>,
+	pub backend: Arc<B>,
 }
 
 /// Instantiate all RPC extensions.
