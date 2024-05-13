@@ -26,19 +26,11 @@ use ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::NoOpMmrTree;
 use sp_std::prelude::*;
 
-pub struct HostStateMachine;
-impl Get<StateMachine> for HostStateMachine {
-	fn get() -> StateMachine {
-		StateMachine::Kusama(ParachainInfo::get().into())
-	}
-}
-
-pub struct Coprocessor;
-
-impl Get<Option<StateMachine>> for Coprocessor {
-	fn get() -> Option<StateMachine> {
-		None
-	}
+parameter_types! {
+    // The hyperbridge parachain on Polkadot
+    pub const Coprocessor: Option<StateMachine> = None;
+    // The host state machine of this pallet
+    pub const HostStateMachine: StateMachine = StateMachine::Polkadot(ParachainInfo::get().into());
 }
 
 impl ismp_parachain::Config for Runtime {
