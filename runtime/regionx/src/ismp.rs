@@ -19,18 +19,24 @@ use crate::{
 	AccountId, Balance, Balances, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent,
 	Timestamp,
 };
-use frame_support::pallet_prelude::Get;
+use frame_support::{pallet_prelude::Get, parameter_types};
 use frame_system::EnsureRoot;
 use ismp::{error::Error, host::StateMachine, module::IsmpModule, router::IsmpRouter};
 use ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::NoOpMmrTree;
 use sp_std::prelude::*;
 
+pub struct HostStateMachine;
+
+impl Get<StateMachine> for HostStateMachine {
+	fn get() -> StateMachine {
+		StateMachine::Polkadot(ParachainInfo::get().into())
+	}
+}
+
 parameter_types! {
-    // The hyperbridge parachain on Polkadot
-    pub const Coprocessor: Option<StateMachine> = None;
-    // The host state machine of this pallet
-    pub const HostStateMachine: StateMachine = StateMachine::Polkadot(ParachainInfo::get().into());
+	// The hyperbridge parachain on Polkadot
+	pub const Coprocessor: Option<StateMachine> = None;
 }
 
 impl ismp_parachain::Config for Runtime {
