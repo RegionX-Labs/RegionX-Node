@@ -30,7 +30,7 @@ pub struct HostStateMachine;
 
 impl Get<StateMachine> for HostStateMachine {
 	fn get() -> StateMachine {
-		StateMachine::Polkadot(ParachainInfo::get().into())
+		StateMachine::Kusama(ParachainInfo::get().into())
 	}
 }
 
