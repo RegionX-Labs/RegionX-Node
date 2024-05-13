@@ -1,6 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import assert from 'node:assert';
-import { getAddressFromModuleId, getFreeBalance, sleep } from '../common';
+import { getAddressFromModuleId, getFreeBalance } from '../common';
 
 async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
@@ -17,24 +17,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const potAccount = getAddressFromModuleId(podId);
 
   const treasuryBalanceOld = await getFreeBalance(regionXApi, treasuryAccount);
-  console.log(`treasuryBalanceOld: ${treasuryBalanceOld}`);
   const potBalanceOld = await getFreeBalance(regionXApi, potAccount);
-  console.log(`potBalanceOld: ${potBalanceOld}`);
-
-  const checkBalances = async (fee: bigint, tips: bigint) => {
-    console.log('---- checking balances');
-    const treasuryBalanceNew = await getFreeBalance(regionXApi, treasuryAccount);
-    const potBalanceNew = await getFreeBalance(regionXApi, potAccount);
-
-    console.log(`treasuryBalanceNew: ${treasuryBalanceNew}`);
-    console.log(`potBalanceNew: ${potBalanceNew}`);
-
-    const fee2Treasury = (fee * 60n) / 100n;
-    const fee2Collators = (fee * 60n) / 100n + tips;
-
-    assert.equal(treasuryBalanceNew - treasuryBalanceOld, fee2Treasury);
-    assert.equal(potBalanceNew - potBalanceOld, fee2Collators);
-  };
 
   const call = regionXApi.tx.system.remark('0x44');
 
@@ -42,7 +25,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     tips = BigInt(0);
 
   const promise: Promise<void> = new Promise((resolve, reject) => {
-    const unsub = call.signAndSend(alice, {tip: 1_000_000_000}, ({ status, isError, events }) => {
+    const unsub = call.signAndSend(alice, { tip: 1_000_000_000 }, ({ status, isError, events }) => {
       console.log(`Current status is ${status}`);
       if (status.isInBlock) {
         console.log(`Transaction included at blockHash ${status.asInBlock}`);
@@ -54,8 +37,8 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
           } = event;
           if (section === 'transactionPayment' && method === 'TransactionFeePaid') {
             const args = data.toJSON() as [string, number, number];
-            fee = BigInt(args[1]);
             tips = BigInt(args[2]);
+            fee = BigInt(args[1]) - tips;
           }
         }
 
@@ -69,8 +52,14 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     });
   });
   await promise;
-  await sleep(10 * 1000); // wait until the block is finalized
-  await checkBalances(fee, tips);
+  const treasuryBalanceNew = await getFreeBalance(regionXApi, treasuryAccount);
+  const potBalanceNew = await getFreeBalance(regionXApi, potAccount);
+
+  const fee2Treasury = (fee * 60n) / 100n;
+  const fee2Collators = fee - fee2Treasury + tips;
+
+  assert.equal(treasuryBalanceNew - treasuryBalanceOld, fee2Treasury);
+  assert.equal(potBalanceNew - potBalanceOld, fee2Collators);
 }
 
 export { run };
