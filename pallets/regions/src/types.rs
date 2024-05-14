@@ -76,8 +76,10 @@ pub struct Region<T: crate::Config> {
 pub enum IsmpCustomError {
 	/// Operation not supported.
 	NotSupported,
-	/// Failed to decode data.
-	DecodeFailed,
+	/// Failed to decode ismp request key.
+	KeyDecodeFailed,
+	/// Failed to decode ismp response.
+	ResponseDecodeFailed,
 	/// Couldn't find the region with the associated `RegionId`
 	RegionNotFound,
 	/// Couldn't find the corresponding value of a key in the ISMP result.
@@ -90,7 +92,8 @@ impl core::fmt::Display for IsmpCustomError {
 	fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
 		match self {
 			Self::NotSupported => write!(f, "NotSupported"),
-			Self::DecodeFailed => write!(f, "DecodeFailed"),
+			Self::KeyDecodeFailed => write!(f, "KeyDecodeFailed"),
+			Self::ResponseDecodeFailed => write!(f, "ResponseDecodeFailed"),
 			Self::RegionNotFound => write!(f, "RegionNotFound"),
 			Self::ValueNotFound => write!(f, "ValueNotFound"),
 			Self::EmptyValue => write!(f, "EmptyValue"),

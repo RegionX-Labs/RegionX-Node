@@ -212,7 +212,7 @@ fn on_response_works() {
 					Some(mock_record.clone().encode())
 				)]),
 			})),
-			IsmpCustomError::DecodeFailed
+			IsmpCustomError::KeyDecodeFailed
 		);
 
 		// Fails when invalid region record is passed as response:
@@ -221,7 +221,7 @@ fn on_response_works() {
 				get: get.clone(),
 				values: BTreeMap::from([(get.keys[0].clone(), Some(vec![0x42; 20]))]),
 			})),
-			IsmpCustomError::DecodeFailed
+			IsmpCustomError::ResponseDecodeFailed
 		);
 	});
 }

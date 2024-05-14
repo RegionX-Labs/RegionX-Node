@@ -293,10 +293,10 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
 
 					let region_id = RegionId::decode(&mut region_id_encoded)
-						.map_err(|_| IsmpCustomError::DecodeFailed)?;
+						.map_err(|_| IsmpCustomError::KeyDecodeFailed)?;
 
 					let record = RegionRecordOf::<T>::decode(&mut value.as_slice())
-						.map_err(|_| IsmpCustomError::DecodeFailed)?;
+						.map_err(|_| IsmpCustomError::ResponseDecodeFailed)?;
 
 					crate::Pallet::<T>::set_record(region_id, record)
 						.map_err(|e| IsmpError::Custom(format!("{:?}", e)))?;
@@ -316,7 +316,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 				let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
 
 				let region_id = RegionId::decode(&mut region_id_encoded)
-					.map_err(|_| IsmpCustomError::DecodeFailed)?;
+					.map_err(|_| IsmpCustomError::KeyDecodeFailed)?;
 
 				let Some(mut region) = Regions::<T>::get(region_id) else {
 					return Err(IsmpCustomError::RegionNotFound.into());
