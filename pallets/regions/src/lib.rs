@@ -248,7 +248,8 @@ pub mod pallet {
 				dest: T::CoretimeChain::get(),
 				from: PALLET_ID.into(),
 				keys: vec![key],
-				height: coretime_chain_height,
+				// The latest height can lag slightly behind, so we will add 10 to the current height to be safe.
+				height: coretime_chain_height.saturating_add(10),
 				timeout: T::Timeout::get(),
 			};
 
