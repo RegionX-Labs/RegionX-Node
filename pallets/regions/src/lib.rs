@@ -29,6 +29,7 @@ use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::RegionId;
 use scale_info::prelude::{format, vec, vec::Vec};
+use sp_core::H256;
 use sp_runtime::traits::Zero;
 
 #[cfg(test)]
@@ -135,6 +136,8 @@ pub mod pallet {
 			region_id: RegionId,
 			/// The account who requested the region record.
 			account: T::AccountId,
+			/// The ismp get request commitment.
+			request_commitment: H256,
 		},
 	}
 
@@ -258,14 +261,18 @@ pub mod pallet {
 
 			let dispatcher = T::IsmpDispatcher::default();
 
-			dispatcher
+			let commitment = dispatcher
 				.dispatch_request(
 					DispatchRequest::Get(get),
 					FeeMetadata { payer: who.clone(), fee: Zero::zero() },
 				)
 				.map_err(|_| Error::<T>::IsmpDispatchError)?;
 
-			Self::deposit_event(Event::RegionRecordRequested { region_id, account: who });
+			Self::deposit_event(Event::RegionRecordRequested {
+				region_id,
+				account: who,
+				request_commitment: commitment,
+			});
 
 			Ok(())
 		}

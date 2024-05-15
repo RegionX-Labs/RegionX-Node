@@ -132,7 +132,12 @@ fn request_region_record_works() {
 		assert_eq!(key_prefix, REGION_PREFIX_KEY);
 
 		System::assert_last_event(
-			Event::<Test>::RegionRecordRequested { region_id, account: 1 }.into(),
+			Event::<Test>::RegionRecordRequested {
+				region_id,
+				account: 1,
+				request_commitment: Default::default(),
+			}
+			.into(),
 		);
 	});
 }
