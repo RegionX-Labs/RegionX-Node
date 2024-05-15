@@ -153,6 +153,8 @@ pub mod pallet {
 		NotUnavailable,
 		/// The given region id is not valid.
 		InvalidRegionId,
+		/// Failed to get the latest height of the Coretime chain.
+		LatestHeightInaccessible,
 	}
 
 	#[pallet::call]
@@ -238,10 +240,11 @@ pub mod pallet {
 			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
 
 			let coretime_chain_height =
-				T::StateMachineHeightProvider::get_latest_state_machine_height(StateMachineId {
+				T::StateMachineHeightProvider::latest_state_machine_height(StateMachineId {
 					state_id: T::CoretimeChain::get(),
 					consensus_state_id: PARACHAIN_CONSENSUS_ID,
-				});
+				})
+				.ok_or(Error::<T>::LatestHeightInaccessible)?;
 
 			// TODO: should requests be coupled in the future?
 			let get = DispatchGet {

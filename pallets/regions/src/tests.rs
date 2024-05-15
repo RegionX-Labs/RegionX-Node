@@ -277,7 +277,7 @@ fn on_timeout_works() {
 		invalid_get_req.keys.push(vec![0u8; 15]);
 		assert_err!(
 			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
-			IsmpCustomError::DecodeFailed
+			IsmpCustomError::KeyDecodeFailed
 		);
 
 		// invalid id: region not found
