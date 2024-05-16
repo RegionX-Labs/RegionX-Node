@@ -612,7 +612,7 @@ impl pallet_regions::Config for Runtime {
 	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = Ismp;
 	type StateMachineHeightProvider = StateMachineHeightProvider;
-	type Timeout = ConstU64<1000>; // TODO: FIXME
+	type Timeout = ConstU64<300>; // 5 minutes
 	type WeightInfo = ();
 }
 
