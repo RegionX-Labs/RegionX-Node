@@ -41,7 +41,7 @@ fn nonfungibles_implementation_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Pending }
+			Region { owner: 2, record: Record::Pending(Default::default()) }
 		);
 
 		// The user is not required to set the region record to withdraw the asset back to the coretime
@@ -182,7 +182,7 @@ fn on_response_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Pending }
+			Region { owner: 2, record: Record::Pending(Default::default()) }
 		);
 
 		let request = &requests()[0];
@@ -262,7 +262,7 @@ fn on_timeout_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
-			Region { owner: 2, record: Record::Pending }
+			Region { owner: 2, record: Record::Pending(Default::default()) }
 		);
 
 		let request = &requests()[0];

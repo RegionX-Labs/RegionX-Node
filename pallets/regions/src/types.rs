@@ -18,6 +18,7 @@ use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::fungible::Inspect;
 use pallet_broker::RegionRecord;
 use scale_info::{prelude::format, TypeInfo};
+use sp_core::H256;
 
 pub type BalanceOf<T> = <<T as crate::Config>::NativeCurrency as Inspect<
 	<T as frame_system::Config>::AccountId,
@@ -29,7 +30,9 @@ pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId
 #[scale_info(skip_type_params(T))]
 pub enum Record<T: crate::Config> {
 	/// An ISMP request was made to query the region record and we are now anticipating a response.
-	Pending,
+	///
+	/// The hash represents the commitment of the ISMP get request.
+	Pending(H256),
 	/// An ISMP request was made, but we failed to get a response.
 	Unavailable,
 	/// Successfully retrieved the region record.
@@ -38,7 +41,7 @@ pub enum Record<T: crate::Config> {
 
 impl<T: crate::Config> Record<T> {
 	pub fn is_pending(&self) -> bool {
-		matches!(self, Record::Pending)
+		matches!(self, Record::Pending(_))
 	}
 
 	pub fn is_unavailable(&self) -> bool {

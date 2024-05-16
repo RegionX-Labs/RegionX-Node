@@ -230,7 +230,7 @@ pub mod pallet {
 		pub(crate) fn do_request_region_record(
 			region_id: RegionId,
 			who: <T as frame_system::Config>::AccountId,
-		) -> DispatchResult {
+		) -> Result<H256, DispatchError> {
 			let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
 			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
 			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
@@ -254,8 +254,10 @@ pub mod pallet {
 				dest: T::CoretimeChain::get(),
 				from: PALLET_ID.into(),
 				keys: vec![key],
-				// The latest height can lag slightly behind, so we will add 10 to the current height to be safe.
-				height: coretime_chain_height.saturating_add(10),
+				// We require data following the cross-chain transfer, which will be available in
+				// the subsequent block. However, if the core time chain has a block production rate
+				// of 6 seconds, we will only have the commitment from the block after the next one.
+				height: coretime_chain_height.saturating_add(2),
 				timeout: T::Timeout::get(),
 			};
 
@@ -274,7 +276,7 @@ pub mod pallet {
 				request_commitment: commitment,
 			});
 
-			Ok(())
+			Ok(commitment)
 		}
 	}
 }
