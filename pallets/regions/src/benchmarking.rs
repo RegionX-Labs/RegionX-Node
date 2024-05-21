@@ -21,7 +21,7 @@ use super::*;
 
 use codec::Encode;
 use frame_benchmarking::v2::*;
-use frame_support::{assert_ok, traits::nonfungible::Mutate};
+use frame_support::{assert_err, assert_ok, traits::nonfungible::Mutate};
 use frame_system::RawOrigin;
 use ismp::router::{Get as IsmpGet, GetResponse};
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
@@ -80,15 +80,19 @@ mod benchmarks {
 		let module = IsmpModuleCallback::<T>::default();
 		#[block]
 		{
-			assert_ok!(module.on_accept(Post {
-				source: <T as crate::Config>::CoretimeChain::get(),
-				dest: <T as crate::Config>::CoretimeChain::get(),
-				nonce: Default::default(),
-				from: Default::default(),
-				to: Default::default(),
-				timeout_timestamp: Default::default(),
-				data: Default::default(),
-			}));
+			// We don't support ISMP post.
+			assert_err!(
+				module.on_accept(Post {
+					source: <T as crate::Config>::CoretimeChain::get(),
+					dest: <T as crate::Config>::CoretimeChain::get(),
+					nonce: Default::default(),
+					from: Default::default(),
+					to: Default::default(),
+					timeout_timestamp: Default::default(),
+					data: Default::default(),
+				}),
+				IsmpCustomError::NotSupported
+			);
 		}
 
 		Ok(())
