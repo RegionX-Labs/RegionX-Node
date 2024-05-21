@@ -70,7 +70,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), region_id);
 
-		// TODO: somehow check events
+		assert!(crate::Pallet::<T>::regions(&region_id).unwrap().record.is_pending());
 
 		Ok(())
 	}
