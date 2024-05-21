@@ -235,16 +235,7 @@ pub mod pallet {
 			region_id: RegionId,
 			who: <T as frame_system::Config>::AccountId,
 		) -> Result<H256, DispatchError> {
-			let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
-			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
-			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
-
-			// We know a region id is 128 bits.
-			let region_id_encoded: [u8; 16] =
-				region_id.encode().try_into().map_err(|_| Error::<T>::InvalidRegionId)?;
-
-			// pallet_hash + storage_hash + blake2_128(region_id) + scale encoded region_id
-			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
+			let key = Self::region_storage_key(region_id)?;
 
 			let coretime_chain_height =
 				T::StateMachineHeightProvider::latest_state_machine_height(StateMachineId {
@@ -281,6 +272,21 @@ pub mod pallet {
 			});
 
 			Ok(commitment)
+		}
+
+		pub(crate) fn region_storage_key(region_id: RegionId) -> Result<Vec<u8>, DispatchError> {
+			let pallet_hash = sp_io::hashing::twox_128("Broker".as_bytes());
+			let storage_hash = sp_io::hashing::twox_128("Regions".as_bytes());
+			let region_id_hash = sp_io::hashing::blake2_128(&region_id.encode());
+
+			// We know a region id is 128 bits.
+			let region_id_encoded: [u8; 16] =
+				region_id.encode().try_into().map_err(|_| Error::<T>::InvalidRegionId)?;
+
+			// pallet_hash + storage_hash + blake2_128(region_id) + scale encoded region_id
+			let key = [pallet_hash, storage_hash, region_id_hash, region_id_encoded].concat();
+
+			Ok(key)
 		}
 	}
 }

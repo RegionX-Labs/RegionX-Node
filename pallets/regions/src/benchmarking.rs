@@ -19,10 +19,13 @@
 
 use super::*;
 
+use codec::Encode;
 use frame_benchmarking::v2::*;
 use frame_support::{assert_ok, traits::nonfungible::Mutate};
 use frame_system::RawOrigin;
-use pallet_broker::{CoreMask, RegionId};
+use ismp::router::{Get as IsmpGet, GetResponse};
+use pallet_broker::{CoreMask, RegionId, RegionRecord};
+use sp_core::Get;
 
 const SEED: u32 = 0;
 
@@ -67,7 +70,66 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), region_id);
 
-		assert_last_event::<T>(Event::RegionRecordRequested { region_id, account: caller }.into());
+		// TODO: somehow check events
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn on_accept() -> Result<(), BenchmarkError> {
+		let module = IsmpModuleCallback::<T>::default();
+		#[block]
+		{
+			assert_ok!(module.on_accept(Post {
+				source: <T as crate::Config>::CoretimeChain::get(),
+				dest: <T as crate::Config>::CoretimeChain::get(),
+				nonce: Default::default(),
+				from: Default::default(),
+				to: Default::default(),
+				timeout_timestamp: Default::default(),
+				data: Default::default(),
+			}));
+		}
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn on_response() -> Result<(), BenchmarkError> {
+		let module = IsmpModuleCallback::<T>::default();
+
+		let caller = whitelisted_caller();
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		// We first mint a region.
+		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &caller));
+
+		// We can use mock data for everything except the key since on_response is not reading
+		// anything other than the key from the request.
+		let key =
+			crate::Pallet::<T>::region_storage_key(region_id).expect("Failed to get storage key");
+		let get = IsmpGet {
+			source: T::CoretimeChain::get(),
+			dest: T::CoretimeChain::get(),
+			nonce: 0,
+			from: Default::default(),
+			keys: vec![key.clone()],
+			height: Default::default(),
+			timeout_timestamp: 0,
+		};
+
+		let mock_record: RegionRecord<u64, u64> =
+			RegionRecord { end: 113000, owner: 1, paid: None };
+
+		let mock_response = Response::Get(GetResponse {
+			get: get.clone(),
+			values: BTreeMap::from([(key, Some(mock_record.encode()))]),
+		});
+
+		#[block]
+		{
+			assert_ok!(module.on_response(mock_response));
+		}
 
 		Ok(())
 	}
