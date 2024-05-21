@@ -98,11 +98,10 @@ mod benchmarks {
 	fn on_response() -> Result<(), BenchmarkError> {
 		let module = IsmpModuleCallback::<T>::default();
 
-		let caller = whitelisted_caller();
+		let owner = whitelisted_caller();
 		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
 
-		// We first mint a region.
-		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &caller));
+		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &owner));
 
 		// We can use mock data for everything except the key since on_response is not reading
 		// anything other than the key from the request.
@@ -118,8 +117,7 @@ mod benchmarks {
 			timeout_timestamp: 0,
 		};
 
-		let mock_record: RegionRecord<u64, u64> =
-			RegionRecord { end: 113000, owner: 1, paid: None };
+		let mock_record: RegionRecordOf<T> = RegionRecord { end: 113000, owner, paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),
@@ -130,6 +128,42 @@ mod benchmarks {
 		{
 			assert_ok!(module.on_response(mock_response));
 		}
+
+		assert!(crate::Pallet::<T>::regions(&region_id).unwrap().record.is_available());
+
+		Ok(())
+	}
+
+	#[benchmark]
+	fn on_timeout() -> Result<(), BenchmarkError> {
+		let module = IsmpModuleCallback::<T>::default();
+
+		let owner = whitelisted_caller();
+		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
+
+		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &owner));
+
+		// We can use mock data for everything except the key since on_response is not reading
+		// anything other than the key from the request.
+		let key =
+			crate::Pallet::<T>::region_storage_key(region_id).expect("Failed to get storage key");
+		let get = IsmpGet {
+			source: T::CoretimeChain::get(),
+			dest: T::CoretimeChain::get(),
+			nonce: 0,
+			from: Default::default(),
+			keys: vec![key.clone()],
+			height: Default::default(),
+			timeout_timestamp: 0,
+		};
+		let timeout = Timeout::Request(Request::Get(get.clone()));
+
+		#[block]
+		{
+			assert_ok!(module.on_timeout(timeout));
+		}
+
+		assert!(crate::Pallet::<T>::regions(&region_id).unwrap().record.is_unavailable());
 
 		Ok(())
 	}
