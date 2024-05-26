@@ -16,7 +16,8 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use codec::{alloc::collections::BTreeMap, Decode};
-use core::cmp::max;
+use core::{cmp::max, marker::PhantomData};
+use frame_support::{pallet_prelude::Weight, PalletId};
 use ismp::{
 	consensus::StateMachineId,
 	dispatcher::{DispatchGet, DispatchRequest, FeeMetadata, IsmpDispatcher},
@@ -28,6 +29,7 @@ use ismp::{
 use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::RegionId;
+use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
 use scale_info::prelude::{format, vec, vec::Vec};
 use sp_core::H256;
 use sp_runtime::traits::Zero;
@@ -58,7 +60,7 @@ pub use weights::WeightInfo;
 const LOG_TARGET: &str = "runtime::regions";
 
 /// Constant Pallet ID
-pub const PALLET_ID: &[u8] = b"region-pallet";
+pub const PALLET_ID: ModuleId = ModuleId::Pallet(PalletId(*b"regionsp"));
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -247,7 +249,7 @@ pub mod pallet {
 			// TODO: should requests be coupled in the future?
 			let get = DispatchGet {
 				dest: T::CoretimeChain::get(),
-				from: PALLET_ID.into(),
+				from: PALLET_ID.to_bytes(),
 				keys: vec![key],
 				// We require data following the cross-chain transfer, which will be available in
 				// the subsequent block. However, if the core time chain has a block production rate
@@ -353,6 +355,30 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 			Timeout::Request(Request::Post(_)) => Ok(()),
 			Timeout::Response(_) => Ok(()),
 		}
+	}
+}
+
+pub struct IsmpRegionsModuleWeight<T: crate::Config> {
+	marker: PhantomData<T>,
+}
+
+impl<T: crate::Config> IsmpModuleWeight for IsmpRegionsModuleWeight<T> {
+	fn on_accept(&self, _request: &Post) -> Weight {
+		T::WeightInfo::on_accept()
+	}
+
+	fn on_response(&self, _response: &Response) -> Weight {
+		T::WeightInfo::on_response()
+	}
+
+	fn on_timeout(&self, _timeout: &Timeout) -> Weight {
+		T::WeightInfo::on_timeout()
+	}
+}
+
+impl<T: crate::Config> Default for IsmpRegionsModuleWeight<T> {
+	fn default() -> Self {
+		IsmpRegionsModuleWeight { marker: PhantomData }
 	}
 }
 
