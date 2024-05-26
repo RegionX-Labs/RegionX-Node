@@ -68,7 +68,7 @@ pub mod pallet {
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId>;
 
-		/// Type providing a way to lock coretime regions that are listed on sale.
+		/// Type providing a way of reading, transferring and locking regions.
 		//
 		// The item id is `u128` encoded RegionId.
 		type Regions: Transfer<Self::AccountId, ItemId = u128>
