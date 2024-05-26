@@ -49,7 +49,7 @@ impl pallet_ismp::weights::WeightProvider for WeightProvider {
 	fn module_callback(id: ModuleId) -> Option<Box<dyn IsmpModuleWeight>> {
 		match id {
 			pallet_regions::PALLET_ID =>
-				Some(Box::new(pallet_regions::IsmpRegionsModuleWeight::<Runtime>::default())),
+				Some(Box::<pallet_regions::IsmpRegionsModuleWeight::<Runtime>>::default()),
 			_ => None,
 		}
 	}
