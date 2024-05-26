@@ -107,7 +107,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   let regions = await regionXApi.query.regions.regions.entries();
   assert.equal(regions.length, 1);
   assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
-  assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Pending' });
+  // record is unavailable because we did not setup ismp.
+  assert.deepStrictEqual(regions[0][1].toHuman(), { owner: alice.address, record: 'Unavailable' });
 
   regions = await coretimeApi.query.broker.regions.entries();
   assert.equal(regions.length, 1);
