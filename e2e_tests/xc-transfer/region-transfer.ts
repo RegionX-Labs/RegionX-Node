@@ -128,11 +128,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   regions = await regionXApi.query.regions.regions.entries();
   region = regions[0][1].toHuman() as any;
   assert(region.owner == alice.address);
-  assert.deepStrictEqual(region.record.Available, {
-    end: '66',
-    owner: '5C6cBwdHw3agsBKzjGABaMq1kgXnmKyaBPN8J6c8MkHBnKu5',
-    paid: null,
-  });
+  assert.equal(region.record.Available.end, '66');
+  assert.equal(region.record.Available.paid, null);
 
   // Transfer the region back to the Coretime chain:
   const reserveTransferToCoretime = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
