@@ -13,28 +13,25 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{RegionId, RegionRecordOf};
 use frame_support::{
 	pallet_prelude::*,
 	parameter_types,
 	traits::{nonfungible::Mutate, Everything},
 };
-use ismp::{
-	consensus::StateMachineId,
-	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
-	error::Error,
-	host::StateMachine,
-	router::PostResponse,
-};
-use ismp_testsuite::mocks::Host;
-use pallet_regions::primitives::StateMachineHeightProvider;
+use parachain_primitives::ParaId;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-	BuildStorage, DispatchResult,
+	AccountId32, BuildStorage, DispatchResult,
 };
-use std::sync::Arc;
+use xcm::opaque::lts::NetworkId;
 
+use std::sync::Arc;
+use xcm_builder::{
+	AccountId32Aliases, ChildParachainConvertsVia, DescribeAllTerminal, HashedDescription,
+};
+
+type AccountId = AccountId32;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 // Configure a mock runtime to test the pallet.
@@ -43,9 +40,19 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances,
-		Regions: pallet_regions::{Pallet, Call, Storage, Event<T>},
-		Market: crate::{Pallet, Call, Storage, Event<T>},
+		Parachains: parachain_primitives,
+		Orders: crate::{Pallet, Call, Storage, Event<T>},
 	}
+);
+
+parameter_types! {
+	pub const AnyNetwork: Option<NetworkId> = None;
+}
+
+pub type SovereignAccountOf = (
+	ChildParachainConvertsVia<ParaId, AccountId>,
+	AccountId32Aliases<AnyNetwork, AccountId>,
+	HashedDescription<AccountId, DescribeAllTerminal>,
 );
 
 parameter_types! {
@@ -63,7 +70,7 @@ impl frame_system::Config for Test {
 	type Nonce = u64;
 	type Hash = H256;
 	type Hashing = BlakeTwo256;
-	type AccountId = u64;
+	type AccountId = AccountId;
 	type Lookup = IdentityLookup<Self::AccountId>;
 	type Block = Block;
 	type RuntimeEvent = RuntimeEvent;
@@ -97,101 +104,22 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 }
 
-pub struct MockStateMachineHeightProvider;
-impl StateMachineHeightProvider for MockStateMachineHeightProvider {
-	fn latest_state_machine_height(_id: StateMachineId) -> Option<u64> {
-		Some(0)
-	}
-}
-
-pub struct MockDispatcher<T: crate::Config>(pub Arc<Host>, PhantomData<T>);
-
-impl<T: crate::Config> Default for MockDispatcher<T> {
-	fn default() -> Self {
-		MockDispatcher(Default::default(), PhantomData::<T>::default())
-	}
-}
-impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
-	type Account = u64;
-	type Balance = u64;
-
-	fn dispatch_request(
-		&self,
-		_request: DispatchRequest,
-		_fee: FeeMetadata<Self::Account, Self::Balance>,
-	) -> Result<H256, Error> {
-		Ok(Default::default())
-	}
-
-	fn dispatch_response(
-		&self,
-		_response: PostResponse,
-		_fee: FeeMetadata<Self::Account, Self::Balance>,
-	) -> Result<H256, Error> {
-		Ok(Default::default())
-	}
-}
-
-parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
-}
-
-impl pallet_regions::Config for Test {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = u64;
-	type Currency = Balances;
-	type CoretimeChain = CoretimeChain;
-	type IsmpDispatcher = MockDispatcher<Self>;
-	type StateMachineHeightProvider = MockStateMachineHeightProvider;
-	type Timeout = ConstU64<1000>;
-	type WeightInfo = ();
-}
-
-parameter_types! {
-	pub static RelayBlockNumber: u64 = 0;
-}
-
-pub struct RelayBlockNumberProvider;
-impl BlockNumberProvider for RelayBlockNumberProvider {
-	type BlockNumber = u64;
-	fn current_block_number() -> Self::BlockNumber {
-		RelayBlockNumber::get()
-	}
-}
-
-pub struct RegionFactory;
-impl crate::RegionFactory<Test> for RegionFactory {
-	fn create_region(
-		region_id: RegionId,
-		record: RegionRecordOf<Test>,
-		owner: <Test as frame_system::Config>::AccountId,
-	) -> DispatchResult {
-		Regions::mint_into(&region_id.into(), &owner)?;
-		Regions::set_record(region_id, record.clone())?;
-		Ok(())
-	}
-}
+impl parachain_primitives::Config for Test {}
 
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Balance = u64;
+	type RuntimeOrigin = RuntimeOrigin;
 	type Currency = Balances;
-	type Regions = Regions;
-	type RelayChainBlockNumber = RelayBlockNumberProvider;
-	type TimeslicePeriod = ConstU64<80>;
+	type SovereignAccountOf = SovereignAccountOf;
+	type OrderCreationCost = ConstU64<100>; // TODO
+	type MinimumContribution = ConstU64<50>;
 	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = RegionFactory;
 }
 
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
-	pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(1, 10_000_000), (2, 10_000_000), (3, 10_000_000)],
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext

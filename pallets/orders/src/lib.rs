@@ -22,6 +22,12 @@ use parachain_primitives::{ensure_parachain, Origin, ParaId};
 use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
 
+#[cfg(test)]
+mod mock;
+
+#[cfg(test)]
+mod tests;
+
 mod types;
 pub use crate::types::*;
 
@@ -103,6 +109,8 @@ pub mod pallet {
 	///
 	/// The sum of contributions for a specific order from the Contributions map should be equal to
 	/// the total contribution stored here.
+	#[pallet::storage]
+	#[pallet::getter(fn total_contributions)]
 	pub type TotalContributions<T: Config> =
 		StorageMap<_, Blake2_128Concat, OrderId, BalanceOf<T>, ValueQuery>;
 
@@ -117,6 +125,8 @@ pub mod pallet {
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
 		/// Extrinsic for creating an order.
+		///
+		/// Callable by signed origin or by the parachain iteslf.
 		///
 		/// ## Arguments:
 		/// - `para_id`: The para id to which Coretime will be allocated.
@@ -141,6 +151,8 @@ pub mod pallet {
 
 		/// Extrinsic for cancelling an order.
 		///
+		/// Callable by signed origin or by the parachain iteslf.
+		///
 		/// ## Arguments:
 		/// - `para_id`: The para id to which Coretime will be allocated.
 		/// - `requirements`: Region requirements of the order.
@@ -157,6 +169,33 @@ pub mod pallet {
 
 			Ok(())
 		}
+
+		/// Extrinsic for contributing to an order.
+		///
+		/// Callable by signed origin.
+		///
+		/// ## Arguments:
+		/// - `order`: The order to which the caller wants to contribute.
+		/// - `amount`: The amount of tokens the user wants to contribute.
+		#[pallet::call_index(2)]
+		#[pallet::weight(10_000)] // TODO
+		pub fn contribute(
+			origin: OriginFor<T>,
+			order: OrderId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// TODO: ensure order exists
+
+			// TODO: Update `Contributions`
+
+			// TODO: Update `TotalContributions`
+
+			// TODO: emit event
+
+			Ok(())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
@@ -167,7 +206,7 @@ pub mod pallet {
 					let para =
 						ensure_parachain(<T as Config>::RuntimeOrigin::from(origin.clone()))?;
 					let location: MultiLocation =
-						MultiLocation { parents: 1, interior: X1(Parachain(para)) };
+						MultiLocation { parents: 1, interior: X1(Parachain(para.into())) };
 					T::SovereignAccountOf::convert_location(&location).ok_or(BadOrigin)
 				},
 			)?;

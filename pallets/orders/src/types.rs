@@ -14,7 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 use crate::{BalanceOf, ParaId};
 use codec::{Decode, Encode, MaxEncodedLen};
-use pallet_broker::{PartsOf57600, RegionId, Timeslice};
+use pallet_broker::{PartsOf57600, Timeslice};
 use scale_info::TypeInfo;
 
 pub type RegionRecordOf<T> =

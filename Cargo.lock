@@ -6877,22 +6877,18 @@ dependencies = [
  "frame-benchmarking",
  "frame-support",
  "frame-system",
- "ismp 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
- "ismp-testsuite",
  "log",
- "nonfungible-primitives",
  "pallet-balances",
  "pallet-broker",
- "pallet-regions",
  "parachain-primitives",
  "parity-scale-codec",
- "region-primitives",
  "scale-info",
  "serde",
  "sp-core",
  "sp-io",
  "sp-runtime",
  "staging-xcm",
+ "staging-xcm-builder",
  "staging-xcm-executor",
 ]
 
@@ -7402,6 +7398,7 @@ dependencies = [
 name = "parachain-primitives"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "frame-support",
  "frame-system",
  "log",

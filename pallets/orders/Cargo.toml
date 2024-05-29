@@ -26,16 +26,12 @@ xcm = { workspace = true, default-features = false }
 xcm-executor = { workspace = true, default-features = false }
 
 # Local
-nonfungible-primitives = { workspace = true, default-features = false }
-region-primitives = { workspace = true, default-features = false }
 parachain-primitives = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }
-pallet-regions = { workspace = true, default-features = false }
 pallet-balances = { workspace = true, default-features = false }
-ismp = { workspace = true, default-features = false }
-ismp-testsuite = { workspace = true }
+xcm-builder = { workspace = true, default-features = false }
 
 [features]
 default = ["std"]
@@ -43,8 +39,6 @@ runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 std = [
 	"log/std",
 	"codec/std",
-	"nonfungible-primitives/std",
-	"region-primitives/std",
 	"scale-info/std",
 	"sp-io/std",
 	"sp-core/std",
@@ -55,9 +49,8 @@ std = [
     "parachain-primitives/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
-	"pallet-regions/std",
-	"ismp/std",
     "xcm/std",
     "xcm-executor/std",
+    "xcm-builder/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]

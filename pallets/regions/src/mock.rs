@@ -15,7 +15,6 @@
 
 use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
 use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
-use frame_system as system;
 use ismp::{consensus::StateMachineId, host::StateMachine};
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
@@ -40,7 +39,7 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
-impl system::Config for Test {
+impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
 	type BlockLength = ();

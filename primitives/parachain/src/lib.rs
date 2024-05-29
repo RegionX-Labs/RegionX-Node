@@ -17,13 +17,13 @@
 //!
 //! Code copied from polkadot-sdk: https://github.com/paritytech/polkadot-sdk/blob/master/polkadot/runtime/parachains/src/origin.rs
 
-use sp_runtime::traits::BadOrigin;
+use codec::{CompactAs, Decode, Encode, MaxEncodedLen};
+pub use cumulus_primitives_core::ParaId;
+use scale_info::TypeInfo;
+use sp_runtime::{traits::BadOrigin, RuntimeDebug};
 use sp_std::result;
 
 pub use pallet::*;
-
-/// Parachain id.
-pub type ParaId = u32;
 
 /// Ensure that the origin `o` represents a parachain.
 /// Returns `Ok` with the parachain ID that effected the extrinsic or an `Err` otherwise.
