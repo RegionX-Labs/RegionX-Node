@@ -22,10 +22,13 @@ sp-io = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 pallet-broker = { workspace = true, default-features = false }
+xcm = { workspace = true, default-features = false }
+xcm-executor = { workspace = true, default-features = false }
 
 # Local
 nonfungible-primitives = { workspace = true, default-features = false }
 region-primitives = { workspace = true, default-features = false }
+parachain-primitives = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }
@@ -49,9 +52,12 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
+    "parachain-primitives/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
 	"pallet-regions/std",
 	"ismp/std",
+    "xcm/std",
+    "xcm-executor/std",
 ]
 try-runtime = [ "frame-support/try-runtime" ]

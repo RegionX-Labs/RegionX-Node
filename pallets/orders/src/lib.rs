@@ -15,9 +15,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::fungible::Inspect;
+use frame_support::{error::BadOrigin, traits::fungible::Inspect};
 use frame_system::WeightInfo;
 pub use pallet::*;
+use parachain_primitives::{ensure_parachain, Origin, ParaId};
+use xcm::latest::prelude::*;
+use xcm_executor::traits::ConvertLocation;
 
 mod types;
 pub use crate::types::*;
@@ -39,7 +42,7 @@ pub mod pallet {
 
 	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: frame_system::Config + parachain_primitives::Config {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
@@ -48,8 +51,18 @@ pub mod pallet {
 			+ Into<<Self::Currency as Inspect<Self::AccountId>>::Balance>
 			+ From<u32>;
 
+		/// The aggregated origin type must support the `parachains` origin. We require that we can
+		/// infallibly convert between this origin and the system origin, but in reality, they're
+		/// the same type, we just can't express that to the Rust type system without writing a
+		/// `where` clause everywhere.
+		type RuntimeOrigin: From<<Self as frame_system::Config>::RuntimeOrigin>
+			+ Into<Result<Origin, <Self as Config>::RuntimeOrigin>>;
+
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId>;
+
+		/// How to get an `AccountId` value from a `Location`.
+		type SovereignAccountOf: ConvertLocation<Self::AccountId>;
 
 		/// The cost of order creation.
 		///
@@ -95,11 +108,27 @@ pub mod pallet {
 			para_id: ParaId,
 			requirements: Requirements,
 		) -> DispatchResult {
-			// TODO: doesn't have to be signed. Can be the Para origin.
-			let who = ensure_signed(origin)?;
+			let who = Self::ensure_signed_or_para(origin)?;
 
-			
+			//ensure!();
+
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		/// Ensure the origin is signed or the `para` itself.
+		fn ensure_signed_or_para(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
+			let account = ensure_signed(origin.clone()).map_err(|e| e.into()).or_else(
+				|_: DispatchError| -> Result<_, _> {
+					let para =
+						ensure_parachain(<T as Config>::RuntimeOrigin::from(origin.clone()))?;
+					let location: MultiLocation =
+						MultiLocation { parents: 1, interior: X1(Parachain(para)) };
+					T::SovereignAccountOf::convert_location(&location).ok_or(BadOrigin)
+				},
+			)?;
+			Ok(account)
 		}
 	}
 }

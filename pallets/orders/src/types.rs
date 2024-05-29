@@ -12,7 +12,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
-use crate::BalanceOf;
+use crate::{BalanceOf, ParaId};
 use codec::{Decode, Encode, MaxEncodedLen};
 use pallet_broker::{PartsOf57600, RegionId, Timeslice};
 use scale_info::TypeInfo;
@@ -20,9 +20,6 @@ use sp_runtime::DispatchResult;
 
 pub type RegionRecordOf<T> =
 	pallet_broker::RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
-
-/// Parachain id.
-pub type ParaId = u32;
 
 /// Order identifier.
 pub type OrderId = u32;
