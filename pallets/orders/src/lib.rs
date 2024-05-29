@@ -84,7 +84,27 @@ pub mod pallet {
 	/// Created orders.
 	#[pallet::storage]
 	#[pallet::getter(fn orders)]
-	pub type Orders<T: Config> = StorageMap<_, Blake2_128Concat, (), ()>;
+	pub type Orders<T: Config> = StorageMap<_, Blake2_128Concat, OrderId, Order<T::AccountId>>;
+
+	/// Crowdfunding contributions.
+	#[pallet::storage]
+	#[pallet::getter(fn contributions)]
+	pub type Contributions<T: Config> = StorageDoubleMap<
+		_,
+		Blake2_128Concat,
+		OrderId, // the order.
+		Blake2_128Concat,
+		T::AccountId, // the account which contributed to the order.
+		BalanceOf<T>, // the amount they contributed.
+		ValueQuery,
+	>;
+
+	/// The total amount that was contributed to an order.
+	///
+	/// The sum of contributions for a specific order from the Contributions map should be equal to
+	/// the total contribution stored here.
+	pub type TotalContributions<T: Config> =
+		StorageMap<_, Blake2_128Concat, OrderId, BalanceOf<T>, ValueQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -110,7 +130,30 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = Self::ensure_signed_or_para(origin)?;
 
-			//ensure!();
+			// TODO: charge order creation cost
+
+			// TODO: add the order to the `Orders` storage map. (The order id is incremental)
+
+			// TODO: Emit event
+
+			Ok(())
+		}
+
+		/// Extrinsic for cancelling an order.
+		///
+		/// ## Arguments:
+		/// - `para_id`: The para id to which Coretime will be allocated.
+		/// - `requirements`: Region requirements of the order.
+		#[pallet::call_index(1)]
+		#[pallet::weight(10_000)] // TODO
+		pub fn cancel_order(origin: OriginFor<T>, order: OrderId) -> DispatchResult {
+			let who = Self::ensure_signed_or_para(origin)?;
+
+			// TODO: ensure order creator
+
+			// TODO: remove the order from the `Orders` storage map.
+
+			// TODO: emit event
 
 			Ok(())
 		}
