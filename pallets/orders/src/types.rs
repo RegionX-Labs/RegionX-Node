@@ -27,11 +27,11 @@ pub type OrderId = u32;
 #[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
 pub struct Requirements {
 	/// The timeslice at which the Region begins.
-	begin: Timeslice,
+	pub begin: Timeslice,
 	/// The timeslice at which the Region ends.
-	end: Timeslice,
-	/// The minimum proportion of the core that the region should occupy.
-	core_occupancy: PartsOf57600,
+	pub end: Timeslice,
+	/// The minimum fraction of the core that the region should occupy.
+	pub core_occupancy: PartsOf57600,
 }
 
 /// The information we store about a Coretime order.

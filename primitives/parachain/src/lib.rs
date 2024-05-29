@@ -17,10 +17,8 @@
 //!
 //! Code copied from polkadot-sdk: https://github.com/paritytech/polkadot-sdk/blob/master/polkadot/runtime/parachains/src/origin.rs
 
-use codec::{CompactAs, Decode, Encode, MaxEncodedLen};
 pub use cumulus_primitives_core::ParaId;
-use scale_info::TypeInfo;
-use sp_runtime::{traits::BadOrigin, RuntimeDebug};
+use sp_runtime::traits::BadOrigin;
 use sp_std::result;
 
 pub use pallet::*;

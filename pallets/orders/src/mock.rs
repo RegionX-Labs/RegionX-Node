@@ -13,26 +13,24 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{
-	pallet_prelude::*,
-	parameter_types,
-	traits::{nonfungible::Mutate, Everything},
-};
+use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
 use parachain_primitives::ParaId;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
-	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-	AccountId32, BuildStorage, DispatchResult,
+	traits::{BlakeTwo256, IdentityLookup},
+	AccountId32, BuildStorage,
 };
 use xcm::opaque::lts::NetworkId;
 
-use std::sync::Arc;
 use xcm_builder::{
 	AccountId32Aliases, ChildParachainConvertsVia, DescribeAllTerminal, HashedDescription,
 };
 
 type AccountId = AccountId32;
 type Block = frame_system::mocking::MockBlock<Test>;
+
+pub const ALICE: AccountId = AccountId::new([0u8; 32]);
+pub const BOB: AccountId = AccountId::new([1u8; 32]);
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -120,6 +118,11 @@ impl crate::Config for Test {
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
+	pallet_balances::GenesisConfig::<Test> {
+		balances: vec![(ALICE, 10_000_000), (BOB, 10_000_000)],
+	}
+	.assimilate_storage(&mut t)
+	.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext
