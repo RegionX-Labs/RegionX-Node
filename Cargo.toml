@@ -165,5 +165,6 @@ region-primitives = { path = "./primitives/region", default-features = false }
 nonfungible-primitives= { path = "./primitives/nonfungible", default-features = false }
 regionx-primitives = { path = "./runtime/primitives", default-features = false }
 regionx-runtime = { path = "./runtime/regionx", default-features = false }
-pallet-regions = { path = "./pallets/regions", default-features = false }
 pallet-market = { path = "./pallets/market", default-features = false }
+pallet-orders = { path = "./pallets/orders", default-features = false }
+pallet-regions = { path = "./pallets/regions", default-features = false }

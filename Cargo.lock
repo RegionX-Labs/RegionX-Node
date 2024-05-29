@@ -6871,6 +6871,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-orders"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "ismp 0.1.2 (registry+https://github.com/rust-lang/crates.io-index)",
+ "ismp-testsuite",
+ "log",
+ "nonfungible-primitives",
+ "pallet-balances",
+ "pallet-broker",
+ "pallet-regions",
+ "parity-scale-codec",
+ "region-primitives",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+]
+
+[[package]]
 name = "pallet-preimage"
 version = "28.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
