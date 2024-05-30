@@ -15,7 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{error::BadOrigin, traits::fungible::Inspect};
+use frame_support::{error::BadOrigin, traits::Currency};
 use frame_system::WeightInfo;
 pub use pallet::*;
 use parachain_primitives::{ensure_parachain, Origin, ParaId};
@@ -32,7 +32,7 @@ mod types;
 pub use crate::types::*;
 
 pub type BalanceOf<T> =
-	<<T as crate::Config>::Currency as Inspect<<T as frame_system::Config>::AccountId>>::Balance;
+	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -40,11 +40,7 @@ pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
 		sp_runtime::Saturating,
-		traits::{
-			fungible::{Inspect, Mutate},
-			tokens::Balance,
-			Get,
-		},
+		traits::{Get, ReservableCurrency},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -54,11 +50,6 @@ pub mod pallet {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-		/// The balance type
-		type Balance: Balance
-			+ Into<<Self::Currency as Inspect<Self::AccountId>>::Balance>
-			+ From<u32>;
-
 		/// The aggregated origin type must support the `parachains` origin. We require that we can
 		/// infallibly convert between this origin and the system origin, but in reality, they're
 		/// the same type, we just can't express that to the Rust type system without writing a
@@ -67,10 +58,13 @@ pub mod pallet {
 			+ Into<Result<Origin, <Self as Config>::RuntimeOrigin>>;
 
 		/// Currency used for purchasing coretime.
-		type Currency: Mutate<Self::AccountId>;
+		type Currency: ReservableCurrency<Self::AccountId>;
 
 		/// How to get an `AccountId` value from a `Location`.
 		type SovereignAccountOf: ConvertLocation<Self::AccountId>;
+
+		/// Type responsible for dealing with order creation fees.
+		type OrderFeeHandler: FeeHandler<BalanceOf<Self>>;
 
 		/// The cost of order creation.
 		///
@@ -94,7 +88,7 @@ pub mod pallet {
 	#[pallet::getter(fn orders)]
 	pub type Orders<T: Config> = StorageMap<_, Blake2_128Concat, OrderId, Order<T::AccountId>>;
 
-	/// Last order id
+	/// Next order id
 	#[pallet::storage]
 	#[pallet::getter(fn next_order_id)]
 	pub type NextOrderId<T> = StorageValue<_, OrderId, ValueQuery>;
@@ -161,8 +155,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = Self::ensure_signed_or_para(origin)?;
 
-			// TODO: charge order creation cost
-			// Where shall we send the order creation cost to? To Treasury?
+			T::OrderFeeHandler::handle(T::OrderCreationCost::get())?;
 
 			let order_id = NextOrderId::<T>::get();
 			Orders::<T>::insert(order_id, Order { creator: who, para_id, requirements });
@@ -186,7 +179,6 @@ pub mod pallet {
 
 			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
 			ensure!(order.creator == who, Error::<T>::NotAllowed);
-			// TODO: Shall we also check if the caller is the sovereign account of para_id?
 
 			Orders::<T>::remove(order_id);
 
@@ -212,6 +204,7 @@ pub mod pallet {
 
 			ensure!(Orders::<T>::get(order_id).is_some(), Error::<T>::InvalidOrderId);
 			ensure!(amount >= T::MinimumContribution::get(), Error::<T>::InvalidAmount);
+			T::Currency::reserve(&who, amount)?;
 
 			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
 

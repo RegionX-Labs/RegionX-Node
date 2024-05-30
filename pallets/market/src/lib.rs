@@ -46,11 +46,7 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{
-			fungible::{Inspect, Mutate},
-			nonfungible::Transfer,
-			tokens::Balance,
-		},
+		traits::{fungible::Mutate, nonfungible::Transfer},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -59,11 +55,6 @@ pub mod pallet {
 	pub trait Config: frame_system::Config {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
-		/// The balance type
-		type Balance: Balance
-			+ Into<<Self::Currency as Inspect<Self::AccountId>>::Balance>
-			+ From<u32>;
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId>;

@@ -16,6 +16,7 @@ use crate::{BalanceOf, ParaId};
 use codec::{Decode, Encode, MaxEncodedLen};
 use pallet_broker::{PartsOf57600, Timeslice};
 use scale_info::TypeInfo;
+use sp_runtime::DispatchResult;
 
 pub type RegionRecordOf<T> =
 	pallet_broker::RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
@@ -45,4 +46,9 @@ pub struct Order<AccountId> {
 	pub para_id: ParaId,
 	/// Region requirements of the order.
 	pub requirements: Requirements,
+}
+
+pub trait FeeHandler<Balance> {
+	/// Function responsible for handling how we deal with fees.
+	fn handle(fee: Balance) -> DispatchResult;
 }
