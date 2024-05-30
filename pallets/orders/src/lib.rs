@@ -96,7 +96,7 @@ pub mod pallet {
 
 	/// Last order id
 	#[pallet::storage]
-	#[pallet::getter(fn nextOrderId)]
+	#[pallet::getter(fn next_order_id)]
 	pub type NextOrderId<T> = StorageValue<_, OrderId, ValueQuery>;
 
 	/// Crowdfunding contributions.
@@ -210,8 +210,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
-
+			ensure!(Orders::<T>::get(order_id).is_some(), Error::<T>::InvalidOrderId);
 			ensure!(amount >= T::MinimumContribution::get(), Error::<T>::InvalidAmount);
 
 			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());

@@ -31,6 +31,7 @@ type Block = frame_system::mocking::MockBlock<Test>;
 
 pub const ALICE: AccountId = AccountId::new([0u8; 32]);
 pub const BOB: AccountId = AccountId::new([1u8; 32]);
+pub const CHARLIE: AccountId = AccountId::new([2u8; 32]);
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(

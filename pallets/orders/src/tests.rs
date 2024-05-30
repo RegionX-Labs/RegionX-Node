@@ -13,21 +13,117 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{mock::*, Requirements};
-use frame_support::assert_ok;
+use crate::{mock::*, Error, Event, Order, ParaId, Requirements};
+use frame_support::{assert_noop, assert_ok};
 
 #[test]
 fn create_order_works() {
 	new_test_ext().execute_with(|| {
-		// TODO
+		let creator = ALICE;
+		let para_id: ParaId = 2000.into();
+		let requirements = Requirements {
+			begin: 0,
+			end: 8,
+			core_occupancy: 28800, // Half of a core.
+		};
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(creator.clone()),
+			para_id,
+			requirements.clone()
+		));
+
+		// Check storage items
+		assert_eq!(Orders::next_order_id(), 1);
+		assert_eq!(Orders::orders(0), Some(Order { para_id, creator, requirements }));
+		assert!(Orders::orders(1).is_none());
+
+		// Check events
+		System::assert_last_event(Event::OrderCreated { order_id: 0 }.into());
+	});
+}
+
+#[test]
+fn cancel_order_works() {
+	new_test_ext().execute_with(|| {
+		let creator = ALICE;
+		let para_id: ParaId = 2000.into();
+		let requirements = Requirements {
+			begin: 0,
+			end: 8,
+			core_occupancy: 28800, // Half of a core.
+		};
+
+		// Unknown order id
+		assert_noop!(
+			Orders::cancel_order(RuntimeOrigin::signed(creator.clone()), 0),
+			Error::<Test>::InvalidOrderId
+		);
+
+		// Create an order
+
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(creator.clone()),
+			para_id,
+			requirements.clone()
+		));
+
+		// Caller is not the creator of the order
+		assert_noop!(
+			Orders::cancel_order(RuntimeOrigin::signed(BOB), 0),
+			Error::<Test>::NotAllowed
+		);
+
+		// Should be working fine
+		assert_ok!(Orders::cancel_order(RuntimeOrigin::signed(creator.clone()), 0));
+
+		// Check storage items
+		assert!(Orders::orders(0).is_none());
+
+		// Check events
+		System::assert_last_event(Event::OrderRemoved { order_id: 0 }.into());
+	});
+}
+
+#[test]
+fn contribute_works() {
+	new_test_ext().execute_with(|| {
+		// Create two orders
 		assert_ok!(Orders::create_order(
 			RuntimeOrigin::signed(ALICE),
 			2000.into(),
-			Requirements {
-				begin: 0,
-				end: 8,
-				core_occupancy: 28800 // Half of a core.
-			}
+			Requirements { begin: 0, end: 8, core_occupancy: 28800 }
 		));
+
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(BOB),
+			2001.into(),
+			Requirements { begin: 0, end: 8, core_occupancy: 28800 }
+		));
+
+		// Invalid order id
+		assert_noop!(
+			Orders::contribute(RuntimeOrigin::signed(ALICE), 2, 1_000),
+			Error::<Test>::InvalidOrderId
+		);
+
+		// Contribution amount is too small
+		assert_noop!(
+			Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 0),
+			Error::<Test>::InvalidAmount,
+		);
+
+		assert_eq!(Orders::contributions(0, CHARLIE), 0);
+
+		// Should be working fine
+		assert_ok!(Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 1_000));
+
+		// Check storage items
+		assert_eq!(Orders::contributions(0, CHARLIE), 1_000);
+		assert_eq!(Orders::total_contributions(0), 1_000);
+
+		// Check events
+		System::assert_last_event(
+			Event::Contributed { order_id: 0, who: CHARLIE, amount: 1_000 }.into(),
+		);
 	});
 }
