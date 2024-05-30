@@ -39,9 +39,11 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
+		sp_runtime::Saturating,
 		traits::{
 			fungible::{Inspect, Mutate},
 			tokens::Balance,
+			Get,
 		},
 	};
 	use frame_system::pallet_prelude::*;
@@ -92,6 +94,11 @@ pub mod pallet {
 	#[pallet::getter(fn orders)]
 	pub type Orders<T: Config> = StorageMap<_, Blake2_128Concat, OrderId, Order<T::AccountId>>;
 
+	/// Last order id
+	#[pallet::storage]
+	#[pallet::getter(fn nextOrderId)]
+	pub type NextOrderId<T> = StorageValue<_, OrderId, ValueQuery>;
+
 	/// Crowdfunding contributions.
 	#[pallet::storage]
 	#[pallet::getter(fn contributions)]
@@ -116,11 +123,25 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	pub enum Event<T: Config> {
+		/// An order was created
+		OrderCreated { order_id: OrderId },
+		/// An order was removed
+		OrderRemoved { order_id: OrderId },
+		/// A contribution was made to the order specificed by `order_id`
+		Contributed { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
+	}
 
 	#[pallet::error]
 	#[derive(PartialEq)]
-	pub enum Error<T> {}
+	pub enum Error<T> {
+		/// Invalid order id
+		InvalidOrderId,
+		/// The caller is not the creator of the given order
+		NotAllowed,
+		/// The contribution amount is too small
+		InvalidAmount,
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
@@ -141,11 +162,13 @@ pub mod pallet {
 			let who = Self::ensure_signed_or_para(origin)?;
 
 			// TODO: charge order creation cost
+			// Where shall we send the order creation cost to? To Treasury?
 
-			// TODO: add the order to the `Orders` storage map. (The order id is incremental)
+			let order_id = NextOrderId::<T>::get();
+			Orders::<T>::insert(order_id, Order { creator: who, para_id, requirements });
+			NextOrderId::<T>::put(order_id + 1);
 
-			// TODO: Emit event
-
+			Self::deposit_event(Event::OrderCreated { order_id });
 			Ok(())
 		}
 
@@ -158,15 +181,16 @@ pub mod pallet {
 		/// - `requirements`: Region requirements of the order.
 		#[pallet::call_index(1)]
 		#[pallet::weight(10_000)] // TODO
-		pub fn cancel_order(origin: OriginFor<T>, order: OrderId) -> DispatchResult {
+		pub fn cancel_order(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
 			let who = Self::ensure_signed_or_para(origin)?;
 
-			// TODO: ensure order creator
+			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
+			ensure!(order.creator == who, Error::<T>::NotAllowed);
+			// TODO: Shall we also check if the caller is the sovereign account of para_id?
 
-			// TODO: remove the order from the `Orders` storage map.
+			Orders::<T>::remove(order_id);
 
-			// TODO: emit event
-
+			Self::deposit_event(Event::OrderRemoved { order_id });
 			Ok(())
 		}
 
@@ -181,18 +205,26 @@ pub mod pallet {
 		#[pallet::weight(10_000)] // TODO
 		pub fn contribute(
 			origin: OriginFor<T>,
-			order: OrderId,
+			order_id: OrderId,
 			amount: BalanceOf<T>,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// TODO: ensure order exists
+			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
 
-			// TODO: Update `Contributions`
+			ensure!(amount >= T::MinimumContribution::get(), Error::<T>::InvalidAmount);
 
-			// TODO: Update `TotalContributions`
+			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
 
-			// TODO: emit event
+			contribution = contribution.saturating_add(amount);
+			Contributions::<T>::insert(order_id, who.clone(), contribution);
+
+			let mut total_contributions = TotalContributions::<T>::get(order_id);
+
+			total_contributions = total_contributions.saturating_add(amount);
+			TotalContributions::<T>::insert(order_id, total_contributions);
+
+			Self::deposit_event(Event::Contributed { order_id, who, amount });
 
 			Ok(())
 		}
