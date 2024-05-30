@@ -40,7 +40,7 @@ pub mod pallet {
 	use frame_support::{
 		pallet_prelude::*,
 		sp_runtime::Saturating,
-		traits::{Get, ReservableCurrency},
+		traits::{fungible::Mutate, Get, ReservableCurrency},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -58,13 +58,13 @@ pub mod pallet {
 			+ Into<Result<Origin, <Self as Config>::RuntimeOrigin>>;
 
 		/// Currency used for purchasing coretime.
-		type Currency: ReservableCurrency<Self::AccountId>;
+		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 
 		/// How to get an `AccountId` value from a `Location`.
 		type SovereignAccountOf: ConvertLocation<Self::AccountId>;
 
 		/// Type responsible for dealing with order creation fees.
-		type OrderFeeHandler: FeeHandler<BalanceOf<Self>>;
+		type OrderCreationFeeHandler: FeeHandler<Self::AccountId, BalanceOf<Self>>;
 
 		/// The cost of order creation.
 		///
@@ -155,7 +155,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = Self::ensure_signed_or_para(origin)?;
 
-			T::OrderFeeHandler::handle(T::OrderCreationCost::get())?;
+			T::OrderCreationFeeHandler::handle(&who, T::OrderCreationCost::get())?;
 
 			let order_id = NextOrderId::<T>::get();
 			Orders::<T>::insert(order_id, Order { creator: who, para_id, requirements });

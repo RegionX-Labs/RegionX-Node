@@ -13,7 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
+use crate::FeeHandler;
+use frame_support::{
+	assert_ok,
+	pallet_prelude::*,
+	parameter_types,
+	traits::{fungible::Mutate, tokens::Preservation, Everything},
+};
 use parachain_primitives::ParaId;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
@@ -32,6 +38,7 @@ type Block = frame_system::mocking::MockBlock<Test>;
 pub const ALICE: AccountId = AccountId::new([0u8; 32]);
 pub const BOB: AccountId = AccountId::new([1u8; 32]);
 pub const CHARLIE: AccountId = AccountId::new([2u8; 32]);
+pub const TREASURY: AccountId = AccountId::new([3u8; 32]);
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -105,25 +112,35 @@ impl pallet_balances::Config for Test {
 
 impl parachain_primitives::Config for Test {}
 
+pub struct OrderCreationFeeHandler;
+impl FeeHandler<AccountId, u64> for OrderCreationFeeHandler {
+	fn handle(who: &AccountId, fee: u64) -> DispatchResult {
+		<Test as crate::Config>::Currency::transfer(who, &TREASURY, fee, Preservation::Preserve)?;
+		Ok(())
+	}
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = u64;
 	type RuntimeOrigin = RuntimeOrigin;
 	type Currency = Balances;
 	type SovereignAccountOf = SovereignAccountOf;
-	type OrderCreationCost = ConstU64<100>; // TODO
+	type OrderCreationCost = ConstU64<100>;
 	type MinimumContribution = ConstU64<50>;
+	type OrderCreationFeeHandler = OrderCreationFeeHandler;
 	type WeightInfo = ();
 }
 
+pub fn endow(who: AccountId32, amount: u64) {
+	assert_ok!(<<Test as crate::Config>::Currency as Mutate<_>>::mint_into(&who, amount));
+}
+
 // Build genesis storage according to the mock runtime.
-pub fn new_test_ext() -> sp_io::TestExternalities {
+pub fn new_test_ext(endowed_accounts: Vec<(AccountId32, u64)>) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
-	pallet_balances::GenesisConfig::<Test> {
-		balances: vec![(ALICE, 10_000_000), (BOB, 10_000_000)],
-	}
-	.assimilate_storage(&mut t)
-	.unwrap();
+	pallet_balances::GenesisConfig::<Test> { balances: endowed_accounts }
+		.assimilate_storage(&mut t)
+		.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
 	ext.execute_with(|| System::set_block_number(1));
 	ext

@@ -138,7 +138,6 @@ parameter_types! {
 
 impl pallet_regions::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = u64;
 	type Currency = Balances;
 	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = MockDispatcher<Self>;
@@ -174,7 +173,6 @@ impl crate::RegionFactory<Test> for RegionFactory {
 
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = u64;
 	type Currency = Balances;
 	type Regions = Regions;
 	type RelayChainBlockNumber = RelayBlockNumberProvider;

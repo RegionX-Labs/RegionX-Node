@@ -96,7 +96,6 @@ impl StateMachineHeightProvider for MockStateMachineHeightProvider {
 
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type Balance = u64;
 	type Currency = Balances;
 	type CoretimeChain = CoretimeChain;
 	type IsmpDispatcher = MockDispatcher<Self>;

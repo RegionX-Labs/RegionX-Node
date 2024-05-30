@@ -48,7 +48,7 @@ pub struct Order<AccountId> {
 	pub requirements: Requirements,
 }
 
-pub trait FeeHandler<Balance> {
+pub trait FeeHandler<AccountId, Balance> {
 	/// Function responsible for handling how we deal with fees.
-	fn handle(fee: Balance) -> DispatchResult;
+	fn handle(who: &AccountId, fee: Balance) -> DispatchResult;
 }
