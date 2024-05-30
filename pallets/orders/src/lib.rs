@@ -220,6 +220,23 @@ pub mod pallet {
 
 			Ok(())
 		}
+	
+		/// Extrinsic for remove contribution from a cancelled order.
+		///
+		/// Callable by signed origin.
+		///
+		/// ## Arguments:
+		/// - `order`: The cancelled order from which the user wants to claim back their contribution.
+		#[pallet::call_index(3)]
+		#[pallet::weight(10_000)] // TODO
+		pub fn remove_contribution(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
+			let who = ensure_signed(origin)?;
+
+			// TODO: Users should be able to claim back contributions for cancelled orders. 
+			// We know that an order is cancelled if it can no longer be found in `Orders` map.
+
+			Ok(())
+		}
 	}
 
 	impl<T: Config> Pallet<T> {
