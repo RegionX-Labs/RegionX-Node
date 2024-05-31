@@ -107,16 +107,10 @@ fn cancel_order_works() {
 #[test]
 fn contribute_works() {
 	new_test_ext(vec![(ALICE, 1000), (BOB, 1000), (CHARLIE, 1000)]).execute_with(|| {
-		// Create two orders
+		// Create an order
 		assert_ok!(Orders::create_order(
 			RuntimeOrigin::signed(ALICE),
 			2000.into(),
-			Requirements { begin: 0, end: 8, core_occupancy: 28800 }
-		));
-
-		assert_ok!(Orders::create_order(
-			RuntimeOrigin::signed(BOB),
-			2001.into(),
 			Requirements { begin: 0, end: 8, core_occupancy: 28800 }
 		));
 
@@ -136,14 +130,67 @@ fn contribute_works() {
 
 		// Should be working fine
 		assert_ok!(Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 500));
-
-		// Check storage items
-		assert_eq!(Orders::contributions(0, CHARLIE), 500);
-		assert_eq!(Orders::total_contributions(0), 500);
-
-		// Check events
 		System::assert_last_event(
 			Event::Contributed { order_id: 0, who: CHARLIE, amount: 500 }.into(),
+		);
+
+		assert_ok!(Orders::contribute(RuntimeOrigin::signed(BOB), 0, 100));
+		System::assert_last_event(Event::Contributed { order_id: 0, who: BOB, amount: 100 }.into());
+		// Check storage items
+		assert_eq!(Orders::contributions(0, CHARLIE), 500);
+		assert_eq!(Orders::contributions(0, BOB), 100);
+		assert_eq!(Orders::total_contributions(0), 600);
+
+		assert_eq!(Balances::free_balance(CHARLIE), 500);
+		assert_eq!(Balances::reserved_balance(CHARLIE), 500);
+		assert_eq!(Balances::free_balance(BOB), 900);
+		assert_eq!(Balances::reserved_balance(BOB), 100);
+	});
+}
+
+#[test]
+fn remove_contribution_works() {
+	new_test_ext(vec![(ALICE, 1000), (BOB, 1000), (CHARLIE, 1000)]).execute_with(|| {
+		// Create an order
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(ALICE),
+			2000.into(),
+			Requirements { begin: 0, end: 8, core_occupancy: 28800 }
+		));
+
+		// Order is not cancelled
+		assert_noop!(
+			Orders::remove_contribution(RuntimeOrigin::signed(CHARLIE), 0),
+			Error::<Test>::OrderNotCancelled
+		);
+
+		// Contribute to the order
+		assert_ok!(Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 500));
+		assert_ok!(Orders::contribute(RuntimeOrigin::signed(BOB), 0, 200));
+
+		assert_eq!(Balances::free_balance(CHARLIE), 500);
+		assert_eq!(Balances::reserved_balance(CHARLIE), 500);
+		assert_eq!(Orders::total_contributions(0), 700);
+
+		// Cancel the order
+		assert_ok!(Orders::cancel_order(RuntimeOrigin::signed(ALICE), 0));
+
+		// Should be working fine
+		assert_ok!(Orders::remove_contribution(RuntimeOrigin::signed(CHARLIE), 0));
+
+		// Check storage items
+		assert_eq!(Balances::reserved_balance(CHARLIE), 0);
+		assert_eq!(Balances::free_balance(CHARLIE), 1000);
+		assert_eq!(Orders::total_contributions(0), 200);
+
+		// Check the events
+		System::assert_last_event(
+			Event::ContributionRemoved { order_id: 0, who: CHARLIE, amount: 500 }.into(),
+		);
+
+		assert_noop!(
+			Orders::remove_contribution(RuntimeOrigin::signed(CHARLIE), 0),
+			Error::<Test>::NoContribution
 		);
 	});
 }

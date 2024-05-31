@@ -124,6 +124,8 @@ pub mod pallet {
 		OrderRemoved { order_id: OrderId },
 		/// A contribution was made to the order specificed by `order_id`
 		Contributed { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
+		/// A contribution was removed from the cancelled order
+		ContributionRemoved { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
 	}
 
 	#[pallet::error]
@@ -135,6 +137,10 @@ pub mod pallet {
 		NotAllowed,
 		/// The contribution amount is too small
 		InvalidAmount,
+		/// The given order is not cancelled
+		OrderNotCancelled,
+		/// The contributed amount equals to zero.
+		NoContribution,
 	}
 
 	#[pallet::call]
@@ -191,7 +197,7 @@ pub mod pallet {
 		/// Callable by signed origin.
 		///
 		/// ## Arguments:
-		/// - `order`: The order to which the caller wants to contribute.
+		/// - `order_id`: The order to which the caller wants to contribute.
 		/// - `amount`: The amount of tokens the user wants to contribute.
 		#[pallet::call_index(2)]
 		#[pallet::weight(10_000)] // TODO
@@ -220,20 +226,35 @@ pub mod pallet {
 
 			Ok(())
 		}
-	
-		/// Extrinsic for remove contribution from a cancelled order.
+
+		/// Extrinsic for removing contributions from a cancelled order.
 		///
 		/// Callable by signed origin.
 		///
 		/// ## Arguments:
-		/// - `order`: The cancelled order from which the user wants to claim back their contribution.
+		/// - `order_id`: The cancelled order from which the user wants to claim back their
+		///   contribution.
 		#[pallet::call_index(3)]
 		#[pallet::weight(10_000)] // TODO
 		pub fn remove_contribution(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			// TODO: Users should be able to claim back contributions for cancelled orders. 
-			// We know that an order is cancelled if it can no longer be found in `Orders` map.
+			ensure!(Orders::<T>::get(order_id).is_none(), Error::<T>::OrderNotCancelled);
+
+			let amount: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
+
+			ensure!(amount != Default::default(), Error::<T>::NoContribution);
+
+			T::Currency::unreserve(&who, amount);
+
+			Contributions::<T>::remove(order_id, who.clone());
+
+			let mut total_contributions = TotalContributions::<T>::get(order_id);
+
+			total_contributions = total_contributions.saturating_sub(amount);
+			TotalContributions::<T>::insert(order_id, total_contributions);
+
+			Self::deposit_event(Event::ContributionRemoved { who, order_id, amount });
 
 			Ok(())
 		}
