@@ -764,7 +764,7 @@ impl pallet_market::Config for Runtime {
 	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Currency = RelaychainCurrency;
 	type Regions = Regions;
-	type RelayChainBlockNumber = RelaychainDataProvider<Self>;
+	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]

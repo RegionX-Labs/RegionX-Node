@@ -175,7 +175,7 @@ impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Regions = Regions;
-	type RelayChainBlockNumber = RelayBlockNumberProvider;
+	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
 	type WeightInfo = ();
 	#[cfg(feature = "runtime-benchmarks")]

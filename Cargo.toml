@@ -1,11 +1,6 @@
 [workspace]
 resolver = "2"
-members = [
-	"node",
-	"pallets/*",
-	"primitives/*",
-	"runtime/*",
-]
+members = ["node", "pallets/*", "primitives/*", "runtime/*"]
 
 [workspace.package]
 name = "regionx"
@@ -88,7 +83,9 @@ cumulus-primitives-aura = { version = "0.7.0", default-features = false }
 cumulus-pallet-session-benchmarking = { version = "9.0.0", default-features = false }
 cumulus-pallet-aura-ext = { version = "0.7.0", default-features = false }
 cumulus-pallet-dmp-queue = { version = "0.7.0", default-features = false }
-cumulus-pallet-parachain-system = { version = "0.7.0", default-features = false, features = ["parameterized-consensus-hook"] }
+cumulus-pallet-parachain-system = { version = "0.7.0", default-features = false, features = [
+	"parameterized-consensus-hook",
+] }
 cumulus-pallet-xcm = { version = "0.7.0", default-features = false }
 cumulus-pallet-xcmp-queue = { version = "0.7.0", default-features = false }
 cumulus-primitives-core = { version = "0.7.0", default-features = false }
@@ -158,7 +155,7 @@ ismp-parachain = { version = "1.6.2", default-features = false }
 ismp-parachain-inherent = { version = "1.6.3", default-features = false }
 pallet-ismp-runtime-api = { version = "1.6.2", default-features = false }
 ismp-parachain-runtime-api = { version = "1.6.2", default-features = false }
-ismp-testsuite = { git="https://github.com/polytope-labs/hyperbridge.git", branch="main", default-features = false }
+ismp-testsuite = { git = "https://github.com/polytope-labs/hyperbridge.git", branch = "main", default-features = false }
 
 # Local
 region-primitives = { path = "./primitives/region", default-features = false }
