@@ -6874,13 +6874,13 @@ dependencies = [
 name = "pallet-orders"
 version = "0.1.0"
 dependencies = [
+ "cumulus-primitives-core",
  "frame-benchmarking",
  "frame-support",
  "frame-system",
  "log",
  "pallet-balances",
  "pallet-broker",
- "parachain-primitives",
  "parity-scale-codec",
  "scale-info",
  "serde",
@@ -7392,21 +7392,6 @@ dependencies = [
  "staging-xcm",
  "staging-xcm-builder",
  "staging-xcm-executor",
-]
-
-[[package]]
-name = "parachain-primitives"
-version = "0.1.0"
-dependencies = [
- "cumulus-primitives-core",
- "frame-support",
- "frame-system",
- "log",
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
- "sp-std",
 ]
 
 [[package]]

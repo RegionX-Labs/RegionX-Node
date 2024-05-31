@@ -15,11 +15,9 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{error::BadOrigin, traits::Currency};
+use frame_support::traits::Currency;
 use frame_system::WeightInfo;
 pub use pallet::*;
-use parachain_primitives::{ensure_parachain, Origin, ParaId};
-use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
 
 #[cfg(test)]
@@ -46,16 +44,9 @@ pub mod pallet {
 
 	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config + parachain_primitives::Config {
+	pub trait Config: frame_system::Config {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
-
-		/// The aggregated origin type must support the `parachains` origin. We require that we can
-		/// infallibly convert between this origin and the system origin, but in reality, they're
-		/// the same type, we just can't express that to the Rust type system without writing a
-		/// `where` clause everywhere.
-		type RuntimeOrigin: From<<Self as frame_system::Config>::RuntimeOrigin>
-			+ Into<Result<Origin, <Self as Config>::RuntimeOrigin>>;
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
@@ -147,8 +138,6 @@ pub mod pallet {
 	impl<T: Config> Pallet<T> {
 		/// Extrinsic for creating an order.
 		///
-		/// Callable by signed origin or by the parachain iteslf.
-		///
 		/// ## Arguments:
 		/// - `para_id`: The para id to which Coretime will be allocated.
 		/// - `requirements`: Region requirements of the order.
@@ -159,7 +148,7 @@ pub mod pallet {
 			para_id: ParaId,
 			requirements: Requirements,
 		) -> DispatchResult {
-			let who = Self::ensure_signed_or_para(origin)?;
+			let who = ensure_signed(origin)?;
 
 			T::OrderCreationFeeHandler::handle(&who, T::OrderCreationCost::get())?;
 
@@ -173,15 +162,13 @@ pub mod pallet {
 
 		/// Extrinsic for cancelling an order.
 		///
-		/// Callable by signed origin or by the parachain iteslf.
-		///
 		/// ## Arguments:
 		/// - `para_id`: The para id to which Coretime will be allocated.
 		/// - `requirements`: Region requirements of the order.
 		#[pallet::call_index(1)]
 		#[pallet::weight(10_000)] // TODO
 		pub fn cancel_order(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
-			let who = Self::ensure_signed_or_para(origin)?;
+			let who = ensure_signed(origin)?;
 
 			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
 			ensure!(order.creator == who, Error::<T>::NotAllowed);
@@ -193,8 +180,6 @@ pub mod pallet {
 		}
 
 		/// Extrinsic for contributing to an order.
-		///
-		/// Callable by signed origin.
 		///
 		/// ## Arguments:
 		/// - `order_id`: The order to which the caller wants to contribute.
@@ -229,8 +214,6 @@ pub mod pallet {
 
 		/// Extrinsic for removing contributions from a cancelled order.
 		///
-		/// Callable by signed origin.
-		///
 		/// ## Arguments:
 		/// - `order_id`: The cancelled order from which the user wants to claim back their
 		///   contribution.
@@ -242,11 +225,9 @@ pub mod pallet {
 			ensure!(Orders::<T>::get(order_id).is_none(), Error::<T>::OrderNotCancelled);
 
 			let amount: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
-
 			ensure!(amount != Default::default(), Error::<T>::NoContribution);
 
 			T::Currency::unreserve(&who, amount);
-
 			Contributions::<T>::remove(order_id, who.clone());
 
 			let mut total_contributions = TotalContributions::<T>::get(order_id);
@@ -257,22 +238,6 @@ pub mod pallet {
 			Self::deposit_event(Event::ContributionRemoved { who, order_id, amount });
 
 			Ok(())
-		}
-	}
-
-	impl<T: Config> Pallet<T> {
-		/// Ensure the origin is signed or the `para` itself.
-		fn ensure_signed_or_para(origin: OriginFor<T>) -> Result<T::AccountId, DispatchError> {
-			let account = ensure_signed(origin.clone()).map_err(|e| e.into()).or_else(
-				|_: DispatchError| -> Result<_, _> {
-					let para =
-						ensure_parachain(<T as Config>::RuntimeOrigin::from(origin.clone()))?;
-					let location: MultiLocation =
-						MultiLocation { parents: 1, interior: X1(Parachain(para.into())) };
-					T::SovereignAccountOf::convert_location(&location).ok_or(BadOrigin)
-				},
-			)?;
-			Ok(account)
 		}
 	}
 }

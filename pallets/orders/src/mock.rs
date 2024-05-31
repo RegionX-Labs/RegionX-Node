@@ -13,14 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::FeeHandler;
+use crate::{FeeHandler, ParaId};
 use frame_support::{
 	assert_ok,
 	pallet_prelude::*,
 	parameter_types,
 	traits::{fungible::Mutate, tokens::Preservation, Everything},
 };
-use parachain_primitives::ParaId;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, IdentityLookup},
@@ -46,7 +45,6 @@ frame_support::construct_runtime!(
 	{
 		System: frame_system::{Pallet, Call, Config<T>, Storage, Event<T>},
 		Balances: pallet_balances,
-		Parachains: parachain_primitives,
 		Orders: crate::{Pallet, Call, Storage, Event<T>},
 	}
 );
@@ -110,8 +108,6 @@ impl pallet_balances::Config for Test {
 	type MaxFreezes = ();
 }
 
-impl parachain_primitives::Config for Test {}
-
 pub struct OrderCreationFeeHandler;
 impl FeeHandler<AccountId, u64> for OrderCreationFeeHandler {
 	fn handle(who: &AccountId, fee: u64) -> DispatchResult {
@@ -122,7 +118,6 @@ impl FeeHandler<AccountId, u64> for OrderCreationFeeHandler {
 
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
-	type RuntimeOrigin = RuntimeOrigin;
 	type Currency = Balances;
 	type SovereignAccountOf = SovereignAccountOf;
 	type OrderCreationCost = ConstU64<100>;

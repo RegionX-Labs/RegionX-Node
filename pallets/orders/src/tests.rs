@@ -15,6 +15,7 @@
 
 use crate::{mock::*, Error, Event, Order, ParaId, Requirements};
 use frame_support::{assert_noop, assert_ok};
+use pallet_balances::Error as BalancesError;
 use sp_runtime::{DispatchError, TokenError};
 
 #[test]
@@ -126,6 +127,12 @@ fn contribute_works() {
 			Error::<Test>::InvalidAmount,
 		);
 
+		// Insufficient balance:
+		assert_noop!(
+			Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 100_000),
+			BalancesError::<Test>::InsufficientBalance
+		);
+
 		assert_eq!(Orders::contributions(0, CHARLIE), 0);
 
 		// Should be working fine
@@ -145,6 +152,12 @@ fn contribute_works() {
 		assert_eq!(Balances::reserved_balance(CHARLIE), 500);
 		assert_eq!(Balances::free_balance(BOB), 900);
 		assert_eq!(Balances::reserved_balance(BOB), 100);
+
+		// Additional contributions work:
+		assert_ok!(Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 300));
+		assert_eq!(Orders::contributions(0, CHARLIE), 800);
+		assert_eq!(Orders::contributions(0, BOB), 100);
+		assert_eq!(Orders::total_contributions(0), 900);
 	});
 }
 

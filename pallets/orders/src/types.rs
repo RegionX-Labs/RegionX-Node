@@ -12,8 +12,9 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
-use crate::{BalanceOf, ParaId};
+use crate::BalanceOf;
 use codec::{Decode, Encode, MaxEncodedLen};
+pub use cumulus_primitives_core::ParaId;
 use pallet_broker::{PartsOf57600, Timeslice};
 use scale_info::TypeInfo;
 use sp_runtime::DispatchResult;

@@ -15,6 +15,7 @@ codec = { workspace = true, default-features = false, features = ["derive"] }
 scale-info = {  workspace = true,  default-features = false, features = ["derive"] }
 
 # Substrate
+cumulus-primitives-core = { workspace = true, default-features = false }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-support = { workspace = true, default-features = false }
 frame-system = {  workspace = true, default-features = false }
@@ -24,9 +25,6 @@ sp-runtime = { workspace = true, default-features = false }
 pallet-broker = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
 xcm-executor = { workspace = true, default-features = false }
-
-# Local
-parachain-primitives = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }
@@ -39,6 +37,7 @@ runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
 std = [
 	"log/std",
 	"codec/std",
+	"cumulus-primitives-core/std",
 	"scale-info/std",
 	"sp-io/std",
 	"sp-core/std",
@@ -46,7 +45,6 @@ std = [
 	"frame-benchmarking/std",
 	"frame-support/std",
 	"frame-system/std",
-    "parachain-primitives/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
     "xcm/std",
