@@ -62,7 +62,11 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		crate::Pallet::<T>::create_order(RawOrigin::signed(caller.clone()), para_id, requirements);
+		crate::Pallet::<T>::create_order(
+			RawOrigin::Signed(caller.clone()).into(),
+			para_id,
+			requirements,
+		)?;
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), 0);
@@ -84,13 +88,17 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		crate::Pallet::<T>::create_order(RawOrigin::signed(creator.clone()), para_id, requirements);
+		crate::Pallet::<T>::create_order(
+			RawOrigin::Signed(creator.clone()).into(),
+			para_id,
+			requirements,
+		)?;
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(contributor.clone()), 0, 1_000);
+		_(RawOrigin::Signed(contributor.clone()), 0, 1_000u32.into());
 
 		assert_last_event::<T>(
-			Event::Contributed { order_id: 0, who: contributor, amount: 1_000 }.into(),
+			Event::Contributed { order_id: 0, who: contributor, amount: 1_000u32.into() }.into(),
 		);
 
 		Ok(())
@@ -108,18 +116,23 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		crate::Pallet::<T>::create_order(RawOrigin::signed(creator.clone()), para_id, requirements);
-		crate::Pallet::<T>::cancel_order(RawOrigin::signed(creator.clone()), 0);
+		crate::Pallet::<T>::create_order(
+			RawOrigin::Signed(creator.clone()).into(),
+			para_id,
+			requirements,
+		)?;
+		crate::Pallet::<T>::cancel_order(RawOrigin::Signed(creator.clone()).into(), 0)?;
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(contributor.clone()), 0);
 
 		assert_last_event::<T>(
-			Event::ContributionRemoved { order_id: 0, who: contributor, amount: 1_000 }.into(),
+			Event::ContributionRemoved { order_id: 0, who: contributor, amount: 1_000u32.into() }
+				.into(),
 		);
 
 		Ok(())
 	}
 
-	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
+	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(vec![]), crate::mock::Test);
 }
