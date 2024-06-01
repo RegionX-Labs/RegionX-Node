@@ -47,6 +47,18 @@ pub type Address = MultiAddress<AccountId, ()>;
 /// Block header type as expected by this runtime.
 pub type Header = generic::Header<BlockNumber, BlakeTwo256>;
 
+/// Block type.
+pub type Block = generic::Block<Header, UncheckedExtrinsic>;
+
+/// BlockId type as expected by this runtime.
+pub type BlockId = generic::BlockId<Block>;
+
+/// A Block signed with a Justification
+pub type SignedBlock = generic::SignedBlock<Block>;
+
+/// Opaque, encoded, unchecked extrinsic.
+pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
+
 /// u128 encoded `RegionId`. Used for specifying regions in XCM messages.
 pub type RawRegionId = u128;
 
