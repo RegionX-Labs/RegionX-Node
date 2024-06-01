@@ -9607,6 +9607,7 @@ dependencies = [
  "pallet-membership",
  "pallet-message-queue",
  "pallet-multisig",
+ "pallet-orders",
  "pallet-preimage",
  "pallet-proxy",
  "pallet-referenda",

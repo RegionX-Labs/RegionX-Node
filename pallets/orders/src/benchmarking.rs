@@ -20,6 +20,7 @@
 use super::*;
 
 use frame_benchmarking::v2::*;
+use frame_support::traits::Get;
 use frame_system::RawOrigin;
 use sp_runtime::traits::Bounded;
 
@@ -96,10 +97,15 @@ mod benchmarks {
 		)?;
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(creator.clone()), 0, 1_000u32.into());
+		_(RawOrigin::Signed(creator.clone()), 0, <T as crate::Config>::MinimumContribution::get());
 
 		assert_last_event::<T>(
-			Event::Contributed { order_id: 0, who: creator, amount: 1_000u32.into() }.into(),
+			Event::Contributed {
+				order_id: 0,
+				who: creator,
+				amount: <T as crate::Config>::MinimumContribution::get(),
+			}
+			.into(),
 		);
 
 		Ok(())
@@ -125,7 +131,7 @@ mod benchmarks {
 		crate::Pallet::<T>::contribute(
 			RawOrigin::Signed(creator.clone()).into(),
 			0,
-			1_000u32.into(),
+			<T as crate::Config>::MinimumContribution::get(),
 		)?;
 		crate::Pallet::<T>::cancel_order(RawOrigin::Signed(creator.clone()).into(), 0)?;
 
@@ -133,8 +139,12 @@ mod benchmarks {
 		_(RawOrigin::Signed(creator.clone()), 0);
 
 		assert_last_event::<T>(
-			Event::ContributionRemoved { order_id: 0, who: creator, amount: 1_000u32.into() }
-				.into(),
+			Event::ContributionRemoved {
+				order_id: 0,
+				who: creator,
+				amount: <T as crate::Config>::MinimumContribution::get(),
+			}
+			.into(),
 		);
 
 		Ok(())
