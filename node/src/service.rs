@@ -19,8 +19,8 @@
 use std::{sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
-use regionx_primitives::opaque::{Block, Hash};
-use regionx_runtime::RuntimeApi;
+use regionx_runtime_common::primitives::opaque::{Block, Hash};
+use regionx_rococo_runtime::RuntimeApi;
 
 // Cumulus Imports
 use cumulus_client_collator::service::CollatorService;
@@ -55,11 +55,11 @@ impl sc_executor::NativeExecutionDispatch for ParachainNativeExecutor {
 	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
 
 	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		regionx_runtime::api::dispatch(method, data)
+		regionx_rococo_runtime::api::dispatch(method, data)
 	}
 
 	fn native_version() -> sc_executor::NativeVersion {
-		regionx_runtime::native_version()
+		regionx_rococo_runtime::native_version()
 	}
 }
 

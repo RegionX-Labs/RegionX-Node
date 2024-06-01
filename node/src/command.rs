@@ -18,7 +18,7 @@ use std::net::SocketAddr;
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
 use log::info;
-use regionx_runtime::Block;
+use regionx_rococo_runtime::Block;
 use sc_cli::{
 	ChainSpec, CliConfiguration, DefaultConfigurationValues, ImportParams, KeystoreParams,
 	NetworkParams, Result, SharedParams, SubstrateCli,
@@ -38,7 +38,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"regionx-rococo" => Box::new(chain_spec::local_testnet_config(2000)),
 		"" | "local" => Box::new(chain_spec::local_testnet_config(2000)),
 		path => Box::new(
-			chain_spec::ChainSpec::<regionx_runtime::RuntimeGenesisConfig>::from_json_file(
+			chain_spec::ChainSpec::<regionx_rococo_runtime::RuntimeGenesisConfig>::from_json_file(
 				std::path::PathBuf::from(path),
 			)?,
 		),

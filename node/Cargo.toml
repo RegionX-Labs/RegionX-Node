@@ -19,7 +19,7 @@ serde_json = { workspace = true }
 
 # Local
 regionx-rococo-runtime = { workspace = true }
-regionx-primitives = { workspace = true }
+regionx-runtime-common = { workspace = true }
 
 # Polytope Labs
 pallet-ismp-runtime-api = { workspace = true }

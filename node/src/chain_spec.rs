@@ -14,8 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use cumulus_primitives_core::ParaId;
-use regionx_primitives::{AccountId, Signature};
-use regionx_runtime::{AuraId, EXISTENTIAL_DEPOSIT};
+use regionx_runtime_common::primitives::{AccountId, Signature};
+use regionx_rococo_runtime::{AuraId, EXISTENTIAL_DEPOSIT};
 use sc_chain_spec::{ChainSpecExtension, ChainSpecGroup};
 use sc_service::ChainType;
 use serde::{Deserialize, Serialize};
@@ -72,11 +72,11 @@ where
 /// Generate the session keys from individual elements.
 ///
 /// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn session_keys(keys: AuraId) -> regionx_runtime::SessionKeys {
-	regionx_runtime::SessionKeys { aura: keys }
+pub fn session_keys(keys: AuraId) -> regionx_rococo_runtime::SessionKeys {
+	regionx_rococo_runtime::SessionKeys { aura: keys }
 }
 
-pub fn development_config(id: u32) -> ChainSpec<regionx_runtime::RuntimeGenesisConfig> {
+pub fn development_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "REGX".into());
@@ -85,7 +85,7 @@ pub fn development_config(id: u32) -> ChainSpec<regionx_runtime::RuntimeGenesisC
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
-		regionx_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(),
 			// You MUST set this to the correct network!
@@ -127,7 +127,7 @@ pub fn development_config(id: u32) -> ChainSpec<regionx_runtime::RuntimeGenesisC
 	.build()
 }
 
-pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_runtime::RuntimeGenesisConfig> {
+pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "REGX".into());
@@ -136,7 +136,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_runtime::RuntimeGenesi
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
-		regionx_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(),
 			// You MUST set this to the correct network!

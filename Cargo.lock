@@ -9494,8 +9494,8 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-primitives",
- "regionx-primitives",
  "regionx-rococo-runtime",
+ "regionx-runtime-common",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -9528,16 +9528,6 @@ dependencies = [
  "substrate-frame-rpc-system",
  "substrate-prometheus-endpoint",
  "try-runtime-cli",
-]
-
-[[package]]
-name = "regionx-primitives"
-version = "0.1.0"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
 ]
 
 [[package]]
@@ -9603,7 +9593,7 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "regionx-primitives",
+ "regionx-runtime-common",
  "scale-info",
  "smallvec",
  "sp-api",
@@ -9624,6 +9614,16 @@ dependencies = [
  "staging-xcm-builder",
  "staging-xcm-executor",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "regionx-runtime-common"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]
