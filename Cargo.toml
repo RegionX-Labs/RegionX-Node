@@ -164,6 +164,6 @@ ismp-testsuite = { git="https://github.com/polytope-labs/hyperbridge.git", branc
 region-primitives = { path = "./primitives/region", default-features = false }
 nonfungible-primitives = { path = "./primitives/nonfungible", default-features = false }
 regionx-primitives = { path = "./runtime/primitives", default-features = false }
-regionx-runtime = { path = "./runtime/regionx", default-features = false }
+regionx-rococo-runtime = { path = "./runtime/regionx-rococo", default-features = false }
 pallet-market = { path = "./pallets/market", default-features = false }
 pallet-regions = { path = "./pallets/regions", default-features = false }

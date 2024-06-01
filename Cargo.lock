@@ -9495,7 +9495,7 @@ dependencies = [
  "polkadot-cli",
  "polkadot-primitives",
  "regionx-primitives",
- "regionx-runtime",
+ "regionx-rococo-runtime",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -9541,7 +9541,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "regionx-runtime"
+name = "regionx-rococo-runtime"
 version = "0.1.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
