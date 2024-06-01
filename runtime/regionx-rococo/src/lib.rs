@@ -109,7 +109,9 @@ use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::{
 	assets::{AssetId, CustomMetadata, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
-	primitives::{AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature},
+	primitives::{
+		AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
+	},
 };
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;

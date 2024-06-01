@@ -19,8 +19,8 @@
 use std::{sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
-use regionx_runtime_common::primitives::opaque::{Block, Hash};
 use regionx_rococo_runtime::RuntimeApi;
+use regionx_runtime_common::primitives::opaque::{Block, Hash};
 
 // Cumulus Imports
 use cumulus_client_collator::service::CollatorService;

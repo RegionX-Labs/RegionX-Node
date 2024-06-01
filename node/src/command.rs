@@ -34,9 +34,9 @@ use crate::{
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
-		"dev" => Box::new(chain_spec::development_config(2000)),
-		"regionx-rococo" => Box::new(chain_spec::local_testnet_config(2000)),
-		"" | "local" => Box::new(chain_spec::local_testnet_config(2000)),
+		"dev" => Box::new(chain_spec::regionx_rococo::development_config(2000)),
+		"regionx-rococo" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
+		"" | "local" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
 		path => Box::new(
 			chain_spec::ChainSpec::<regionx_rococo_runtime::RuntimeGenesisConfig>::from_json_file(
 				std::path::PathBuf::from(path),
