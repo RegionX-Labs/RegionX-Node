@@ -1,5 +1,5 @@
 [package]
-name = "regionx-runtime"
+name = "regionx-rococo-runtime"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
