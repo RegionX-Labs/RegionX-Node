@@ -14,7 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{mock::*, Error, Event, Order, ParaId, Requirements};
-use frame_support::{assert_noop, assert_ok};
+use frame_support::{assert_noop, assert_ok, traits::Currency};
 use pallet_balances::Error as BalancesError;
 use sp_runtime::{DispatchError, TokenError};
 
@@ -40,7 +40,7 @@ fn create_order_works() {
 			DispatchError::Token(TokenError::FundsUnavailable)
 		);
 
-		endow(ALICE, 1000);
+		<Test as crate::Config>::Currency::make_free_balance_be(&ALICE, 1000u32.into());
 
 		assert_ok!(Orders::create_order(
 			RuntimeOrigin::signed(creator.clone()),

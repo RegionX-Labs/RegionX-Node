@@ -15,7 +15,6 @@
 
 use crate::{FeeHandler, ParaId};
 use frame_support::{
-	assert_ok,
 	pallet_prelude::*,
 	parameter_types,
 	traits::{fungible::Mutate, tokens::Preservation, Everything},
@@ -124,10 +123,6 @@ impl crate::Config for Test {
 	type MinimumContribution = ConstU64<50>;
 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
 	type WeightInfo = ();
-}
-
-pub fn endow(who: AccountId32, amount: u64) {
-	assert_ok!(<<Test as crate::Config>::Currency as Mutate<_>>::mint_into(&who, amount));
 }
 
 // Build genesis storage according to the mock runtime.

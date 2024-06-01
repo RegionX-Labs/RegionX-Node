@@ -21,8 +21,7 @@ use super::*;
 
 use frame_benchmarking::v2::*;
 use frame_system::RawOrigin;
-
-const SEED: u32 = 0;
+use sp_runtime::traits::Bounded;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -43,6 +42,7 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
+		<T as crate::Config>::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value());
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), para_id, requirements);
 
@@ -62,6 +62,7 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
+		<T as crate::Config>::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value());
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(caller.clone()).into(),
 			para_id,
@@ -79,7 +80,6 @@ mod benchmarks {
 	#[benchmark]
 	fn contribute() -> Result<(), BenchmarkError> {
 		let creator: T::AccountId = whitelisted_caller();
-		let contributor: T::AccountId = account("contri", 0, SEED);
 
 		let para_id: ParaId = 2000.into();
 		let requirements = Requirements {
@@ -88,6 +88,7 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
+		<T as crate::Config>::Currency::make_free_balance_be(&creator, BalanceOf::<T>::max_value());
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),
 			para_id,
@@ -95,10 +96,10 @@ mod benchmarks {
 		)?;
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(contributor.clone()), 0, 1_000u32.into());
+		_(RawOrigin::Signed(creator.clone()), 0, 1_000u32.into());
 
 		assert_last_event::<T>(
-			Event::Contributed { order_id: 0, who: contributor, amount: 1_000u32.into() }.into(),
+			Event::Contributed { order_id: 0, who: creator, amount: 1_000u32.into() }.into(),
 		);
 
 		Ok(())
@@ -107,7 +108,6 @@ mod benchmarks {
 	#[benchmark]
 	fn remove_contribution() -> Result<(), BenchmarkError> {
 		let creator: T::AccountId = whitelisted_caller();
-		let contributor: T::AccountId = account("contri", 0, SEED);
 
 		let para_id: ParaId = 2000.into();
 		let requirements = Requirements {
@@ -116,18 +116,24 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
+		<T as crate::Config>::Currency::make_free_balance_be(&creator, BalanceOf::<T>::max_value());
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),
 			para_id,
 			requirements,
 		)?;
+		crate::Pallet::<T>::contribute(
+			RawOrigin::Signed(creator.clone()).into(),
+			0,
+			1_000u32.into(),
+		)?;
 		crate::Pallet::<T>::cancel_order(RawOrigin::Signed(creator.clone()).into(), 0)?;
 
 		#[extrinsic_call]
-		_(RawOrigin::Signed(contributor.clone()), 0);
+		_(RawOrigin::Signed(creator.clone()), 0);
 
 		assert_last_event::<T>(
-			Event::ContributionRemoved { order_id: 0, who: contributor, amount: 1_000u32.into() }
+			Event::ContributionRemoved { order_id: 0, who: creator, amount: 1_000u32.into() }
 				.into(),
 		);
 
