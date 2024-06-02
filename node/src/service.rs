@@ -463,7 +463,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
-		chain if chain.contains("rococo") =>
+		chain if chain.contains("rococo") || chain.contains("local") =>
 			start_node_impl::<regionx_rococo_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
