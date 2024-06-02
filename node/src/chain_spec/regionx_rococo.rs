@@ -49,7 +49,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runtim
 		},
 	)
 	.with_name("RegionX Local")
-	.with_id("regionx_local")
+	.with_id("regionx-local")
 	.with_chain_type(ChainType::Local)
 	.with_genesis_config_patch(testnet_genesis(
 		// initial collators.

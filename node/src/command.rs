@@ -32,9 +32,18 @@ use crate::{
 	service::new_partial,
 };
 
+fn is_rococo(id: &str) -> bool {
+	id.contains("rococo")
+}
+
+fn is_local(id: &str) -> bool {
+	id == "" || id.contains("local")
+}
+
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		"regionx-rococo" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
+		"" | "local" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
 		path => Box::new(
 			chain_spec::ChainSpec::<regionx_rococo_runtime::RuntimeGenesisConfig>::from_json_file(
 				std::path::PathBuf::from(path),
@@ -119,7 +128,7 @@ macro_rules! construct_async_run {
 	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
 		match runner.config().chain_spec.id() {
-            chain if chain.contains("rococo") => {
+            chain if is_local(chain) || is_rococo(chain) => {
 				runner.async_run(|$config| {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&$config);
 					let $components = new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&$config, executor)?;
@@ -190,7 +199,7 @@ pub fn run() -> Result<()> {
 			runner.sync_run(|config| {
 				let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 				match config.chain_spec.id() {
-           			chain if chain.contains("rococo") => {
+           			chain if is_local(chain) || is_rococo(chain) => {
 						let partials =
 						new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
@@ -222,7 +231,7 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if chain.contains("rococo") => {
+            			chain if is_local(chain) || is_rococo(chain) => {
 							let partials =
 								new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
@@ -243,7 +252,7 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if chain.contains("rococo") => {
+            			chain if is_local(chain) || is_rococo(chain) => {
 							let partials =
 								new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
