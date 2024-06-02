@@ -38,6 +38,21 @@ pub trait BaseHostRuntimeApis:
 	+ TransactionPaymentRuntimeApi<Block, Balance>
 	+ ismp_parachain_runtime_api::IsmpParachainApi<Block>
 	+ pallet_ismp_runtime_api::IsmpRuntimeApi<Block, H256>
-	+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>
+{
+}
+
+impl<Api> BaseHostRuntimeApis for Api where
+	Api: TaggedTransactionQueue<Block>
+		+ ApiExt<Block>
+		+ BlockBuilder<Block>
+		+ AccountNonceApi<Block, AccountId, Nonce>
+		+ Metadata<Block>
+		+ AuraApi<Block, AuraId>
+		+ OffchainWorkerApi<Block>
+		+ SessionKeys<Block>
+		+ CollectCollationInfo<Block>
+		+ TransactionPaymentRuntimeApi<Block, Balance>
+		+ ismp_parachain_runtime_api::IsmpParachainApi<Block>
+		+ pallet_ismp_runtime_api::IsmpRuntimeApi<Block, H256>
 {
 }

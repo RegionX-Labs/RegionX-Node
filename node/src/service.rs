@@ -72,6 +72,7 @@ pub type Service<Runtime, Executor> = PartialComponents<
 /// be able to perform chain operations.
 pub fn new_partial<Runtime, Executor>(
 	config: &Configuration,
+	executor: Executor,
 ) -> Result<Service<Runtime, Executor>, sc_service::Error>
 where
 	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime, Executor>>
@@ -96,18 +97,8 @@ where
 		.default_heap_pages
 		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static { extra_pages: h as _ });
 
-	let wasm = WasmExecutor::builder()
-		.with_execution_method(config.wasm_method)
-		.with_onchain_heap_alloc_strategy(heap_pages)
-		.with_offchain_heap_alloc_strategy(heap_pages)
-		.with_max_runtime_instances(config.max_runtime_instances)
-		.with_runtime_cache_size(config.runtime_cache_size)
-		.build();
-
-	let executor = ParachainExecutor::new_with_wasm_executor(wasm);
-
 	let (client, backend, keystore_container, task_manager) =
-		sc_service::new_full_parts::<Block, RuntimeApi, _>(
+		sc_service::new_full_parts::<Block, Runtime, _>(
 			config,
 			telemetry.as_ref().map(|(_, telemetry)| telemetry.handle()),
 			executor,
@@ -161,14 +152,16 @@ async fn start_node_impl<Runtime>(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<Runtime>>)>
+) -> sc_service::error::Result<TaskManager>
 where
 	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime>> + Send + Sync + 'static,
 	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
 {
 	let parachain_config = prepare_node_config(parachain_config);
+	let executor =
+		sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&parachain_config);
 
-	let params = new_partial(&parachain_config)?;
+	let params = new_partial(&parachain_config, executor)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
 	let net_config = sc_network::config::FullNetworkConfiguration::new(&parachain_config.network);
 
@@ -315,7 +308,7 @@ where
 	})?;
 
 	if validator {
-		start_consensus(
+		start_consensus::<Runtime>(
 			client.clone(),
 			block_import,
 			prometheus_registry.as_ref(),
@@ -335,7 +328,7 @@ where
 
 	start_network.start_network();
 
-	Ok((task_manager, client))
+	Ok(task_manager)
 }
 
 /// Build the import queue for the parachain runtime.
