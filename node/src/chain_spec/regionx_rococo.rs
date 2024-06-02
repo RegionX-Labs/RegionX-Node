@@ -18,7 +18,7 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use regionx_rococo_runtime::EXISTENTIAL_DEPOSIT;
+use regionx_rococo_runtime::{REGX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},
@@ -158,7 +158,7 @@ fn testnet_genesis(
 		},
 		"collatorSelection": {
 			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-			"candidacyBond": EXISTENTIAL_DEPOSIT * 16,
+			"candidacyBond": REGX_EXISTENTIAL_DEPOSIT * 16,
 		},
 		"assetRegistry": {
 			"lastAssetId": RELAY_CHAIN_ASSET_ID,
@@ -167,7 +167,7 @@ fn testnet_genesis(
 					decimals: 12,
 					name: b"ROC".to_vec().try_into().expect("Invalid asset name"),
 					symbol: b"ROC".to_vec().try_into().expect("Invalid asset symbol"),
-					existential_deposit: 10_000u32.into(), // TODO
+					existential_deposit: ROC_EXISTENTIAL_DEPOSIT,
 					location: Some(MultiLocation::parent().into()),
 					additional: Default::default(),
 				})

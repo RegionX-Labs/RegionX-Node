@@ -217,9 +217,9 @@ pub const REGX: Balance = 1_000_000_000_000;
 pub const MILLIREGX: Balance = 1_000_000_000;
 pub const MICROREGX: Balance = 1_000_000;
 
-pub const KSM: Balance = 1_000_000_000_000;
-pub const MILLI_KSM: Balance = 1_000_000_000;
-pub const MICRO_KSM: Balance = 1_000_000;
+pub const ROC: Balance = 1_000_000_000_000;
+pub const MILLI_ROC: Balance = 1_000_000_000;
+pub const MICRO_ROC: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
@@ -235,8 +235,8 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-/// The existential deposit. Set to 1/10 of the Connected Relay Chain.
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
+pub const REGX_EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
+pub const ROC_EXISTENTIAL_DEPOSIT: Balance = MILLI_ROC;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
 /// used to limit the maximal weight of a single extrinsic.
@@ -357,7 +357,7 @@ impl pallet_authorship::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const ExistentialDeposit: Balance = REGX_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
