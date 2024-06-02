@@ -9479,6 +9479,7 @@ dependencies = [
  "cumulus-client-consensus-proposer",
  "cumulus-client-parachain-inherent",
  "cumulus-client-service",
+ "cumulus-primitives-aura",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-interface",
@@ -9486,6 +9487,7 @@ dependencies = [
  "frame-benchmarking-cli",
  "futures",
  "ismp-parachain-inherent",
+ "ismp-parachain-runtime-api",
  "jsonrpsee",
  "log",
  "pallet-ismp-rpc",
@@ -9522,7 +9524,9 @@ dependencies = [
  "sp-io",
  "sp-keystore",
  "sp-runtime",
+ "sp-session",
  "sp-timestamp",
+ "sp-transaction-pool",
  "staging-xcm",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
@@ -9622,6 +9626,7 @@ version = "0.1.0"
 dependencies = [
  "parity-scale-codec",
  "scale-info",
+ "sp-consensus-aura",
  "sp-core",
  "sp-runtime",
 ]

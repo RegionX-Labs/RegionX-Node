@@ -59,6 +59,8 @@ pub type SignedBlock = generic::SignedBlock<Block>;
 /// Opaque, encoded, unchecked extrinsic.
 pub use sp_runtime::OpaqueExtrinsic as UncheckedExtrinsic;
 
+pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
+
 /// u128 encoded `RegionId`. Used for specifying regions in XCM messages.
 pub type RawRegionId = u128;
 

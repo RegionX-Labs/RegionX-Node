@@ -32,14 +32,14 @@ use cumulus_client_service::{
 };
 use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId};
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
+use sc_executor::RuntimeVersionOf;
+use sp_core::traits::CodeExecutor;
 
 // Substrate Imports
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use sc_client_api::Backend;
 use sc_consensus::ImportQueue;
-use sc_executor::{
-	HeapAllocStrategy, NativeElseWasmExecutor, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY,
-};
+use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
 use sc_network::NetworkBlock;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
@@ -48,44 +48,39 @@ use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_keystore::KeystorePtr;
 use substrate_prometheus_endpoint::Registry;
 
-/// Native executor type.
-pub struct ParachainNativeExecutor;
+pub type ParachainClient<Runtime, Executor = WasmExecutor<sp_io::SubstrateHostFunctions>> =
+	TFullClient<Block, Runtime, Executor>;
 
-impl sc_executor::NativeExecutionDispatch for ParachainNativeExecutor {
-	type ExtendHostFunctions = frame_benchmarking::benchmarking::HostFunctions;
+pub type ParachainBackend = TFullBackend<Block>;
 
-	fn dispatch(method: &str, data: &[u8]) -> Option<Vec<u8>> {
-		regionx_rococo_runtime::api::dispatch(method, data)
-	}
-
-	fn native_version() -> sc_executor::NativeVersion {
-		regionx_rococo_runtime::native_version()
-	}
-}
-
-type ParachainExecutor = NativeElseWasmExecutor<ParachainNativeExecutor>;
-
-type ParachainClient = TFullClient<Block, RuntimeApi, ParachainExecutor>;
-
-type ParachainBackend = TFullBackend<Block>;
-
-type ParachainBlockImport = TParachainBlockImport<Block, Arc<ParachainClient>, ParachainBackend>;
+type ParachainBlockImport<Runtime, Executor = WasmExecutor<sp_io::SubstrateHostFunctions>> =
+	TParachainBlockImport<Block, Arc<ParachainClient<Runtime, Executor>>, ParachainBackend>;
 
 /// Assembly of PartialComponents (enough to run chain ops subcommands)
-pub type Service = PartialComponents<
-	ParachainClient,
+pub type Service<Runtime, Executor> = PartialComponents<
+	ParachainClient<Runtime, Executor>,
 	ParachainBackend,
 	(),
 	sc_consensus::DefaultImportQueue<Block>,
-	sc_transaction_pool::FullPool<Block, ParachainClient>,
-	(ParachainBlockImport, Option<Telemetry>, Option<TelemetryWorkerHandle>),
+	sc_transaction_pool::FullPool<Block, ParachainClient<Runtime, Executor>>,
+	(ParachainBlockImport<Runtime, Executor>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 >;
 
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
 /// be able to perform chain operations.
-pub fn new_partial(config: &Configuration) -> Result<Service, sc_service::Error> {
+pub fn new_partial<Runtime, Executor>(
+	config: &Configuration,
+) -> Result<Service<Runtime, Executor>, sc_service::Error>
+where
+	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime, Executor>>
+		+ Send
+		+ Sync
+		+ 'static,
+	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
+	Executor: CodeExecutor + RuntimeVersionOf + 'static,
+{
 	let telemetry = config
 		.telemetry_endpoints
 		.clone()
@@ -160,13 +155,17 @@ pub fn new_partial(config: &Configuration) -> Result<Service, sc_service::Error>
 ///
 /// This is the actual implementation that is abstract over the executor and the runtime api.
 #[sc_tracing::logging::prefix_logs_with("Parachain")]
-async fn start_node_impl(
+async fn start_node_impl<Runtime>(
 	parachain_config: Configuration,
 	polkadot_config: Configuration,
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
+) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient<Runtime>>)>
+where
+	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime>> + Send + Sync + 'static,
+	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
+{
 	let parachain_config = prepare_node_config(parachain_config);
 
 	let params = new_partial(&parachain_config)?;
@@ -340,13 +339,21 @@ async fn start_node_impl(
 }
 
 /// Build the import queue for the parachain runtime.
-fn build_import_queue(
-	client: Arc<ParachainClient>,
-	block_import: ParachainBlockImport,
+fn build_import_queue<Runtime, Executor>(
+	client: Arc<ParachainClient<Runtime, Executor>>,
+	block_import: ParachainBlockImport<Runtime, Executor>,
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
-) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error> {
+) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>
+where
+	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime, Executor>>
+		+ Send
+		+ Sync
+		+ 'static,
+	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
+	Executor: CodeExecutor + RuntimeVersionOf + 'static,
+{
 	let slot_duration = cumulus_client_consensus_aura::slot_duration(&*client)?;
 
 	Ok(cumulus_client_consensus_aura::equivocation_import_queue::fully_verifying_import_queue::<
@@ -370,14 +377,14 @@ fn build_import_queue(
 }
 
 #[allow(clippy::too_many_arguments)]
-fn start_consensus(
-	client: Arc<ParachainClient>,
-	block_import: ParachainBlockImport,
+fn start_consensus<Runtime>(
+	client: Arc<ParachainClient<Runtime>>,
+	block_import: ParachainBlockImport<Runtime>,
 	prometheus_registry: Option<&Registry>,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
-	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient>>,
+	transaction_pool: Arc<sc_transaction_pool::FullPool<Block, ParachainClient<Runtime>>>,
 	sync_oracle: Arc<SyncingService<Block>>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
@@ -385,7 +392,11 @@ fn start_consensus(
 	collator_key: CollatorPair,
 	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
-) -> Result<(), sc_service::Error> {
+) -> Result<(), sc_service::Error>
+where
+	Runtime: sp_api::ConstructRuntimeApi<Block, ParachainClient<Runtime>> + Send + Sync + 'static,
+	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
+{
 	use cumulus_client_consensus_aura::collators::basic::{
 		self as basic_aura, Params as BasicAuraParams,
 	};
@@ -462,6 +473,17 @@ pub async fn start_parachain_node(
 	collator_options: CollatorOptions,
 	para_id: ParaId,
 	hwbench: Option<sc_sysinfo::HwBench>,
-) -> sc_service::error::Result<(TaskManager, Arc<ParachainClient>)> {
-	start_node_impl(parachain_config, polkadot_config, collator_options, para_id, hwbench).await
+) -> sc_service::error::Result<TaskManager> {
+	match parachain_config.chain_spec.id() {
+		chain if chain.contains("rococo") =>
+			start_node_impl::<regionx_rococo_runtime::RuntimeApi>(
+				parachain_config,
+				polkadot_config,
+				collator_options,
+				para_id,
+				hwbench,
+			)
+			.await,
+		chain => panic!("Unknown chain with id: {}", chain),
+	}
 }

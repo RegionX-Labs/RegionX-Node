@@ -18,9 +18,8 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use regionx_rococo_runtime::EXISTENTIAL_DEPOSIT;
-use regionx_runtime_common::primitives::AccountId;
+use regionx_runtime_common::primitives::{AccountId, AuraId};
 use sc_service::ChainType;
-use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::sr25519;
 
 /// The default XCM version to set in genesis config.
