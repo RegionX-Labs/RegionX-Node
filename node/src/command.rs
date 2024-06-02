@@ -34,9 +34,7 @@ use crate::{
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
-		"dev" => Box::new(chain_spec::regionx_rococo::development_config(2000)),
 		"regionx-rococo" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
-		"" | "local" => Box::new(chain_spec::regionx_rococo::local_testnet_config(2000)),
 		path => Box::new(
 			chain_spec::ChainSpec::<regionx_rococo_runtime::RuntimeGenesisConfig>::from_json_file(
 				std::path::PathBuf::from(path),
@@ -193,8 +191,8 @@ pub fn run() -> Result<()> {
 				let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 				match config.chain_spec.id() {
            			chain if chain.contains("rococo") => {
-						let partials = 
-							new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
+						let partials =
+						new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
 					},
 					chain => panic!("Unknown chain with id: {}", chain),
@@ -225,7 +223,7 @@ pub fn run() -> Result<()> {
 
 					match config.chain_spec.id() {
             			chain if chain.contains("rococo") => {
-							let partials = 
+							let partials =
 								new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
 						},
@@ -246,7 +244,7 @@ pub fn run() -> Result<()> {
 
 					match config.chain_spec.id() {
             			chain if chain.contains("rococo") => {
-							let partials = 
+							let partials =
 								new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
 							let storage = partials.backend.expose_storage();

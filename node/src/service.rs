@@ -19,7 +19,6 @@
 use std::{sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
-use regionx_rococo_runtime::RuntimeApi;
 use regionx_runtime_common::primitives::opaque::{Block, Hash};
 
 // Cumulus Imports
@@ -39,7 +38,7 @@ use sp_core::traits::CodeExecutor;
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
 use sc_client_api::Backend;
 use sc_consensus::ImportQueue;
-use sc_executor::{HeapAllocStrategy, WasmExecutor, DEFAULT_HEAP_ALLOC_STRATEGY};
+use sc_executor::WasmExecutor;
 use sc_network::NetworkBlock;
 use sc_network_sync::SyncingService;
 use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
@@ -92,10 +91,6 @@ where
 			Ok((worker, telemetry))
 		})
 		.transpose()?;
-
-	let heap_pages = config
-		.default_heap_pages
-		.map_or(DEFAULT_HEAP_ALLOC_STRATEGY, |h| HeapAllocStrategy::Static { extra_pages: h as _ });
 
 	let (client, backend, keystore_container, task_manager) =
 		sc_service::new_full_parts::<Block, Runtime, _>(
