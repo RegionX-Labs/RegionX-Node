@@ -70,7 +70,7 @@ pub fn is_rococo(id: &str) -> bool {
 }
 
 pub fn is_dev(id: &str) -> bool {
-	id == "" || id.contains("dev")
+	id.is_empty() || id.contains("dev")
 }
 
 pub fn is_local(id: &str) -> bool {
