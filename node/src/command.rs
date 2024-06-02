@@ -247,7 +247,7 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if is_dev(chain) || is_rococo(chain) => {
+            			chain if is_dev(chain) || is_local(chain) || is_rococo(chain) => {
 							let partials =
 								new_partial::<regionx_rococo_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
