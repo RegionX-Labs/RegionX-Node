@@ -65,6 +65,18 @@ pub type Service<Runtime, Executor> = PartialComponents<
 	(ParachainBlockImport<Runtime, Executor>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 >;
 
+pub fn is_rococo(id: &str) -> bool {
+	id.contains("rococo")
+}
+
+pub fn is_dev(id: &str) -> bool {
+	id == "" || id.contains("dev")
+}
+
+pub fn is_local(id: &str) -> bool {
+	id.contains("dev")
+}
+
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
@@ -463,7 +475,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
-		chain if chain.contains("rococo") || chain.contains("local") =>
+		chain if is_rococo(chain) || is_dev(chain) || is_local(chain) =>
 			start_node_impl::<regionx_rococo_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
