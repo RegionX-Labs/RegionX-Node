@@ -107,7 +107,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::{
-	assets::{AssetId, CustomMetadata, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
+	assets::{AssetId, AssetsStringLimit, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	primitives::{
 		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 	},
@@ -384,7 +384,6 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub const AssetDeposit: Balance = deposit(1, 190);
 	pub const AssetAccountDeposit: Balance = deposit(1, 16);
-	pub const AssetsStringLimit: u32 = 50;
 	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
 	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
 	pub const MetadataDepositBase: Balance = deposit(1, 68);
@@ -422,7 +421,7 @@ impl orml_asset_registry::Config for Runtime {
 	type AssetProcessor = CustomAssetProcessor;
 	type AuthorityOrigin = EitherOfDiverse<EnsureRoot<AccountId>, EnsureTwoThirdTechnicalCommittee>;
 	type Balance = Balance;
-	type CustomMetadata = CustomMetadata;
+	type CustomMetadata = ();
 	type StringLimit = AssetsStringLimit;
 	type RuntimeEvent = RuntimeEvent;
 	// TODO: accurate weight
@@ -755,14 +754,6 @@ impl pallet_treasury::Config for Runtime {
 
 impl pallet_market::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// To make benchmarking easier we use the native currency for coretime purchases.
-	//
-	// In production we use the relay chain asset.
-	#[cfg(feature = "runtime-benchmarks")]
-	// NOTE: due to this the weights might be slightly inaccurate.
-	// TODO: check whether this difference is reasonable.
-	type Currency = Balances;
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Currency = RelaychainCurrency;
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;

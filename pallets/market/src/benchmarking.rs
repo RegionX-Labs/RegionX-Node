@@ -23,6 +23,7 @@ use frame_benchmarking::v2::*;
 use frame_support::traits::fungible::Mutate;
 use frame_system::RawOrigin;
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
+use sp_runtime::traits::Bounded;
 
 const SEED: u32 = 0;
 
@@ -115,9 +116,8 @@ mod benchmarks {
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
 		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: alice.clone(), paid: None };
 
-		T::Currency::set_balance(&alice.clone(), u32::MAX.into());
+		<T as crate::Config>::Currency::mint_into(&alice.clone(), 100_000u32.into())?;
 		T::BenchmarkHelper::create_region(region_id, record, alice.clone())?;
-
 		crate::Pallet::<T>::list_region(
 			RawOrigin::Signed(alice).into(),
 			region_id,
@@ -125,8 +125,9 @@ mod benchmarks {
 			None,
 		)?;
 
-		T::Currency::set_balance(&caller.clone(), u32::MAX.into());
+		<T as crate::Config>::Currency::mint_into(&caller.clone(), 100_000u32.into())?;
 		let max_price = 8000u32.into();
+
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), region_id, max_price);
 
