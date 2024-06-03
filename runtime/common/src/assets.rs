@@ -13,18 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-//! Substrate Parachain Node Template CLI
+use sp_core::ConstU32;
 
-#![warn(missing_docs)]
+/// Asset identifier.
+pub type AssetId = u32;
 
-mod chain_spec;
-#[macro_use]
-mod service;
-mod cli;
-mod command;
-mod rpc;
-mod runtime_api;
+pub const REGX_ASSET_ID: AssetId = 0;
+pub const RELAY_CHAIN_ASSET_ID: AssetId = 1;
 
-fn main() -> sc_cli::Result<()> {
-	command::run()
-}
+pub type AssetsStringLimit = ConstU32<50>;

@@ -9501,6 +9501,7 @@ dependencies = [
  "cumulus-client-consensus-proposer",
  "cumulus-client-parachain-inherent",
  "cumulus-client-service",
+ "cumulus-primitives-aura",
  "cumulus-primitives-core",
  "cumulus-primitives-parachain-inherent",
  "cumulus-relay-chain-interface",
@@ -9508,16 +9509,18 @@ dependencies = [
  "frame-benchmarking-cli",
  "futures",
  "ismp-parachain-inherent",
+ "ismp-parachain-runtime-api",
  "jsonrpsee",
  "log",
+ "orml-asset-registry",
  "pallet-ismp-rpc",
  "pallet-ismp-runtime-api",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
  "polkadot-cli",
  "polkadot-primitives",
- "regionx-primitives",
- "regionx-runtime",
+ "regionx-rococo-runtime",
+ "regionx-runtime-common",
  "sc-basic-authorship",
  "sc-chain-spec",
  "sc-cli",
@@ -9544,7 +9547,9 @@ dependencies = [
  "sp-io",
  "sp-keystore",
  "sp-runtime",
+ "sp-session",
  "sp-timestamp",
+ "sp-transaction-pool",
  "staging-xcm",
  "substrate-build-script-utils",
  "substrate-frame-rpc-system",
@@ -9553,17 +9558,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "regionx-primitives"
-version = "0.1.0"
-dependencies = [
- "parity-scale-codec",
- "scale-info",
- "sp-core",
- "sp-runtime",
-]
-
-[[package]]
-name = "regionx-runtime"
+name = "regionx-rococo-runtime"
 version = "0.1.0"
 dependencies = [
  "cumulus-pallet-aura-ext",
@@ -9626,7 +9621,7 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-parachain-primitives",
  "polkadot-runtime-common",
- "regionx-primitives",
+ "regionx-runtime-common",
  "scale-info",
  "smallvec",
  "sp-api",
@@ -9647,6 +9642,17 @@ dependencies = [
  "staging-xcm-builder",
  "staging-xcm-executor",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "regionx-runtime-common"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "scale-info",
+ "sp-consensus-aura",
+ "sp-core",
+ "sp-runtime",
 ]
 
 [[package]]

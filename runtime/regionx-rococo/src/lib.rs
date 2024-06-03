@@ -92,7 +92,6 @@ use orml_tokens::CurrencyAdapter;
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
-pub use sp_consensus_aura::sr25519::AuthorityId as AuraId;
 use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
@@ -108,9 +107,11 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 // XCM Imports
 use xcm::latest::prelude::BodyId;
 
-use regionx_primitives::{
-	assets::{AssetId, CustomMetadata, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
-	AccountId, Address, Amount, Balance, BlockNumber, Hash, Header, Nonce, Signature,
+use regionx_runtime_common::{
+	assets::{AssetId, AssetsStringLimit, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
+	primitives::{
+		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
+	},
 };
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
@@ -217,9 +218,9 @@ pub const REGX: Balance = 1_000_000_000_000;
 pub const MILLIREGX: Balance = 1_000_000_000;
 pub const MICROREGX: Balance = 1_000_000;
 
-pub const KSM: Balance = 1_000_000_000_000;
-pub const MILLI_KSM: Balance = 1_000_000_000;
-pub const MICRO_KSM: Balance = 1_000_000;
+pub const ROC: Balance = 1_000_000_000_000;
+pub const MILLI_ROC: Balance = 1_000_000_000;
+pub const MICRO_ROC: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
@@ -235,8 +236,8 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-/// The existential deposit. Set to 1/10 of the Connected Relay Chain.
-pub const EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
+pub const REGX_EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
+pub const ROC_EXISTENTIAL_DEPOSIT: Balance = MILLI_ROC;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
 /// used to limit the maximal weight of a single extrinsic.
@@ -357,7 +358,7 @@ impl pallet_authorship::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
+	pub const ExistentialDeposit: Balance = REGX_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -384,7 +385,6 @@ impl pallet_balances::Config for Runtime {
 parameter_types! {
 	pub const AssetDeposit: Balance = deposit(1, 190);
 	pub const AssetAccountDeposit: Balance = deposit(1, 16);
-	pub const AssetsStringLimit: u32 = 50;
 	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
 	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
 	pub const MetadataDepositBase: Balance = deposit(1, 68);
@@ -422,7 +422,7 @@ impl orml_asset_registry::Config for Runtime {
 	type AssetProcessor = CustomAssetProcessor;
 	type AuthorityOrigin = EitherOfDiverse<EnsureRoot<AccountId>, EnsureTwoThirdTechnicalCommittee>;
 	type Balance = Balance;
-	type CustomMetadata = CustomMetadata;
+	type CustomMetadata = ();
 	type StringLimit = AssetsStringLimit;
 	type RuntimeEvent = RuntimeEvent;
 	// TODO: accurate weight
@@ -755,14 +755,6 @@ impl pallet_treasury::Config for Runtime {
 
 impl pallet_market::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// To make benchmarking easier we use the native currency for coretime purchases.
-	//
-	// In production we use the relay chain asset.
-	#[cfg(feature = "runtime-benchmarks")]
-	// NOTE: due to this the weights might be slightly inaccurate.
-	// TODO: check whether this difference is reasonable.
-	type Currency = Balances;
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Currency = RelaychainCurrency;
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
