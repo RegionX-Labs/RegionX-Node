@@ -83,9 +83,7 @@ cumulus-primitives-aura = { version = "0.7.0", default-features = false }
 cumulus-pallet-session-benchmarking = { version = "9.0.0", default-features = false }
 cumulus-pallet-aura-ext = { version = "0.7.0", default-features = false }
 cumulus-pallet-dmp-queue = { version = "0.7.0", default-features = false }
-cumulus-pallet-parachain-system = { version = "0.7.0", default-features = false, features = [
-	"parameterized-consensus-hook",
-] }
+cumulus-pallet-parachain-system = { version = "0.7.0", default-features = false, features = ["parameterized-consensus-hook"] }
 cumulus-pallet-xcm = { version = "0.7.0", default-features = false }
 cumulus-pallet-xcmp-queue = { version = "0.7.0", default-features = false }
 cumulus-primitives-core = { version = "0.7.0", default-features = false }

@@ -182,6 +182,7 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 pub struct OrderCreationFeeHandler;
 impl pallet_orders::FeeHandler<AccountId, Balance> for OrderCreationFeeHandler {
 	fn handle(who: &AccountId, fee: Balance) -> DispatchResult {
+		// We send the order creation fee to the treasury:
 		<Runtime as pallet_orders::Config>::Currency::transfer(
 			who,
 			&RegionXTreasuryAccount::get(),
