@@ -21,7 +21,6 @@ use super::*;
 
 use frame_benchmarking::v2::*;
 use frame_support::traits::{
-	fungible::{Inspect, Mutate},
 	Get,
 };
 use frame_system::RawOrigin;

@@ -16,7 +16,6 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::traits::Currency;
-use frame_system::WeightInfo;
 pub use pallet::*;
 use xcm_executor::traits::ConvertLocation;
 
@@ -31,6 +30,9 @@ mod benchmarking;
 
 mod types;
 pub use crate::types::*;
+
+pub mod weights;
+pub use weights::WeightInfo;
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -145,7 +147,7 @@ pub mod pallet {
 		/// - `para_id`: The para id to which Coretime will be allocated.
 		/// - `requirements`: Region requirements of the order.
 		#[pallet::call_index(0)]
-		#[pallet::weight(10_000)] // TODO
+		#[pallet::weight(T::WeightInfo::create_order())]
 		pub fn create_order(
 			origin: OriginFor<T>,
 			para_id: ParaId,
@@ -168,7 +170,7 @@ pub mod pallet {
 		/// ## Arguments:
 		/// - `order_id`: The order the caller wants to cancel.
 		#[pallet::call_index(1)]
-		#[pallet::weight(10_000)] // TODO
+		#[pallet::weight(T::WeightInfo::cancel_order())]
 		pub fn cancel_order(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -187,7 +189,7 @@ pub mod pallet {
 		/// - `order_id`: The order to which the caller wants to contribute.
 		/// - `amount`: The amount of tokens the user wants to contribute.
 		#[pallet::call_index(2)]
-		#[pallet::weight(10_000)] // TODO
+		#[pallet::weight(T::WeightInfo::contribute())]
 		pub fn contribute(
 			origin: OriginFor<T>,
 			order_id: OrderId,
@@ -220,7 +222,7 @@ pub mod pallet {
 		/// - `order_id`: The cancelled order from which the user wants to claim back their
 		///   contribution.
 		#[pallet::call_index(3)]
-		#[pallet::weight(10_000)] // TODO
+		#[pallet::weight(T::WeightInfo::remove_contribution())]
 		pub fn remove_contribution(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
