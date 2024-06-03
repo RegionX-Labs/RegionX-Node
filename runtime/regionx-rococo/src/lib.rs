@@ -765,8 +765,8 @@ impl pallet_market::Config for Runtime {
 }
 
 parameter_types! {
-	pub const OrderCreationCost: Balance = 1 * ROC;
-	pub const MinimumContribution: Balance = 1 * ROC;
+	pub const OrderCreationCost: Balance = ROC;
+	pub const MinimumContribution: Balance = ROC;
 }
 
 impl pallet_orders::Config for Runtime {
