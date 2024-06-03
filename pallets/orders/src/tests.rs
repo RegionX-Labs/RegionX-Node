@@ -198,6 +198,19 @@ fn contribute_works() {
 		assert_eq!(Orders::contributions(0, CHARLIE), 800);
 		assert_eq!(Orders::contributions(0, BOB), 100);
 		assert_eq!(Orders::total_contributions(0), 900);
+
+		// Cannot contribute to an expired order
+		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		RelayBlockNumber::set(timeslice * 9);
+
+		assert_noop!(
+			Orders::contribute(RuntimeOrigin::signed(ALICE), 0, 100),
+			Error::<Test>::OrderExpired
+		);
+
+		assert_eq!(Orders::contributions(0, CHARLIE), 800);
+		assert_eq!(Orders::contributions(0, BOB), 100);
+		assert_eq!(Orders::total_contributions(0), 900);
 	});
 }
 

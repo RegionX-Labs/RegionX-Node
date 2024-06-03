@@ -148,6 +148,8 @@ pub mod pallet {
 		NotAllowed,
 		/// The contribution amount is too small.
 		InvalidAmount,
+		/// The order is expired.
+		OrderExpired,
 		/// The given order is not cancelled.
 		OrderNotCancelled,
 		/// The contributed amount equals to zero.
@@ -218,7 +220,9 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			ensure!(Orders::<T>::get(order_id).is_some(), Error::<T>::InvalidOrderId);
+			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
+			ensure!(Self::current_timeslice() < order.requirements.end, Error::<T>::OrderExpired);
+
 			ensure!(amount >= T::MinimumContribution::get(), Error::<T>::InvalidAmount);
 			T::Currency::reserve(&who, amount)?;
 
