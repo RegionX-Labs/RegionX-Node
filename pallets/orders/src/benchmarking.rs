@@ -49,7 +49,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), para_id, requirements);
 
-		assert_last_event::<T>(Event::OrderCreated { order_id: 0 }.into());
+		assert_last_event::<T>(Event::OrderCreated { order_id: 0, by: caller }.into());
 
 		Ok(())
 	}
@@ -78,7 +78,7 @@ mod benchmarks {
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), 0);
 
-		assert_last_event::<T>(Event::OrderRemoved { order_id: 0 }.into());
+		assert_last_event::<T>(Event::OrderRemoved { order_id: 0, by: caller }.into());
 
 		Ok(())
 	}

@@ -130,9 +130,9 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// An order was created.
-		OrderCreated { order_id: OrderId },
+		OrderCreated { order_id: OrderId, by: T::AccountId },
 		/// An order was removed.
-		OrderRemoved { order_id: OrderId },
+		OrderRemoved { order_id: OrderId, by: T::AccountId },
 		/// A contribution was made to the order specificed by `order_id`.
 		Contributed { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
 		/// A contribution was removed from the cancelled order.
@@ -173,10 +173,10 @@ pub mod pallet {
 			T::OrderCreationFeeHandler::handle(&who, T::OrderCreationCost::get())?;
 
 			let order_id = NextOrderId::<T>::get();
-			Orders::<T>::insert(order_id, Order { creator: who, para_id, requirements });
+			Orders::<T>::insert(order_id, Order { creator: who.clone(), para_id, requirements });
 			NextOrderId::<T>::put(order_id.saturating_add(1));
 
-			Self::deposit_event(Event::OrderCreated { order_id });
+			Self::deposit_event(Event::OrderCreated { order_id, by: who });
 			Ok(())
 		}
 
@@ -200,7 +200,7 @@ pub mod pallet {
 
 			Orders::<T>::remove(order_id);
 
-			Self::deposit_event(Event::OrderRemoved { order_id });
+			Self::deposit_event(Event::OrderRemoved { order_id, by: who });
 			Ok(())
 		}
 

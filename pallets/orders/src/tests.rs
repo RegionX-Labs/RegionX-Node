@@ -43,7 +43,7 @@ fn create_order_works() {
 			DispatchError::Token(TokenError::FundsUnavailable)
 		);
 
-		<Test as crate::Config>::Currency::make_free_balance_be(&ALICE, 1000u32.into());
+		<Test as crate::Config>::Currency::make_free_balance_be(&creator, 1000u32.into());
 
 		assert_ok!(Orders::create_order(
 			RuntimeOrigin::signed(creator.clone()),
@@ -53,16 +53,16 @@ fn create_order_works() {
 
 		// Check storage items
 		assert_eq!(Orders::next_order_id(), 1);
-		assert_eq!(Orders::orders(0), Some(Order { para_id, creator, requirements }));
+		assert_eq!(Orders::orders(0), Some(Order { para_id, creator: ALICE, requirements }));
 		assert!(Orders::orders(1).is_none());
 
 		// Balance should be reduced due to fee payment:
-		assert_eq!(Balances::free_balance(ALICE), 900);
+		assert_eq!(Balances::free_balance(creator.clone()), 900);
 		// Fee goes to the 'treasury':
 		assert_eq!(Balances::free_balance(TREASURY), 100);
 
 		// Check events
-		System::assert_last_event(Event::OrderCreated { order_id: 0 }.into());
+		System::assert_last_event(Event::OrderCreated { order_id: 0, by: creator }.into());
 	});
 }
 
@@ -104,7 +104,7 @@ fn cancel_order_works() {
 		assert!(Orders::orders(0).is_none());
 
 		// Check events
-		System::assert_last_event(Event::OrderRemoved { order_id: 0 }.into());
+		System::assert_last_event(Event::OrderRemoved { order_id: 0, by: creator }.into());
 	});
 }
 
@@ -141,7 +141,7 @@ fn anyone_can_cancel_expired_order() {
 		assert!(Orders::orders(0).is_none());
 
 		// Check events
-		System::assert_last_event(Event::OrderRemoved { order_id: 0 }.into());
+		System::assert_last_event(Event::OrderRemoved { order_id: 0, by: BOB }.into());
 	});
 }
 
