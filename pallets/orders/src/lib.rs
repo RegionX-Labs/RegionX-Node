@@ -157,7 +157,7 @@ pub mod pallet {
 
 			let order_id = NextOrderId::<T>::get();
 			Orders::<T>::insert(order_id, Order { creator: who, para_id, requirements });
-			NextOrderId::<T>::put(order_id + 1);
+			NextOrderId::<T>::put(order_id.saturating_add(1));
 
 			Self::deposit_event(Event::OrderCreated { order_id });
 			Ok(())
@@ -166,8 +166,7 @@ pub mod pallet {
 		/// Extrinsic for cancelling an order.
 		///
 		/// ## Arguments:
-		/// - `para_id`: The para id to which Coretime will be allocated.
-		/// - `requirements`: Region requirements of the order.
+		/// - `order_id`: The order the caller wants to cancel.
 		#[pallet::call_index(1)]
 		#[pallet::weight(10_000)] // TODO
 		pub fn cancel_order(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {

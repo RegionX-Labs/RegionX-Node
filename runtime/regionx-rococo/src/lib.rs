@@ -765,20 +765,12 @@ impl pallet_market::Config for Runtime {
 }
 
 parameter_types! {
-	pub const OrderCreationCost: Balance = 50_000;
-	pub const MinimumContribution: Balance = 20_000;
+	pub const OrderCreationCost: Balance = 1 * ROC;
+	pub const MinimumContribution: Balance = 1 * ROC;
 }
 
 impl pallet_orders::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// To make benchmarking easier we use the native currency for coretime purchases.
-	//
-	// In production we use the relay chain asset.
-	#[cfg(feature = "runtime-benchmarks")]
-	// NOTE: due to this the weights might be slightly inaccurate.
-	// TODO: check whether this difference is reasonable.
-	type Currency = Balances;
-	#[cfg(not(feature = "runtime-benchmarks"))]
 	type Currency = RelaychainCurrency;
 	type SovereignAccountOf = LocationToAccountId;
 	type OrderCreationCost = OrderCreationCost;

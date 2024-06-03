@@ -20,9 +20,11 @@
 use super::*;
 
 use frame_benchmarking::v2::*;
-use frame_support::traits::Get;
+use frame_support::traits::{
+	fungible::{Inspect, Mutate},
+	Get,
+};
 use frame_system::RawOrigin;
-use sp_runtime::traits::Bounded;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -43,7 +45,10 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		<T as crate::Config>::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value());
+		<T as crate::Config>::Currency::make_free_balance_be(
+			&caller.clone(),
+			<T as crate::Config>::OrderCreationCost::get() * 2u32.into(),
+		);
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), para_id, requirements);
 
@@ -63,7 +68,10 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		<T as crate::Config>::Currency::make_free_balance_be(&caller, BalanceOf::<T>::max_value());
+		<T as crate::Config>::Currency::make_free_balance_be(
+			&caller.clone(),
+			<T as crate::Config>::OrderCreationCost::get() * 2u32.into(),
+		);
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(caller.clone()).into(),
 			para_id,
@@ -89,7 +97,12 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		<T as crate::Config>::Currency::make_free_balance_be(&creator, BalanceOf::<T>::max_value());
+		<T as crate::Config>::Currency::make_free_balance_be(
+			&creator.clone(),
+			(<T as crate::Config>::OrderCreationCost::get() +
+				<T as crate::Config>::MinimumContribution::get()) *
+				2u32.into(),
+		);
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),
 			para_id,
@@ -122,7 +135,12 @@ mod benchmarks {
 			core_occupancy: 28800, // Half of a core.
 		};
 
-		<T as crate::Config>::Currency::make_free_balance_be(&creator, BalanceOf::<T>::max_value());
+		<T as crate::Config>::Currency::make_free_balance_be(
+			&creator.clone(),
+			(<T as crate::Config>::OrderCreationCost::get() +
+				<T as crate::Config>::MinimumContribution::get()) *
+				2u32.into(),
+		);
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),
 			para_id,
