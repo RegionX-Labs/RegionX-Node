@@ -3938,7 +3938,7 @@ dependencies = [
  "iana-time-zone-haiku",
  "js-sys",
  "wasm-bindgen",
- "windows-core 0.52.0",
+ "windows-core",
 ]
 
 [[package]]
@@ -4194,7 +4194,7 @@ dependencies = [
 [[package]]
 name = "ismp"
 version = "0.1.2"
-source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#711fd0cd9676de88afa6d7c571a950494b90eaf1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#88e14b592dbc3661e817b8ef8bd800b65415c5f5"
 dependencies = [
  "derive_more",
  "hex",
@@ -4266,7 +4266,7 @@ dependencies = [
 [[package]]
 name = "ismp-testsuite"
 version = "0.1.1"
-source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#711fd0cd9676de88afa6d7c571a950494b90eaf1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#88e14b592dbc3661e817b8ef8bd800b65415c5f5"
 dependencies = [
  "ismp 0.1.2 (git+https://github.com/polytope-labs/hyperbridge.git?branch=main)",
  "once_cell",
@@ -14477,7 +14477,7 @@ version = "0.51.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ca229916c5ee38c2f2bc1e9d8f04df975b4bd93f9955dc69fabb5d91270045c9"
 dependencies = [
- "windows-core 0.51.1",
+ "windows-core",
  "windows-targets 0.48.5",
 ]
 
@@ -14488,15 +14488,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1f8cf84f35d2db49a46868f947758c7a1138116f7fac3bc844f43ade1292e64"
 dependencies = [
  "windows-targets 0.48.5",
-]
-
-[[package]]
-name = "windows-core"
-version = "0.52.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "33ab640c8d7e35bf8ba19b884ba838ceb4fba93a4e8c65a9059d08afcfc683d9"
-dependencies = [
- "windows-targets 0.52.5",
 ]
 
 [[package]]
