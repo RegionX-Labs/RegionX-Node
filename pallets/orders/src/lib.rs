@@ -99,7 +99,7 @@ pub mod pallet {
 	#[pallet::getter(fn orders)]
 	pub type Orders<T: Config> = StorageMap<_, Blake2_128Concat, OrderId, Order<T::AccountId>>;
 
-	/// Next order id
+	/// Next order id.
 	#[pallet::storage]
 	#[pallet::getter(fn next_order_id)]
 	pub type NextOrderId<T> = StorageValue<_, OrderId, ValueQuery>;
@@ -110,17 +110,17 @@ pub mod pallet {
 	pub type Contributions<T: Config> = StorageDoubleMap<
 		_,
 		Blake2_128Concat,
-		OrderId, // the order.
+		OrderId, //  order id.
 		Blake2_128Concat,
-		T::AccountId, // the account which contributed to the order.
-		BalanceOf<T>, // the amount they contributed.
+		T::AccountId, // contributor
+		BalanceOf<T>, // contributed amount
 		ValueQuery,
 	>;
 
 	/// The total amount that was contributed to an order.
 	///
-	/// The sum of contributions for a specific order from the Contributions map should be equal to
-	/// the total contribution stored here.
+	/// The sum of contributions for a specific order from the `Contributions` map should be equal
+	/// to the total contribution stored here.
 	#[pallet::storage]
 	#[pallet::getter(fn total_contributions)]
 	pub type TotalContributions<T: Config> =
@@ -129,26 +129,26 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
-		/// An order was created
+		/// An order was created.
 		OrderCreated { order_id: OrderId },
-		/// An order was removed
+		/// An order was removed.
 		OrderRemoved { order_id: OrderId },
-		/// A contribution was made to the order specificed by `order_id`
+		/// A contribution was made to the order specificed by `order_id`.
 		Contributed { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
-		/// A contribution was removed from the cancelled order
+		/// A contribution was removed from the cancelled order.
 		ContributionRemoved { order_id: OrderId, who: T::AccountId, amount: BalanceOf<T> },
 	}
 
 	#[pallet::error]
 	#[derive(PartialEq)]
 	pub enum Error<T> {
-		/// Invalid order id
+		/// Invalid order id.
 		InvalidOrderId,
-		/// The caller is not the creator of the given order
+		/// The caller is not the creator of the given order.
 		NotAllowed,
-		/// The contribution amount is too small
+		/// The contribution amount is too small.
 		InvalidAmount,
-		/// The given order is not cancelled
+		/// The given order is not cancelled.
 		OrderNotCancelled,
 		/// The contributed amount equals to zero.
 		NoContribution,
@@ -223,12 +223,10 @@ pub mod pallet {
 			T::Currency::reserve(&who, amount)?;
 
 			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
-
 			contribution = contribution.saturating_add(amount);
 			Contributions::<T>::insert(order_id, who.clone(), contribution);
 
 			let mut total_contributions = TotalContributions::<T>::get(order_id);
-
 			total_contributions = total_contributions.saturating_add(amount);
 			TotalContributions::<T>::insert(order_id, total_contributions);
 
@@ -256,7 +254,6 @@ pub mod pallet {
 			Contributions::<T>::remove(order_id, who.clone());
 
 			let mut total_contributions = TotalContributions::<T>::get(order_id);
-
 			total_contributions = total_contributions.saturating_sub(amount);
 			TotalContributions::<T>::insert(order_id, total_contributions);
 
