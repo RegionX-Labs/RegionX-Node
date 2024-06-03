@@ -14,7 +14,10 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{mock::*, Error, Event, Order, ParaId, Requirements};
-use frame_support::{assert_noop, assert_ok, traits::Currency};
+use frame_support::{
+	assert_noop, assert_ok,
+	traits::{Currency, Get},
+};
 use pallet_balances::Error as BalancesError;
 use sp_runtime::{DispatchError, TokenError};
 
@@ -96,6 +99,43 @@ fn cancel_order_works() {
 
 		// Should be working fine
 		assert_ok!(Orders::cancel_order(RuntimeOrigin::signed(creator.clone()), 0));
+
+		// Check storage items
+		assert!(Orders::orders(0).is_none());
+
+		// Check events
+		System::assert_last_event(Event::OrderRemoved { order_id: 0 }.into());
+	});
+}
+
+#[test]
+fn anyone_can_cancel_expired_order() {
+	new_test_ext(vec![(ALICE, 1000), (BOB, 1000), (CHARLIE, 1000)]).execute_with(|| {
+		let creator = ALICE;
+		let para_id: ParaId = 2000.into();
+		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		let requirements = Requirements {
+			begin: 0,
+			end: 8,
+			core_occupancy: 28800, // Half of a core.
+		};
+
+		// Create an order:
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(creator.clone()),
+			para_id,
+			requirements.clone()
+		));
+
+		// Caller is not the creator of the order
+		assert_noop!(
+			Orders::cancel_order(RuntimeOrigin::signed(BOB), 0),
+			Error::<Test>::NotAllowed
+		);
+
+		// Anyone can cancel expired order:
+		RelayBlockNumber::set(9 * timeslice);
+		assert_ok!(Orders::cancel_order(RuntimeOrigin::signed(BOB), 0));
 
 		// Check storage items
 		assert!(Orders::orders(0).is_none());

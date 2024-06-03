@@ -776,6 +776,8 @@ impl pallet_orders::Config for Runtime {
 	type OrderCreationCost = OrderCreationCost;
 	type MinimumContribution = MinimumContribution;
 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
+	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+	type TimeslicePeriod = ConstU32<80>;
 	type WeightInfo = ();
 }
 

@@ -20,9 +20,7 @@
 use super::*;
 
 use frame_benchmarking::v2::*;
-use frame_support::traits::{
-	Get,
-};
+use frame_support::traits::Get;
 use frame_system::RawOrigin;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {

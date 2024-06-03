@@ -17,6 +17,8 @@
 
 use frame_support::traits::Currency;
 pub use pallet::*;
+use pallet_broker::Timeslice;
+use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion};
 use xcm_executor::traits::ConvertLocation;
 
 #[cfg(test)]
@@ -36,6 +38,10 @@ pub use weights::WeightInfo;
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+/// Relay chain block number.
+pub type RCBlockNumberOf<T> =
+	<<T as crate::Config>::RCBlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -61,6 +67,15 @@ pub mod pallet {
 
 		/// Type responsible for dealing with order creation fees.
 		type OrderCreationFeeHandler: FeeHandler<Self::AccountId, BalanceOf<Self>>;
+
+		/// Type for getting the current relay chain block.
+		///
+		/// This is used for determining the current timeslice.
+		type RCBlockNumberProvider: BlockNumberProvider;
+
+		/// Number of Relay-chain blocks per timeslice.
+		#[pallet::constant]
+		type TimeslicePeriod: Get<RCBlockNumberOf<Self>>;
 
 		/// The cost of order creation.
 		///
@@ -167,6 +182,9 @@ pub mod pallet {
 
 		/// Extrinsic for cancelling an order.
 		///
+		/// If the region requirements on which the order was based are for an expired region,
+		/// anyone can cancel the order.
+		///
 		/// ## Arguments:
 		/// - `order_id`: The order the caller wants to cancel.
 		#[pallet::call_index(1)]
@@ -175,7 +193,10 @@ pub mod pallet {
 			let who = ensure_signed(origin)?;
 
 			let order = Orders::<T>::get(order_id).ok_or(Error::<T>::InvalidOrderId)?;
-			ensure!(order.creator == who, Error::<T>::NotAllowed);
+			ensure!(
+				order.creator == who || order.requirements.end < Self::current_timeslice(),
+				Error::<T>::NotAllowed
+			);
 
 			Orders::<T>::remove(order_id);
 
@@ -242,6 +263,14 @@ pub mod pallet {
 			Self::deposit_event(Event::ContributionRemoved { who, order_id, amount });
 
 			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		pub(crate) fn current_timeslice() -> Timeslice {
+			let latest_rc_block = T::RCBlockNumberProvider::current_block_number();
+			let timeslice_period = T::TimeslicePeriod::get();
+			(latest_rc_block / timeslice_period).saturated_into()
 		}
 	}
 }

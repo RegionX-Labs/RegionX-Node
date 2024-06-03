@@ -21,7 +21,7 @@ use frame_support::{
 };
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
-	traits::{BlakeTwo256, IdentityLookup},
+	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 	AccountId32, BuildStorage,
 };
 use xcm::opaque::lts::NetworkId;
@@ -115,12 +115,26 @@ impl FeeHandler<AccountId, u64> for OrderCreationFeeHandler {
 	}
 }
 
+parameter_types! {
+	pub static RelayBlockNumber: u64 = 0;
+}
+
+pub struct RelayBlockNumberProvider;
+impl BlockNumberProvider for RelayBlockNumberProvider {
+	type BlockNumber = u64;
+	fn current_block_number() -> Self::BlockNumber {
+		RelayBlockNumber::get()
+	}
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type SovereignAccountOf = SovereignAccountOf;
 	type OrderCreationCost = ConstU64<100>;
 	type MinimumContribution = ConstU64<50>;
+	type RCBlockNumberProvider = RelayBlockNumberProvider;
+	type TimeslicePeriod = ConstU64<80>;
 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
 	type WeightInfo = ();
 }
