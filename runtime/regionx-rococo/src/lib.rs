@@ -214,7 +214,7 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
 // Unit = the base number of indivisible units for balances
-pub const REGX: Balance = 1_000_000_000_000;
+pub const RX: Balance = 1_000_000_000_000;
 pub const MILLIREGX: Balance = 1_000_000_000;
 pub const MICROREGX: Balance = 1_000_000;
 
@@ -224,7 +224,7 @@ pub const MICRO_ROC: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
-	items as Balance * REGX + (bytes as Balance) * MILLIREGX
+	items as Balance * RX + (bytes as Balance) * MILLIREGX
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -288,8 +288,7 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	// TODO: properly set ss58 prefix
-	pub const SS58Prefix: u16 = 42;
+	pub const SS58Prefix: u16 = 95;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -335,7 +334,7 @@ impl frame_system::Config for Runtime {
 	type BlockWeights = RuntimeBlockWeights;
 	/// The maximum length of a block (in bytes).
 	type BlockLength = RuntimeBlockLength;
-	/// This is used as an identifier of the chain. 42 is the generic substrate prefix.
+	/// This is used as an identifier of the chain. 95 is the generic substrate prefix.
 	type SS58Prefix = SS58Prefix;
 	/// The overarching task type.
 	type RuntimeTask = RuntimeTask;
@@ -718,8 +717,8 @@ parameter_types! {
 	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
 	pub RegionXTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 100 * REGX;
-	pub const ProposalBondMaximum: Balance = 5_000 * REGX;
+	pub const ProposalBondMinimum: Balance = 100 * RX;
+	pub const ProposalBondMaximum: Balance = 5_000 * RX;
 	pub const SpendPeriod: BlockNumber = 7 * DAYS;
 	pub const PayoutPeriod: BlockNumber = 30 * DAYS;
 	pub const MaxApprovals: u32 = 50;
@@ -819,7 +818,7 @@ construct_runtime!(
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 40,
 		CollatorSelection: pallet_collator_selection = 41,
-		Session: pallet_session = 42,
+		Session: pallet_session = 95,
 		Aura: pallet_aura = 43,
 		AuraExt: cumulus_pallet_aura_ext = 44,
 
