@@ -18,7 +18,7 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use regionx_rococo_runtime::{REGX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
+use regionx_rococo_runtime::{RX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},
@@ -46,45 +46,13 @@ pub fn regionx_rococo_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runti
 
 	ChainSpec::builder(
 		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
-		Extensions {
-			relay_chain: "rococo-local".into(),
-			// You MUST set this to the correct network!
-			para_id: id,
-		},
+		Extensions { relay_chain: "rococo".into(), para_id: id },
 	)
-	.with_name("RegionX Development")
-	.with_id("dev")
-	.with_chain_type(ChainType::Development)
-	.with_genesis_config_patch(testnet_genesis(
-		// initial collators.
-		vec![
-			(
-				get_account_id_from_seed::<sr25519::Public>("Alice"),
-				get_collator_keys_from_seed("Alice"),
-			),
-			(
-				get_account_id_from_seed::<sr25519::Public>("Bob"),
-				get_collator_keys_from_seed("Bob"),
-			),
-		],
-		vec![
-			get_account_id_from_seed::<sr25519::Public>("Alice"),
-			get_account_id_from_seed::<sr25519::Public>("Bob"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie"),
-			get_account_id_from_seed::<sr25519::Public>("Dave"),
-			get_account_id_from_seed::<sr25519::Public>("Eve"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie"),
-			get_account_id_from_seed::<sr25519::Public>("Alice//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Bob//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Charlie//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Dave//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Eve//stash"),
-			get_account_id_from_seed::<sr25519::Public>("Ferdie//stash"),
-		],
-		get_account_id_from_seed::<sr25519::Public>("Alice"),
-		id.into(),
-	))
-	.with_protocol_id("regionx-dev")
+	.with_name("RegionX Rococo")
+	.with_id("regionx-rococo")
+	.with_chain_type(ChainType::Live)
+	.with_genesis_config_patch(rococo_genesis(id.into()))
+	.with_protocol_id("regionx-rococo")
 	.with_properties(properties)
 	.build()
 }
@@ -193,6 +161,34 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runtim
 	.build()
 }
 
+fn rococo_genesis(id: ParaId) -> serde_json::Value {
+	serde_json::json!({
+		"parachainInfo": {
+			"parachainId": id,
+		},
+		"collatorSelection": {
+			"candidacyBond": RX_EXISTENTIAL_DEPOSIT * 1000,
+		},
+		"assetRegistry": {
+			"lastAssetId": RELAY_CHAIN_ASSET_ID,
+			"assets": vec![(RELAY_CHAIN_ASSET_ID,
+				AssetMetadata::<Balance, (), AssetsStringLimit>::encode(&AssetMetadata{
+					decimals: 12,
+					name: b"ROC".to_vec().try_into().expect("Invalid asset name"),
+					symbol: b"ROC".to_vec().try_into().expect("Invalid asset symbol"),
+					existential_deposit: ROC_EXISTENTIAL_DEPOSIT,
+					location: Some(MultiLocation::parent().into()),
+					additional: Default::default(),
+				})
+			)]
+		},
+		"polkadotXcm": {
+			"safeXcmVersion": Some(SAFE_XCM_VERSION),
+		},
+		// TODO: set asset rate
+	})
+}
+
 fn testnet_genesis(
 	invulnerables: Vec<(AccountId, AuraId)>,
 	endowed_accounts: Vec<AccountId>,
@@ -208,7 +204,7 @@ fn testnet_genesis(
 		},
 		"collatorSelection": {
 			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-			"candidacyBond": REGX_EXISTENTIAL_DEPOSIT * 16,
+			"candidacyBond": RX_EXISTENTIAL_DEPOSIT * 16,
 		},
 		"assetRegistry": {
 			"lastAssetId": RELAY_CHAIN_ASSET_ID,

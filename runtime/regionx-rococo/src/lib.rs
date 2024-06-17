@@ -91,10 +91,9 @@ use orml_currencies::BasicCurrencyAdapter;
 use orml_tokens::CurrencyAdapter;
 use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
-use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
-use xcm_config::{RelayLocation, XcmOriginToTransactDispatchOrigin};
+use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
 pub use sp_runtime::BuildStorage;
@@ -108,7 +107,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::{
-	assets::{AssetId, AssetsStringLimit, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
+	assets::{AssetId, AssetsStringLimit, RX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	primitives::{
 		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 	},
@@ -165,9 +164,9 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLIREGX:
-		// in our template, we map to 1/10 of that, or 1/10 MILLIREGX
-		let p = MILLIREGX / 10;
+		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_RX:
+		// in our template, we map to 1/10 of that, or 1/10 MILLI_RX
+		let p = MILLI_RX / 10;
 		let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -215,8 +214,8 @@ pub const DAYS: BlockNumber = HOURS * 24;
 
 // Unit = the base number of indivisible units for balances
 pub const RX: Balance = 1_000_000_000_000;
-pub const MILLIREGX: Balance = 1_000_000_000;
-pub const MICROREGX: Balance = 1_000_000;
+pub const MILLI_RX: Balance = 1_000_000_000;
+pub const MICRO_RX: Balance = 1_000_000;
 
 pub const ROC: Balance = 1_000_000_000_000;
 pub const MILLI_ROC: Balance = 1_000_000_000;
@@ -224,7 +223,7 @@ pub const MICRO_ROC: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
-	items as Balance * RX + (bytes as Balance) * MILLIREGX
+	items as Balance * RX + (bytes as Balance) * 300 * MILLI_RX
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -236,7 +235,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-pub const REGX_EXISTENTIAL_DEPOSIT: Balance = MILLIREGX;
+pub const RX_EXISTENTIAL_DEPOSIT: Balance = MILLI_RX;
 pub const ROC_EXISTENTIAL_DEPOSIT: Balance = MILLI_ROC;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
@@ -357,7 +356,7 @@ impl pallet_authorship::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = REGX_EXISTENTIAL_DEPOSIT;
+	pub const ExistentialDeposit: Balance = RX_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -406,7 +405,7 @@ impl orml_tokens::Config for Runtime {
 }
 
 parameter_types! {
-	pub const NativeAssetId: AssetId = REGX_ASSET_ID;
+	pub const NativeAssetId: AssetId = RX_ASSET_ID;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -429,9 +428,8 @@ impl orml_asset_registry::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO: set to a reasonable value.
-	/// Relay Chain `TransactionByteFee` / 10
-	pub const TransactionByteFee: Balance = 10 * MICROREGX;
+	// TODO: Make sure this is reasonable
+	pub const TransactionByteFee: Balance = 20 * MICRO_RX;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -542,7 +540,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 6 * HOURS;
+	pub const Period: u32 = 2 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
@@ -569,16 +567,12 @@ impl pallet_aura::Config for Runtime {
 
 parameter_types! {
 	pub const PotId: PalletId = PalletId(*b"PotStake");
-	pub const SessionLength: BlockNumber = 6 * HOURS;
 	// StakingAdmin pluralistic body.
 	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }
 
-/// We allow root and the StakingAdmin to execute privileged collator selection operations.
-pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
-	EnsureRoot<AccountId>,
-	EnsureXcm<IsVoiceOfBody<RelayLocation, StakingAdminBodyId>>,
->;
+/// We allow root to execute privileged collator selection operations.
+pub type CollatorSelectionUpdateOrigin = EnsureRoot<AccountId>;
 
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;

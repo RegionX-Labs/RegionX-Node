@@ -85,7 +85,7 @@ impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
 		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
 	type KillOrigin =
 		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
-	type Slash = (); // TODO: treasury
+	type Slash = (); // TODO: Treasury. NOTE: We need multi-asset treasury to support this.
 	type Votes = pallet_conviction_voting::VotesOf<Runtime, DelegatedConvictionVotingInstance>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime, DelegatedConvictionVotingInstance>;
 	type SubmissionDeposit = DelegatedReferendaSubmissionDeposit;
