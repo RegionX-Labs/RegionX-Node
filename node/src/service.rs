@@ -68,15 +68,7 @@ pub type Service<Runtime, Executor> = PartialComponents<
 >;
 
 pub fn is_cocos(id: &str) -> bool {
-	id.contains("cocos")
-}
-
-pub fn is_dev(id: &str) -> bool {
-	id.is_empty() || id.contains("dev")
-}
-
-pub fn is_local(id: &str) -> bool {
-	id.contains("dev")
+	id.contains("cocos") || id.is_empty() || id.contains("dev") || id.contains("local")
 }
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -479,7 +471,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
-		chain if is_cocos(chain) || is_dev(chain) || is_local(chain) =>
+		chain if is_cocos(chain) =>
 			start_node_impl::<cocos_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,

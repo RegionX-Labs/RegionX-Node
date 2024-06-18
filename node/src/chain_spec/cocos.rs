@@ -48,7 +48,7 @@ pub fn cocos_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions { relay_chain: "rococo".into(), para_id: id },
 	)
-	.with_name("Cocos")
+	.with_name("RegionX Cocos")
 	.with_id("cocos")
 	.with_chain_type(ChainType::Live)
 	.with_genesis_config_patch(cocos_genesis(id.into()))
@@ -72,7 +72,7 @@ pub fn development_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisCon
 			para_id: id,
 		},
 	)
-	.with_name("Cocos Development")
+	.with_name("RegionX Cocos Development")
 	.with_id("dev")
 	.with_chain_type(ChainType::Development)
 	.with_genesis_config_patch(testnet_genesis(
@@ -124,7 +124,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisC
 			para_id: id,
 		},
 	)
-	.with_name("Cocos Local")
+	.with_name("RegionX Cocos Local")
 	.with_id("cocos_local")
 	.with_chain_type(ChainType::Local)
 	.with_genesis_config_patch(testnet_genesis(

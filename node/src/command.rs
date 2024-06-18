@@ -29,15 +29,15 @@ use sp_runtime::traits::AccountIdConversion;
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{is_dev, is_local, is_cocos, new_partial},
+	service::{is_cocos, new_partial},
 };
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		"cocos" => Box::new(chain_spec::cocos::cocos_config(4444)),
-		"regionx-dev" | "dev" | "" =>
+		"cocos-dev" | "dev" | "" =>
 			Box::new(chain_spec::cocos::development_config(2000)),
-		"regionx-local" | "local" =>
+		"cocos-local" | "local" =>
 			Box::new(chain_spec::cocos::local_testnet_config(2000)),
 		path => Box::new(
 			chain_spec::ChainSpec::<cocos_runtime::RuntimeGenesisConfig>::from_json_file(
@@ -123,7 +123,7 @@ macro_rules! construct_async_run {
 	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
 		match runner.config().chain_spec.id() {
-            chain if is_dev(chain) || is_local(chain) || is_cocos(chain) => {
+            chain if is_cocos(chain) => {
 				runner.async_run(|$config| {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&$config);
 					let $components = new_partial::<cocos_runtime::RuntimeApi, _>(&$config, executor)?;
@@ -194,7 +194,7 @@ pub fn run() -> Result<()> {
 			runner.sync_run(|config| {
 				let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 				match config.chain_spec.id() {
-           			chain if is_dev(chain) || is_local(chain) || is_cocos(chain) => {
+           			chain if is_cocos(chain) => {
 						let partials =
 						new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
@@ -226,7 +226,7 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if is_dev(chain) || is_local(chain) || is_cocos(chain) => {
+            			chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
@@ -247,7 +247,7 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if is_dev(chain) || is_local(chain) || is_cocos(chain) => {
+            			chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
