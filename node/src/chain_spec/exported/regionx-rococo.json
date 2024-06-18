@@ -1,12 +1,12 @@
 {
   "name": "RegionX Rococo",
-  "id": "regionx-rococo",
+  "id": "cocos",
   "chainType": "Live",
   "bootNodes": [
     "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWDrHAr9FSEozDJVpwFS3xmouMWmZVGpJ92hKdNSX5scUV"
   ],
   "telemetryEndpoints": null,
-  "protocolId": "regionx-rococo",
+  "protocolId": "cocos",
   "properties": {
     "ss58Format": 95,
     "tokenDecimals": 12,

@@ -18,7 +18,7 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use regionx_rococo_runtime::{RX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
+use cocos_runtime::{RX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},
@@ -33,11 +33,11 @@ const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 /// Generate the session keys from individual elements.
 ///
 /// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn session_keys(keys: AuraId) -> regionx_rococo_runtime::SessionKeys {
-	regionx_rococo_runtime::SessionKeys { aura: keys }
+pub fn session_keys(keys: AuraId) -> cocos_runtime::SessionKeys {
+	cocos_runtime::SessionKeys { aura: keys }
 }
 
-pub fn regionx_rococo_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeGenesisConfig> {
+pub fn cocos_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "RX".into());
@@ -45,19 +45,19 @@ pub fn regionx_rococo_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runti
 	properties.insert("ss58Format".into(), 95.into());
 
 	ChainSpec::builder(
-		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions { relay_chain: "rococo".into(), para_id: id },
 	)
-	.with_name("RegionX Rococo")
-	.with_id("regionx-rococo")
+	.with_name("Cocos")
+	.with_id("cocos")
 	.with_chain_type(ChainType::Live)
-	.with_genesis_config_patch(rococo_genesis(id.into()))
-	.with_protocol_id("regionx-rococo")
+	.with_genesis_config_patch(cocos_genesis(id.into()))
+	.with_protocol_id("cocos")
 	.with_properties(properties)
 	.build()
 }
 
-pub fn development_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeGenesisConfig> {
+pub fn development_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "RX".into());
@@ -65,14 +65,14 @@ pub fn development_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeG
 	properties.insert("ss58Format".into(), 95.into());
 
 	ChainSpec::builder(
-		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(),
 			// You MUST set this to the correct network!
 			para_id: id,
 		},
 	)
-	.with_name("RegionX Development")
+	.with_name("Cocos Development")
 	.with_id("dev")
 	.with_chain_type(ChainType::Development)
 	.with_genesis_config_patch(testnet_genesis(
@@ -109,7 +109,7 @@ pub fn development_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeG
 	.build()
 }
 
-pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::RuntimeGenesisConfig> {
+pub fn local_testnet_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "RX".into());
@@ -117,15 +117,15 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runtim
 	properties.insert("ss58Format".into(), 95.into());
 
 	ChainSpec::builder(
-		regionx_rococo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "rococo-local".into(),
 			// You MUST set this to the correct network!
 			para_id: id,
 		},
 	)
-	.with_name("RegionX Local")
-	.with_id("regionx_local")
+	.with_name("Cocos Local")
+	.with_id("cocos_local")
 	.with_chain_type(ChainType::Local)
 	.with_genesis_config_patch(testnet_genesis(
 		// initial collators.
@@ -156,12 +156,12 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_rococo_runtime::Runtim
 		get_account_id_from_seed::<sr25519::Public>("Alice"),
 		id.into(),
 	))
-	.with_protocol_id("regionx-local")
+	.with_protocol_id("cocos-local")
 	.with_properties(properties)
 	.build()
 }
 
-fn rococo_genesis(id: ParaId) -> serde_json::Value {
+fn cocos_genesis(id: ParaId) -> serde_json::Value {
 	serde_json::json!({
 		"parachainInfo": {
 			"parachainId": id,
