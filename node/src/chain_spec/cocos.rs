@@ -16,9 +16,9 @@
 use crate::chain_spec::{
 	get_account_id_from_seed, get_collator_keys_from_seed, ChainSpec, Extensions,
 };
+use cocos_runtime::{COCOS_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use cocos_runtime::{COCOS_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},

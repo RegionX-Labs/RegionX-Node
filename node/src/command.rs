@@ -35,15 +35,12 @@ use crate::{
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		"cocos" => Box::new(chain_spec::cocos::cocos_config(4444)),
-		"cocos-dev" | "dev" | "" =>
-			Box::new(chain_spec::cocos::development_config(2000)),
-		"cocos-local" | "local" =>
-			Box::new(chain_spec::cocos::local_testnet_config(2000)),
-		path => Box::new(
-			chain_spec::ChainSpec::<cocos_runtime::RuntimeGenesisConfig>::from_json_file(
+		"cocos-dev" | "dev" | "" => Box::new(chain_spec::cocos::development_config(2000)),
+		"cocos-local" | "local" => Box::new(chain_spec::cocos::local_testnet_config(2000)),
+		path =>
+			Box::new(chain_spec::ChainSpec::<cocos_runtime::RuntimeGenesisConfig>::from_json_file(
 				std::path::PathBuf::from(path),
-			)?,
-		),
+			)?),
 	})
 }
 
