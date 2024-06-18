@@ -185,7 +185,6 @@ fn rococo_genesis(id: ParaId) -> serde_json::Value {
 		"polkadotXcm": {
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
-		// TODO: set asset rate
 	})
 }
 
