@@ -18,7 +18,7 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use cocos_runtime::{RX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
+use cocos_runtime::{COCOS_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},
@@ -40,7 +40,7 @@ pub fn session_keys(keys: AuraId) -> cocos_runtime::SessionKeys {
 pub fn cocos_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "RX".into());
+	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 95.into());
 
@@ -60,7 +60,7 @@ pub fn cocos_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 pub fn development_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "RX".into());
+	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 95.into());
 
@@ -112,7 +112,7 @@ pub fn development_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisCon
 pub fn local_testnet_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
-	properties.insert("tokenSymbol".into(), "RX".into());
+	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
 	properties.insert("ss58Format".into(), 95.into());
 
@@ -167,7 +167,7 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 			"parachainId": id,
 		},
 		"collatorSelection": {
-			"candidacyBond": RX_EXISTENTIAL_DEPOSIT * 1000,
+			"candidacyBond": COCOS_EXISTENTIAL_DEPOSIT * 1000,
 		},
 		"assetRegistry": {
 			"lastAssetId": RELAY_CHAIN_ASSET_ID,
@@ -203,7 +203,7 @@ fn testnet_genesis(
 		},
 		"collatorSelection": {
 			"invulnerables": invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-			"candidacyBond": RX_EXISTENTIAL_DEPOSIT * 16,
+			"candidacyBond": COCOS_EXISTENTIAL_DEPOSIT * 16,
 		},
 		"assetRegistry": {
 			"lastAssetId": RELAY_CHAIN_ASSET_ID,

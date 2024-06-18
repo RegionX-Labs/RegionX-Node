@@ -107,7 +107,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::{
-	assets::{AssetId, AssetsStringLimit, RX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
+	assets::{AssetId, AssetsStringLimit, COCOS_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	primitives::{
 		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 	},
@@ -164,9 +164,9 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_RX:
-		// in our template, we map to 1/10 of that, or 1/10 MILLI_RX
-		let p = MILLI_RX / 10;
+		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_COCOS:
+		// in our template, we map to 1/10 of that, or 1/10 MILLI_COCOS
+		let p = MILLI_COCOS / 10;
 		let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -213,9 +213,9 @@ pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
 // Unit = the base number of indivisible units for balances
-pub const RX: Balance = 1_000_000_000_000;
-pub const MILLI_RX: Balance = 1_000_000_000;
-pub const MICRO_RX: Balance = 1_000_000;
+pub const COCOS: Balance = 1_000_000_000_000;
+pub const MILLI_COCOS: Balance = 1_000_000_000;
+pub const MICRO_COCOS: Balance = 1_000_000;
 
 pub const ROC: Balance = 1_000_000_000_000;
 pub const MILLI_ROC: Balance = 1_000_000_000;
@@ -223,7 +223,7 @@ pub const MICRO_ROC: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
-	items as Balance * RX + (bytes as Balance) * 300 * MILLI_RX
+	items as Balance * COCOS + (bytes as Balance) * 300 * MILLI_COCOS
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -235,7 +235,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-pub const RX_EXISTENTIAL_DEPOSIT: Balance = MILLI_RX;
+pub const COCOS_EXISTENTIAL_DEPOSIT: Balance = MILLI_COCOS;
 pub const ROC_EXISTENTIAL_DEPOSIT: Balance = MILLI_ROC;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
@@ -356,7 +356,7 @@ impl pallet_authorship::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = RX_EXISTENTIAL_DEPOSIT;
+	pub const ExistentialDeposit: Balance = COCOS_EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
@@ -405,7 +405,7 @@ impl orml_tokens::Config for Runtime {
 }
 
 parameter_types! {
-	pub const NativeAssetId: AssetId = RX_ASSET_ID;
+	pub const NativeAssetId: AssetId = COCOS_ASSET_ID;
 }
 
 impl orml_currencies::Config for Runtime {
@@ -429,7 +429,7 @@ impl orml_asset_registry::Config for Runtime {
 
 parameter_types! {
 	// TODO: Make sure this is reasonable
-	pub const TransactionByteFee: Balance = 20 * MICRO_RX;
+	pub const TransactionByteFee: Balance = 20 * MICRO_COCOS;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -711,8 +711,8 @@ parameter_types! {
 	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
 	pub RegionXTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
 	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 100 * RX;
-	pub const ProposalBondMaximum: Balance = 5_000 * RX;
+	pub const ProposalBondMinimum: Balance = 100 * COCOS;
+	pub const ProposalBondMaximum: Balance = 5_000 * COCOS;
 	pub const SpendPeriod: BlockNumber = 7 * DAYS;
 	pub const PayoutPeriod: BlockNumber = 30 * DAYS;
 	pub const MaxApprovals: u32 = 50;

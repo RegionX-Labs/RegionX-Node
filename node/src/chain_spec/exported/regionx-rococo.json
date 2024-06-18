@@ -10,7 +10,7 @@
   "properties": {
     "ss58Format": 95,
     "tokenDecimals": 12,
-    "tokenSymbol": "RX"
+    "tokenSymbol": "COCOS"
   },
   "relay_chain": "rococo",
   "para_id": 4444,
@@ -108,7 +108,7 @@
               1000000000000000
             ],
             [
-              "feWFbV6iyCK8BeRXuJhLgFtr1yTJE3JyFrmDRXnyX1CXvjkBN",
+              "feWFbV6iyCK8BeCOCOSuJhLgFtr1yTJE3JyFrmDCOCOSnyX1CXvjkBN",
               1000000000000000
             ],
             [
@@ -192,7 +192,7 @@
               1000000000000000
             ],
             [
-              "feYCXeovF8PrbzsSM5tUmhTKrFDYRX7p5fMiboRqdbncwKXLs",
+              "feYCXeovF8PrbzsSM5tUmhTKrFDYCOCOS7p5fMiboRqdbncwKXLs",
               1000000000000000
             ],
             [

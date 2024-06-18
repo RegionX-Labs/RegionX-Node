@@ -71,7 +71,7 @@ parameter_types! {
 	pub const AlarmInterval: BlockNumber = 1;
 	pub const UndecidingTimeout: BlockNumber = 14 * DAYS;
 	pub const DelegatedReferendaSubmissionDeposit: Balance = ROC;
-	pub const NativeReferendaSubmissionDeposit: Balance = 50 * RX;
+	pub const NativeReferendaSubmissionDeposit: Balance = 50 * COCOS;
 }
 
 impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
