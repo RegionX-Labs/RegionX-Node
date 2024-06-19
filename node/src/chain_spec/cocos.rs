@@ -16,7 +16,7 @@
 use crate::chain_spec::{
 	get_account_id_from_seed, get_collator_keys_from_seed, ChainSpec, Extensions,
 };
-use cocos_runtime::{COCOS_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
+use cocos_runtime::{COCOS, COCOS_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
 use regionx_runtime_common::{
@@ -167,7 +167,10 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 			"parachainId": id,
 		},
 		"collatorSelection": {
-			"candidacyBond": COCOS_EXISTENTIAL_DEPOSIT * 1000,
+			"candidacyBond": 500 * COCOS,
+			"invulnerables": [
+				"5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn"
+			]
 		},
 		"assetRegistry": {
 			"lastAssetId": RELAY_CHAIN_ASSET_ID,
@@ -181,6 +184,63 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 					additional: Default::default(),
 				})
 			)]
+		},
+		"sudo": {
+			// The RegionX account:
+			//
+			// It should be needless to say that sudo is only available on the testnet.
+			"key": "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL"
+		},
+		"balances": {
+		  "balances": [
+			[
+			  "5GL8eBMvz9LwbXciBufpEFPpecPbWM62gSH3hd9aAb1jrpo1",
+			  1_000_000 * COCOS
+			],
+			[
+			  "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL",
+			  1_000_000 * COCOS
+			],
+			[
+			  "5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm",
+			  500_000 * COCOS
+			],
+			[
+			  "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn",
+			  500_000 * COCOS
+			],
+			[
+			  "5DqwiiztGYq9P4jxG7RJJQWz4dMYREtbMrMSv62TwRAqVa1v",
+			  500_000 * COCOS
+			],
+			[
+			  "5FbSPQrNexY6dZ2JEVRguyqtrZbpD7qzRttXbiWKneagfEqr",
+			  500_000 * COCOS
+			],
+			[
+			  "5HGe3UghLKPuYPAkzFWwfARkGmE5mJ4sjs5SF8xfvtiB7o4v",
+			  10_000 * COCOS
+			],
+		  ]
+		},
+		"technicalCommittee": {
+			"members": [
+				"5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL",
+				"5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm",
+				"5DqwiiztGYq9P4jxG7RJJQWz4dMYREtbMrMSv62TwRAqVa1v",
+				"5FbSPQrNexY6dZ2JEVRguyqtrZbpD7qzRttXbiWKneagfEqr",
+			]
+		},
+		"session": {
+		  "keys": [
+			[
+			  "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn",
+			  "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn",
+			  {
+				"aura": "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn"
+			  }
+			]
+		  ]
 		},
 		"polkadotXcm": {
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),

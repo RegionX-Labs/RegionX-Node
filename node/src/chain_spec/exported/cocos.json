@@ -12,7 +12,7 @@
     "tokenDecimals": 12,
     "tokenSymbol": "COCOS"
   },
-  "relay_chain": "rococo-local",
+  "relay_chain": "rococo",
   "para_id": 4444,
   "codeSubstitutes": {},
   "genesis": {
@@ -61,35 +61,40 @@
           ],
           "lastAssetId": 1
         },
-        "sudo": {
-          "key": "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL"
-        },
         "balances": {
           "balances": [
             [
               "5GL8eBMvz9LwbXciBufpEFPpecPbWM62gSH3hd9aAb1jrpo1",
-              2000000000000000000
+              1000000000000000000
             ],
             [
               "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL",
-              2000000000000000000
+              1000000000000000000
             ],
             [
               "5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm",
-              1500000000000000000
+              500000000000000000
             ],
             [
               "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn",
-              1500000000000000000
+              500000000000000000
+            ],
+            [
+              "5DqwiiztGYq9P4jxG7RJJQWz4dMYREtbMrMSv62TwRAqVa1v",
+              500000000000000000
+            ],
+            [
+              "5FbSPQrNexY6dZ2JEVRguyqtrZbpD7qzRttXbiWKneagfEqr",
+              500000000000000000
             ],
             [
               "5HGe3UghLKPuYPAkzFWwfARkGmE5mJ4sjs5SF8xfvtiB7o4v",
-              50000000000000000
+              10000000000000000
             ]
           ]
         },
         "collatorSelection": {
-          "candidacyBond": 100000000000000,
+          "candidacyBond": 500000000000000,
           "invulnerables": [
             "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn"
           ]
@@ -109,6 +114,17 @@
                 "aura": "5F76zmFCUHBaSFoCecC54VCiZMpPWnRy4oPBrZpeLiuYRVCn"
               }
             ]
+          ]
+        },
+        "sudo": {
+          "key": "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL"
+        },
+        "technicalCommittee": {
+          "members": [
+            "5DnKDEGGGo67szBc6tA42HMv7Q2vHe9y9xxNbaXknUcDPJcL",
+            "5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm",
+            "5DqwiiztGYq9P4jxG7RJJQWz4dMYREtbMrMSv62TwRAqVa1v",
+            "5FbSPQrNexY6dZ2JEVRguyqtrZbpD7qzRttXbiWKneagfEqr"
           ]
         }
       }
