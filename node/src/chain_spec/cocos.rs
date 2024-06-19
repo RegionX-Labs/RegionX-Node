@@ -42,7 +42,7 @@ pub fn cocos_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisConfig> {
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), 95.into());
+	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
 		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
@@ -62,7 +62,7 @@ pub fn development_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisCon
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), 95.into());
+	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
 		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
@@ -114,7 +114,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<cocos_runtime::RuntimeGenesisC
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "COCOS".into());
 	properties.insert("tokenDecimals".into(), 12.into());
-	properties.insert("ss58Format".into(), 95.into());
+	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
 		cocos_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),

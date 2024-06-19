@@ -60,7 +60,7 @@ pub type SovereignAccountOf = (
 
 parameter_types! {
 	pub const BlockHashCount: u64 = 250;
-	pub const SS58Prefix: u8 = 95;
+	pub const SS58Prefix: u8 = 42;
 }
 
 impl frame_system::Config for Test {
