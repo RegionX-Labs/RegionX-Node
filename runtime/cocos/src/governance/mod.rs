@@ -198,6 +198,6 @@ impl pallet_whitelist::Config for Runtime {
 	type WhitelistOrigin = EnsureTwoThirdTechnicalCommittee;
 	#[cfg(feature = "runtime-benchmarks")]
 	type WhitelistOrigin = EnsureRoot<AccountId>;
-	type DispatchWhitelistedOrigin = EitherOf<WhitelistedCaller, EnsureRoot<AccountId>>;
+	type DispatchWhitelistedOrigin = EitherOf<EnsureRoot<AccountId>, WhitelistedCaller>;
 	type Preimages = Preimage;
 }
