@@ -193,7 +193,10 @@ impl pallet_whitelist::Config for Runtime {
 	type WeightInfo = ();
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type WhitelistOrigin = EnsureTwoThirdTechnicalCommittee;
+	#[cfg(feature = "runtime-benchmarks")]
+	type WhitelistOrigin = EnsureRoot<AccountId>;
 	type DispatchWhitelistedOrigin = WhitelistedCaller;
 	type Preimages = Preimage;
 }
