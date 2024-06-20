@@ -18,8 +18,8 @@ use super::*;
 mod origins;
 pub use origins::{pallet_custom_origins, Spender, WhitelistedCaller};
 mod tracks;
-pub use tracks::*;
 use frame_support::traits::EitherOf;
+pub use tracks::*;
 
 use polkadot_runtime_common::prod_or_fast;
 
