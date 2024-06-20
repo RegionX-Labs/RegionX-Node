@@ -19,6 +19,7 @@ mod origins;
 pub use origins::{pallet_custom_origins, Spender, WhitelistedCaller};
 mod tracks;
 pub use tracks::*;
+use frame_support::traits::EitherOf;
 
 use polkadot_runtime_common::prod_or_fast;
 
@@ -197,6 +198,6 @@ impl pallet_whitelist::Config for Runtime {
 	type WhitelistOrigin = EnsureTwoThirdTechnicalCommittee;
 	#[cfg(feature = "runtime-benchmarks")]
 	type WhitelistOrigin = EnsureRoot<AccountId>;
-	type DispatchWhitelistedOrigin = EitherOfDiverse<WhitelistedCaller, EnsureRoot<AccountId>>;
+	type DispatchWhitelistedOrigin = EitherOf<WhitelistedCaller, EnsureRoot<AccountId>>;
 	type Preimages = Preimage;
 }
