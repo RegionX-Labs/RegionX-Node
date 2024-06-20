@@ -841,19 +841,21 @@ construct_runtime!(
 	}
 );
 
+// TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
+		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]
 		[pallet_proxy, Proxy]
-		[pallet_proxy, Preimage]
+		[pallet_preimage, Preimage]
 		[pallet_timestamp, Timestamp]
 		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]
-		[pallet_proxy, Scheduler]
+		[pallet_scheduler, Scheduler]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_regions, Regions]
