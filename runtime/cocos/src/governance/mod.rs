@@ -81,10 +81,16 @@ impl pallet_referenda::Config<DelegatedReferendaInstance> for Runtime {
 	type Scheduler = Scheduler;
 	type Currency = RelaychainCurrency;
 	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type CancelOrigin =
 		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type CancelOrigin = EnsureRoot<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type KillOrigin =
 		EitherOfDiverse<EnsureTwoThirdTechnicalCommittee, EnsureTwoThirdGeneralCouncil>;
+	#[cfg(feature = "runtime-benchmarks")]
+	type KillOrigin = EnsureRoot<AccountId>;
 	type Slash = (); // TODO: Treasury. NOTE: We need multi-asset treasury to support this.
 	type Votes = pallet_conviction_voting::VotesOf<Runtime, DelegatedConvictionVotingInstance>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime, DelegatedConvictionVotingInstance>;
@@ -103,8 +109,14 @@ impl pallet_referenda::Config<NativeReferendaInstance> for Runtime {
 	type Scheduler = Scheduler;
 	type Currency = Balances;
 	type SubmitOrigin = frame_system::EnsureSigned<AccountId>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type CancelOrigin = EnsureTwoThirdGeneralCouncil;
+	#[cfg(feature = "runtime-benchmarks")]
+	type CancelOrigin = EitherOfDiverse<EnsureTwoThirdGeneralCouncil, EnsureRoot<AccountId>>;
+	#[cfg(not(feature = "runtime-benchmarks"))]
 	type KillOrigin = EnsureTwoThirdGeneralCouncil;
+	#[cfg(feature = "runtime-benchmarks")]
+	type KillOrigin = EitherOfDiverse<EnsureTwoThirdGeneralCouncil, EnsureRoot<AccountId>>;
 	type Slash = Treasury;
 	type Votes = pallet_conviction_voting::VotesOf<Runtime, NativeConvictionVotingInstance>;
 	type Tally = pallet_conviction_voting::TallyOf<Runtime, NativeConvictionVotingInstance>;

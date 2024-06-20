@@ -25,5 +25,15 @@ modules=(
 
 # Iterate through each module and run the benchmark command
 for module_name in "${modules[@]}"; do
-    ./target/release/regionx-node benchmark pallet --chain cocos --pallet ${module_name} --steps 20 --repeat 50 --output ./runtime/cocos/src/weights/${module_name}.rs --header ./config/HEADER-GPL3 --template ./config/frame-weight-template.hbs --extrinsic=* --wasm-execution=compiled --heap-pages=4096
+    ./target/release/regionx-node benchmark pallet \
+    --chain cocos \
+    --pallet ${module_name} \
+    --steps 20 \
+    --repeat 50 \
+    --output ./runtime/cocos/src/weights/ \
+    --header ./config/HEADER-GPL3 \
+    --template ./config/frame-weight-template.hbs \
+    --extrinsic=* \
+    --wasm-execution=compiled \
+    --heap-pages=4096
 done
