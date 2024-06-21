@@ -32,7 +32,7 @@ for module_name in "${modules[@]}"; do
     --repeat 50 \
     --output ./runtime/cocos/src/weights/ \
     --header ./config/HEADER-GPL3 \
-    --template ./config/frame-weight-template.hbs \
+    --template ./config/runtime-weight-template.hbs \
     --extrinsic=* \
     --wasm-execution=compiled \
     --heap-pages=4096
