@@ -51,18 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_regions`.
-pub trait WeightInfo {
-	fn transfer() -> Weight;
-	fn request_region_record() -> Weight;
-	fn on_accept() -> Weight;
-	fn on_response() -> Weight;
-	fn on_timeout() -> Weight;
-}
-
 /// Weights for `pallet_regions` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_regions::WeightInfo for WeightInfo<T> {
 	/// Storage: `Regions::Regions` (r:1 w:1)
 	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
 	fn transfer() -> Weight {
@@ -123,70 +114,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(9_310_000, 3584)
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `Regions::Regions` (r:1 w:1)
-	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
-	fn transfer() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `168`
-		//  Estimated: `3584`
-		// Minimum execution time: 17_401_000 picoseconds.
-		Weight::from_parts(17_804_000, 3584)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Regions::Regions` (r:1 w:1)
-	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
-	/// Storage: `Ismp::LatestStateMachineHeight` (r:1 w:0)
-	/// Proof: `Ismp::LatestStateMachineHeight` (`max_values`: None, `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainInfo::ParachainId` (r:1 w:0)
-	/// Proof: `ParachainInfo::ParachainId` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// Storage: `Ismp::Nonce` (r:1 w:1)
-	/// Proof: `Ismp::Nonce` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Timestamp::Now` (r:1 w:0)
-	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	/// Storage: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473a610605b386e00611ea5ab7d28d2` (r:1 w:1)
-	/// Proof: UNKNOWN KEY `0x52657175657374436f6d6d69746d656e7473a610605b386e00611ea5ab7d28d2` (r:1 w:1)
-	fn request_region_record() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `527`
-		//  Estimated: `3992`
-		// Minimum execution time: 48_680_000 picoseconds.
-		Weight::from_parts(49_953_000, 3992)
-			.saturating_add(RocksDbWeight::get().reads(6_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-	}
-	fn on_accept() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 746_000 picoseconds.
-		Weight::from_parts(791_000, 0)
-	}
-	/// Storage: `Regions::Regions` (r:1 w:1)
-	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
-	fn on_response() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `168`
-		//  Estimated: `3584`
-		// Minimum execution time: 13_807_000 picoseconds.
-		Weight::from_parts(14_255_000, 3584)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Regions::Regions` (r:1 w:1)
-	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
-	fn on_timeout() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `168`
-		//  Estimated: `3584`
-		// Minimum execution time: 9_038_000 picoseconds.
-		Weight::from_parts(9_310_000, 3584)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 }

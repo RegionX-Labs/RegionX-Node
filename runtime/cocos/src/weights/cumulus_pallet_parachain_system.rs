@@ -51,14 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `cumulus_pallet_parachain_system`.
-pub trait WeightInfo {
-	fn enqueue_inbound_downward_messages(n: u32, ) -> Weight;
-}
-
 /// Weights for `cumulus_pallet_parachain_system` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> cumulus_pallet_parachain_system::WeightInfo for WeightInfo<T> {
 	/// Storage: `ParachainSystem::LastDmqMqcHead` (r:1 w:1)
 	/// Proof: `ParachainSystem::LastDmqMqcHead` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
@@ -81,32 +76,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 			.saturating_add(T::DbWeight::get().writes((1_u64).saturating_mul(n.into())))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `ParachainSystem::LastDmqMqcHead` (r:1 w:1)
-	/// Proof: `ParachainSystem::LastDmqMqcHead` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainSystem::ProcessedDownwardMessages` (r:0 w:1)
-	/// Proof: `ParachainSystem::ProcessedDownwardMessages` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `MessageQueue::Pages` (r:0 w:1000)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	/// The range of component `n` is `[0, 1000]`.
-	fn enqueue_inbound_downward_messages(n: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `82`
-		//  Estimated: `3517`
-		// Minimum execution time: 2_948_000 picoseconds.
-		Weight::from_parts(3_080_000, 3517)
-			// Standard Error: 21_336
-			.saturating_add(Weight::from_parts(200_862_475, 0).saturating_mul(n.into()))
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-			.saturating_add(RocksDbWeight::get().writes((1_u64).saturating_mul(n.into())))
 	}
 }

@@ -51,20 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `cumulus_pallet_xcmp_queue`.
-pub trait WeightInfo {
-	fn set_config_with_u32() -> Weight;
-	fn enqueue_xcmp_message() -> Weight;
-	fn suspend_channel() -> Weight;
-	fn resume_channel() -> Weight;
-	fn take_first_concatenated_xcm() -> Weight;
-	fn on_idle_good_msg() -> Weight;
-	fn on_idle_large_msg() -> Weight;
-}
-
 /// Weights for `cumulus_pallet_xcmp_queue` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> cumulus_pallet_xcmp_queue::WeightInfo for WeightInfo<T> {
 	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:1)
 	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
 	fn set_config_with_u32() -> Weight {
@@ -159,104 +148,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(63_672_000, 69175)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:1)
-	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn set_config_with_u32() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `76`
-		//  Estimated: `1561`
-		// Minimum execution time: 5_633_000 picoseconds.
-		Weight::from_parts(5_919_000, 1561)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
-	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
-	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `MessageQueue::Pages` (r:0 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn enqueue_xcmp_message() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `82`
-		//  Estimated: `3517`
-		// Minimum execution time: 15_413_000 picoseconds.
-		Weight::from_parts(15_950_000, 3517)
-			.saturating_add(RocksDbWeight::get().reads(4_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-	}
-	/// Storage: `XcmpQueue::OutboundXcmpStatus` (r:1 w:1)
-	/// Proof: `XcmpQueue::OutboundXcmpStatus` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn suspend_channel() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `76`
-		//  Estimated: `1561`
-		// Minimum execution time: 3_286_000 picoseconds.
-		Weight::from_parts(3_433_000, 1561)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `XcmpQueue::OutboundXcmpStatus` (r:1 w:1)
-	/// Proof: `XcmpQueue::OutboundXcmpStatus` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	fn resume_channel() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `111`
-		//  Estimated: `1596`
-		// Minimum execution time: 4_174_000 picoseconds.
-		Weight::from_parts(4_303_000, 1596)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	fn take_first_concatenated_xcm() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `0`
-		//  Estimated: `0`
-		// Minimum execution time: 56_387_000 picoseconds.
-		Weight::from_parts(56_686_000, 0)
-	}
-	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
-	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
-	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6bedc49980ba3aa32b0a189290fd036649` (r:1 w:1)
-	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6bedc49980ba3aa32b0a189290fd036649` (r:1 w:1)
-	/// Storage: `MessageQueue::BookStateFor` (r:1 w:1)
-	/// Proof: `MessageQueue::BookStateFor` (`max_values`: None, `max_size`: Some(52), added: 2527, mode: `MaxEncodedLen`)
-	/// Storage: `MessageQueue::ServiceHead` (r:1 w:1)
-	/// Proof: `MessageQueue::ServiceHead` (`max_values`: Some(1), `max_size`: Some(5), added: 500, mode: `MaxEncodedLen`)
-	/// Storage: `XcmpQueue::QueueConfig` (r:1 w:0)
-	/// Proof: `XcmpQueue::QueueConfig` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `XcmpQueue::InboundXcmpSuspended` (r:1 w:0)
-	/// Proof: `XcmpQueue::InboundXcmpSuspended` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `MessageQueue::Pages` (r:0 w:1)
-	/// Proof: `MessageQueue::Pages` (`max_values`: None, `max_size`: Some(65585), added: 68060, mode: `MaxEncodedLen`)
-	fn on_idle_good_msg() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `65711`
-		//  Estimated: `69176`
-		// Minimum execution time: 122_603_000 picoseconds.
-		Weight::from_parts(124_947_000, 69176)
-			.saturating_add(RocksDbWeight::get().reads(6_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
-	}
-	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
-	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6b345d8e88afa015075c945637c07e8f20` (r:1 w:1)
-	/// Storage: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6bedc49980ba3aa32b0a189290fd036649` (r:1 w:1)
-	/// Proof: UNKNOWN KEY `0x7b3237373ffdfeb1cab4222e3b520d6bedc49980ba3aa32b0a189290fd036649` (r:1 w:1)
-	fn on_idle_large_msg() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `65710`
-		//  Estimated: `69175`
-		// Minimum execution time: 61_931_000 picoseconds.
-		Weight::from_parts(63_672_000, 69175)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }

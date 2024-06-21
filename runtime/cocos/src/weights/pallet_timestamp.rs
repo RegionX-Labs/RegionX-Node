@@ -51,15 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_timestamp`.
-pub trait WeightInfo {
-	fn set() -> Weight;
-	fn on_finalize() -> Weight;
-}
-
 /// Weights for `pallet_timestamp` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_timestamp::WeightInfo for WeightInfo<T> {
 	/// Storage: `Timestamp::Now` (r:1 w:1)
 	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
 	/// Storage: `Aura::CurrentSlot` (r:1 w:0)
@@ -72,30 +66,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(10_325_000, 1493)
 			.saturating_add(T::DbWeight::get().reads(2_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
-	}
-	fn on_finalize() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `94`
-		//  Estimated: `0`
-		// Minimum execution time: 4_123_000 picoseconds.
-		Weight::from_parts(4_337_000, 0)
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `Timestamp::Now` (r:1 w:1)
-	/// Proof: `Timestamp::Now` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	/// Storage: `Aura::CurrentSlot` (r:1 w:0)
-	/// Proof: `Aura::CurrentSlot` (`max_values`: Some(1), `max_size`: Some(8), added: 503, mode: `MaxEncodedLen`)
-	fn set() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `194`
-		//  Estimated: `1493`
-		// Minimum execution time: 10_008_000 picoseconds.
-		Weight::from_parts(10_325_000, 1493)
-			.saturating_add(RocksDbWeight::get().reads(2_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 	fn on_finalize() -> Weight {
 		// Proof Size summary in bytes:

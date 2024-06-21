@@ -51,17 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_orders`.
-pub trait WeightInfo {
-	fn create_order() -> Weight;
-	fn cancel_order() -> Weight;
-	fn contribute() -> Weight;
-	fn remove_contribution() -> Weight;
-}
-
 /// Weights for `pallet_orders` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_orders::WeightInfo for WeightInfo<T> {
 	/// Storage: `Tokens::Accounts` (r:2 w:2)
 	/// Proof: `Tokens::Accounts` (`max_values`: None, `max_size`: Some(108), added: 2583, mode: `MaxEncodedLen`)
 	/// Storage: `AssetRegistry::Metadata` (r:1 w:0)
@@ -137,85 +129,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 		Weight::from_parts(46_880_000, 4202)
 			.saturating_add(T::DbWeight::get().reads(5_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `Tokens::Accounts` (r:2 w:2)
-	/// Proof: `Tokens::Accounts` (`max_values`: None, `max_size`: Some(108), added: 2583, mode: `MaxEncodedLen`)
-	/// Storage: `AssetRegistry::Metadata` (r:1 w:0)
-	/// Proof: `AssetRegistry::Metadata` (`max_values`: None, `max_size`: Some(737), added: 3212, mode: `MaxEncodedLen`)
-	/// Storage: `System::Account` (r:1 w:1)
-	/// Proof: `System::Account` (`max_values`: None, `max_size`: Some(128), added: 2603, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::NextOrderId` (r:1 w:1)
-	/// Proof: `Orders::NextOrderId` (`max_values`: Some(1), `max_size`: Some(4), added: 499, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::Orders` (r:0 w:1)
-	/// Proof: `Orders::Orders` (`max_values`: None, `max_size`: Some(66), added: 2541, mode: `MaxEncodedLen`)
-	fn create_order() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `521`
-		//  Estimated: `6156`
-		// Minimum execution time: 50_719_000 picoseconds.
-		Weight::from_parts(51_670_000, 6156)
-			.saturating_add(RocksDbWeight::get().reads(5_u64))
-			.saturating_add(RocksDbWeight::get().writes(5_u64))
-	}
-	/// Storage: `ParachainSystem::ValidationData` (r:1 w:0)
-	/// Proof: `ParachainSystem::ValidationData` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainSystem::LastRelayChainBlockNumber` (r:1 w:0)
-	/// Proof: `ParachainSystem::LastRelayChainBlockNumber` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Orders::Orders` (r:1 w:1)
-	/// Proof: `Orders::Orders` (`max_values`: None, `max_size`: Some(66), added: 2541, mode: `MaxEncodedLen`)
-	fn cancel_order() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `268`
-		//  Estimated: `3531`
-		// Minimum execution time: 18_180_000 picoseconds.
-		Weight::from_parts(18_907_000, 3531)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
-	}
-	/// Storage: `Orders::Orders` (r:1 w:0)
-	/// Proof: `Orders::Orders` (`max_values`: None, `max_size`: Some(66), added: 2541, mode: `MaxEncodedLen`)
-	/// Storage: `ParachainSystem::ValidationData` (r:1 w:0)
-	/// Proof: `ParachainSystem::ValidationData` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `ParachainSystem::LastRelayChainBlockNumber` (r:1 w:0)
-	/// Proof: `ParachainSystem::LastRelayChainBlockNumber` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
-	/// Storage: `Tokens::Accounts` (r:1 w:1)
-	/// Proof: `Tokens::Accounts` (`max_values`: None, `max_size`: Some(108), added: 2583, mode: `MaxEncodedLen`)
-	/// Storage: `AssetRegistry::Metadata` (r:1 w:0)
-	/// Proof: `AssetRegistry::Metadata` (`max_values`: None, `max_size`: Some(737), added: 3212, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::Contributions` (r:1 w:1)
-	/// Proof: `Orders::Contributions` (`max_values`: None, `max_size`: Some(84), added: 2559, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::TotalContributions` (r:1 w:1)
-	/// Proof: `Orders::TotalContributions` (`max_values`: None, `max_size`: Some(36), added: 2511, mode: `MaxEncodedLen`)
-	fn contribute() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `648`
-		//  Estimated: `4202`
-		// Minimum execution time: 50_579_000 picoseconds.
-		Weight::from_parts(52_044_000, 4202)
-			.saturating_add(RocksDbWeight::get().reads(7_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-	}
-	/// Storage: `Orders::Orders` (r:1 w:0)
-	/// Proof: `Orders::Orders` (`max_values`: None, `max_size`: Some(66), added: 2541, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::Contributions` (r:1 w:1)
-	/// Proof: `Orders::Contributions` (`max_values`: None, `max_size`: Some(84), added: 2559, mode: `MaxEncodedLen`)
-	/// Storage: `Tokens::Accounts` (r:1 w:1)
-	/// Proof: `Tokens::Accounts` (`max_values`: None, `max_size`: Some(108), added: 2583, mode: `MaxEncodedLen`)
-	/// Storage: `AssetRegistry::Metadata` (r:1 w:0)
-	/// Proof: `AssetRegistry::Metadata` (`max_values`: None, `max_size`: Some(737), added: 3212, mode: `MaxEncodedLen`)
-	/// Storage: `Orders::TotalContributions` (r:1 w:1)
-	/// Proof: `Orders::TotalContributions` (`max_values`: None, `max_size`: Some(36), added: 2511, mode: `MaxEncodedLen`)
-	fn remove_contribution() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `649`
-		//  Estimated: `4202`
-		// Minimum execution time: 45_801_000 picoseconds.
-		Weight::from_parts(46_880_000, 4202)
-			.saturating_add(RocksDbWeight::get().reads(5_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
 	}
 }

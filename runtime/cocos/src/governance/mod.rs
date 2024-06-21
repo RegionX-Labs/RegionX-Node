@@ -45,7 +45,8 @@ parameter_types! {
 }
 
 impl pallet_conviction_voting::Config<DelegatedConvictionVotingInstance> for Runtime {
-	type WeightInfo = ();
+	type WeightInfo =
+		weights::pallet_conviction_voting_delegated_conviction_voting::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = RelaychainCurrency;
 	type VoteLockingPeriod = VoteLockingPeriod;
@@ -58,7 +59,8 @@ impl pallet_conviction_voting::Config<DelegatedConvictionVotingInstance> for Run
 }
 
 impl pallet_conviction_voting::Config<NativeConvictionVotingInstance> for Runtime {
-	type WeightInfo = ();
+	type WeightInfo =
+		weights::pallet_conviction_voting_native_conviction_voting::WeightInfo<Runtime>;
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type VoteLockingPeriod = VoteLockingPeriod;
@@ -191,7 +193,7 @@ impl pallet_membership::Config<TechnicalCommitteeMembershipInstance> for Runtime
 impl pallet_custom_origins::Config for Runtime {}
 
 impl pallet_whitelist::Config for Runtime {
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_whitelist::WeightInfo<Runtime>;
 	type RuntimeCall = RuntimeCall;
 	type RuntimeEvent = RuntimeEvent;
 	#[cfg(not(feature = "runtime-benchmarks"))]

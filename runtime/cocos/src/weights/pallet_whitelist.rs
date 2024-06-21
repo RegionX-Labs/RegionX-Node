@@ -51,17 +51,9 @@
 use frame_support::{traits::Get, weights::{Weight, constants::RocksDbWeight}};
 use core::marker::PhantomData;
 
-/// Weight functions needed for `pallet_whitelist`.
-pub trait WeightInfo {
-	fn whitelist_call() -> Weight;
-	fn remove_whitelisted_call() -> Weight;
-	fn dispatch_whitelisted_call(n: u32, ) -> Weight;
-	fn dispatch_whitelisted_call_with_preimage(n: u32, ) -> Weight;
-}
-
 /// Weights for `pallet_whitelist` using the Substrate node and recommended hardware.
-pub struct SubstrateWeight<T>(PhantomData<T>);
-impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
+pub struct WeightInfo<T>(PhantomData<T>);
+impl<T: frame_system::Config> pallet_whitelist::WeightInfo for WeightInfo<T> {
 	/// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
 	/// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
 	/// Storage: `Preimage::StatusFor` (r:1 w:0)
@@ -130,78 +122,5 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(Weight::from_parts(1_433, 0).saturating_mul(n.into()))
 			.saturating_add(T::DbWeight::get().reads(3_u64))
 			.saturating_add(T::DbWeight::get().writes(2_u64))
-	}
-}
-
-// For backwards compatibility and tests.
-impl WeightInfo for () {
-	/// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
-	/// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::StatusFor` (r:1 w:0)
-	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	fn whitelist_call() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `82`
-		//  Estimated: `3556`
-		// Minimum execution time: 23_000_000 picoseconds.
-		Weight::from_parts(23_574_000, 3556)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
-	/// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::StatusFor` (r:1 w:0)
-	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	fn remove_whitelisted_call() -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `210`
-		//  Estimated: `3556`
-		// Minimum execution time: 21_725_000 picoseconds.
-		Weight::from_parts(22_364_000, 3556)
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
-	}
-	/// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
-	/// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::PreimageFor` (r:1 w:1)
-	/// Proof: `Preimage::PreimageFor` (`max_values`: None, `max_size`: Some(4194344), added: 4196819, mode: `Measured`)
-	/// Storage: `Preimage::StatusFor` (r:1 w:0)
-	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// The range of component `n` is `[1, 4194294]`.
-	fn dispatch_whitelisted_call(n: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `286 + n * (1 ±0)`
-		//  Estimated: `3749 + n * (1 ±0)`
-		// Minimum execution time: 36_195_000 picoseconds.
-		Weight::from_parts(36_631_000, 3749)
-			// Standard Error: 13
-			.saturating_add(Weight::from_parts(1_591, 0).saturating_mul(n.into()))
-			.saturating_add(RocksDbWeight::get().reads(4_u64))
-			.saturating_add(RocksDbWeight::get().writes(3_u64))
-			.saturating_add(Weight::from_parts(0, 1).saturating_mul(n.into()))
-	}
-	/// Storage: `Whitelist::WhitelistedCall` (r:1 w:1)
-	/// Proof: `Whitelist::WhitelistedCall` (`max_values`: None, `max_size`: Some(40), added: 2515, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::StatusFor` (r:1 w:0)
-	/// Proof: `Preimage::StatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// Storage: `Preimage::RequestStatusFor` (r:1 w:1)
-	/// Proof: `Preimage::RequestStatusFor` (`max_values`: None, `max_size`: Some(91), added: 2566, mode: `MaxEncodedLen`)
-	/// The range of component `n` is `[1, 10000]`.
-	fn dispatch_whitelisted_call_with_preimage(n: u32, ) -> Weight {
-		// Proof Size summary in bytes:
-		//  Measured:  `210`
-		//  Estimated: `3556`
-		// Minimum execution time: 27_014_000 picoseconds.
-		Weight::from_parts(27_559_806, 3556)
-			// Standard Error: 3
-			.saturating_add(Weight::from_parts(1_433, 0).saturating_mul(n.into()))
-			.saturating_add(RocksDbWeight::get().reads(3_u64))
-			.saturating_add(RocksDbWeight::get().writes(2_u64))
 	}
 }
