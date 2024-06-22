@@ -2,9 +2,7 @@
   "name": "RegionX Cocos",
   "id": "cocos",
   "chainType": "Live",
-  "bootNodes": [
-    "/ip4/127.0.0.1/tcp/30333/p2p/12D3KooWGqyi6LtSTqLxrC8ggHH931ofWyfpVgVGEreV4mkK5u4a"
-  ],
+  "bootNodes": [],
   "telemetryEndpoints": null,
   "protocolId": "cocos",
   "properties": {
@@ -88,7 +86,7 @@
               500000000000000000
             ],
             [
-              "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
+              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
               100000000000000000
             ],
             [
@@ -100,7 +98,7 @@
         "collatorSelection": {
           "candidacyBond": 500000000000000,
           "invulnerables": [
-            "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC"
+            "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
           ]
         },
         "parachainInfo": {
@@ -112,10 +110,10 @@
         "session": {
           "keys": [
             [
-              "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
-              "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
+              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
+              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
               {
-                "aura": "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC"
+                "aura": "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
               }
             ]
           ]

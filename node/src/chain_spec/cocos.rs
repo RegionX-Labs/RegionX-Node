@@ -169,7 +169,7 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 		"collatorSelection": {
 			"candidacyBond": 500 * COCOS,
 			"invulnerables": [
-				"5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC"
+				"5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
 			]
 		},
 		"assetRegistry": {
@@ -218,7 +218,7 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 			  500_000 * COCOS
 			],
 			[
-			  "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
+			  "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
 			  100_000 * COCOS
 			],
 			[
@@ -238,10 +238,10 @@ fn cocos_genesis(id: ParaId) -> serde_json::Value {
 		"session": {
 		  "keys": [
 			[
-			  "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
-			  "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC",
+			  "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
+			  "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
 			  {
-				"aura": "5DLpzkqyJsHp4n2dA2so1inM4WoPCyiWKKtn7xhtpAAG9YpC"
+				"aura": "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
 			  }
 			]
 		  ]
