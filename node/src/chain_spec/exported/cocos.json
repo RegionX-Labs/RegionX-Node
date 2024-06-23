@@ -11,7 +11,7 @@
     "tokenSymbol": "COCOS"
   },
   "relay_chain": "rococo",
-  "para_id": 4459,
+  "para_id": 4461,
   "codeSubstitutes": {},
   "genesis": {
     "runtimeGenesis": {
@@ -86,7 +86,7 @@
               500000000000000000
             ],
             [
-              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
+              "5EYSPgABbK5zTYCPXup2Rte5wjV5Df4Px8f8LBkKxYXx56f2",
               100000000000000000
             ],
             [
@@ -98,11 +98,11 @@
         "collatorSelection": {
           "candidacyBond": 500000000000000,
           "invulnerables": [
-            "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
+            "5EYSPgABbK5zTYCPXup2Rte5wjV5Df4Px8f8LBkKxYXx56f2"
           ]
         },
         "parachainInfo": {
-          "parachainId": 4459
+          "parachainId": 4461
         },
         "polkadotXcm": {
           "safeXcmVersion": 3
@@ -110,10 +110,10 @@
         "session": {
           "keys": [
             [
-              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
-              "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk",
+              "5EYSPgABbK5zTYCPXup2Rte5wjV5Df4Px8f8LBkKxYXx56f2",
+              "5EYSPgABbK5zTYCPXup2Rte5wjV5Df4Px8f8LBkKxYXx56f2",
               {
-                "aura": "5EhXPDWsnjMAhZvCM99bZV5pWEpmEMn7TqVTjaeVE24Pqkyk"
+                "aura": "5EYSPgABbK5zTYCPXup2Rte5wjV5Df4Px8f8LBkKxYXx56f2"
               }
             ]
           ]
