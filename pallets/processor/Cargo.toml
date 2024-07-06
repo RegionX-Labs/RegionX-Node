@@ -1,7 +1,7 @@
 [package]
-name = "pallet-orders"
+name = "pallet-processor"
 authors = ["Anonymous"]
-description = "Pallet for handling order creation and crowdfunding"
+description = "Pallet for processing coretime orders"
 version = "0.1.0"
 license = "GPLv3"
 edition = "2021"
@@ -15,7 +15,6 @@ codec = { workspace = true, default-features = false, features = ["derive"] }
 scale-info = { workspace = true, default-features = false, features = ["derive"] }
 
 # Substrate
-cumulus-primitives-core = { workspace = true, default-features = false }
 frame-benchmarking = { workspace = true, default-features = false, optional = true }
 frame-support = { workspace = true, default-features = false }
 frame-system = { workspace = true, default-features = false }
@@ -43,7 +42,6 @@ runtime-benchmarks = [
 std = [
 	"log/std",
 	"codec/std",
-	"cumulus-primitives-core/std",
 	"scale-info/std",
 	"sp-io/std",
 	"sp-core/std",
@@ -53,7 +51,7 @@ std = [
 	"frame-system/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
-	"order-primitives/std",
+    "order-primitives/std",
 	"xcm/std",
 	"xcm-executor/std",
 	"xcm-builder/std",

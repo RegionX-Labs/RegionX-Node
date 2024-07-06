@@ -16,6 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::traits::Currency;
+use order_primitives::{Order, OrderId, OrderInspect, Requirements};
 pub use pallet::*;
 use pallet_broker::Timeslice;
 use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion};
@@ -285,6 +286,12 @@ pub mod pallet {
 			let latest_rc_block = T::RCBlockNumberProvider::current_block_number();
 			let timeslice_period = T::TimeslicePeriod::get();
 			(latest_rc_block / timeslice_period).saturated_into()
+		}
+	}
+
+	impl<T: Config> OrderInspect<T::AccountId> for Pallet<T> {
+		fn order(order_id: &OrderId) -> Option<Order<T::AccountId>> {
+			Orders::<T>::get(order_id)
 		}
 	}
 }

@@ -6037,6 +6037,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "order-primitives"
+version = "0.1.0"
+dependencies = [
+ "cumulus-primitives-core",
+ "frame-support",
+ "log",
+ "pallet-broker",
+ "parity-scale-codec",
+ "scale-info",
+ "sp-core",
+]
+
+[[package]]
 name = "ordered-float"
 version = "1.1.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6967,6 +6980,7 @@ dependencies = [
  "frame-support",
  "frame-system",
  "log",
+ "order-primitives",
  "pallet-balances",
  "pallet-broker",
  "parity-scale-codec",
@@ -6996,6 +7010,28 @@ dependencies = [
  "sp-io",
  "sp-runtime",
  "sp-std",
+]
+
+[[package]]
+name = "pallet-processor"
+version = "0.1.0"
+dependencies = [
+ "frame-benchmarking",
+ "frame-support",
+ "frame-system",
+ "log",
+ "order-primitives",
+ "pallet-balances",
+ "pallet-broker",
+ "parity-scale-codec",
+ "scale-info",
+ "serde",
+ "sp-core",
+ "sp-io",
+ "sp-runtime",
+ "staging-xcm",
+ "staging-xcm-builder",
+ "staging-xcm-executor",
 ]
 
 [[package]]
