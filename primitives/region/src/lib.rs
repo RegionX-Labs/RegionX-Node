@@ -79,4 +79,9 @@ pub trait RegionInspect<AccountId: Clone, Balance: Clone> {
 	///
 	/// If `None` the region record was not found.
 	fn record(region_id: &Self::ItemId) -> Option<RegionRecord<AccountId, Balance>>;
+
+	/// Get the region data.
+	///
+	/// If `None` the region was not found.
+	fn region(region_id: &Self::ItemId) -> Option<Region<AccountId, Balance>>;
 }

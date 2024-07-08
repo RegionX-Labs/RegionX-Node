@@ -15,21 +15,25 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::Currency;
+use frame_support::traits::{nonfungible::Transfer, Currency};
 use frame_system::WeightInfo;
-use order_primitives::{OrderId, OrderInspect};
+use nonfungible_primitives::LockableNonFungible;
+use order_primitives::{OrderId, OrderInspect, Requirements};
 pub use pallet::*;
-use pallet_broker::RegionId;
+use pallet_broker::{RegionId, RegionRecord};
+use region_primitives::RegionInspect;
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+
+pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{fungible::Mutate, Get, ReservableCurrency},
+		traits::{fungible::Mutate, ReservableCurrency},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -42,8 +46,15 @@ pub mod pallet {
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 
-        /// Type over which we can access order data.
-        type Orders: OrderInspect<Self::AccountId>;
+		/// Type over which we can access order data.
+		type Orders: OrderInspect<Self::AccountId>;
+
+		/// Type providing a way of reading, transferring and locking regions.
+		//
+		// The item id is `u128` encoded RegionId.
+		type Regions: Transfer<Self::AccountId, ItemId = u128>
+			+ LockableNonFungible<Self::AccountId, ItemId = u128>
+			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>;
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
@@ -59,16 +70,20 @@ pub mod pallet {
 	#[pallet::error]
 	#[derive(PartialEq)]
 	pub enum Error<T> {
-		/// Invalid order id.
-		InvalidOrderId,
-	}
-
-	#[pallet::hooks]
-	impl<T: Config> Hooks<BlockNumberFor<T>> for Pallet<T> {
-		fn on_initialize(_: BlockNumberFor<T>) -> Weight {
-            
-			Weight::zero()
-		}
+		/// Region not found.
+		UnknownRegion,
+		/// Order not found.
+		UnknownOrder,
+		/// The region doesn't start when it should based on the requirements.
+		RegionStartsTooLate,
+		/// The region doesn't end when it should based on the requirements.
+		RegionEndsTooSoon,
+		/// Regions core mask doesn't match the requirements.
+		RegionCoreOccupancyInsufficient,
+		/// The region record is not available.
+		RecordUnavailable,
+		/// Locked regions cannot be listed on sale.
+		RegionLocked,
 	}
 
 	#[pallet::call]
@@ -80,13 +95,38 @@ pub mod pallet {
 			order_id: OrderId,
 			region_id: RegionId,
 		) -> DispatchResult {
-			// TODO
+			let who = ensure_signed(origin)?;
 
-            // Maybe move this to the orders pallet?
-            
-            // PROS: simpler
+			let region = T::Regions::region(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+			ensure!(!region.locked, Error::<T>::RegionLocked);
 
-            // CONS: Adds opinionation.
+			let record = region.record.get().ok_or(Error::<T>::RecordUnavailable)?;
+			let order = T::Orders::order(&order_id).ok_or(Error::<T>::UnknownOrder)?;
+
+			Self::ensure_matching_requirements(region_id, record, order.requirements)?;
+
+			// TODO: process fulfilling.
+
+			// TODO: event
+
+			Ok(())
+		}
+	}
+
+	impl<T: Config> Pallet<T> {
+		pub(crate) fn ensure_matching_requirements(
+			region_id: RegionId,
+			record: RegionRecordOf<T>,
+			requirements: Requirements,
+		) -> DispatchResult {
+			ensure!(region_id.begin <= requirements.begin, Error::<T>::RegionStartsTooLate);
+			ensure!(record.end >= requirements.end, Error::<T>::RegionEndsTooSoon);
+
+			let mask_as_nominator = region_id.mask.count_ones() * (57600 / 80);
+			ensure!(
+				mask_as_nominator >= requirements.core_occupancy.into(),
+				Error::<T>::RegionCoreOccupancyInsufficient
+			);
 
 			Ok(())
 		}

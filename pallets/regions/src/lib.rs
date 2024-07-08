@@ -103,13 +103,7 @@ pub mod pallet {
 	/// Regions that got cross-chain transferred to the RegionX parachain.
 	#[pallet::storage]
 	#[pallet::getter(fn regions)]
-	pub type Regions<T> = StorageMap<
-		_,
-		Blake2_128Concat,
-		RegionId,
-		Region<<T as frame_system::Config>::AccountId, BalanceOf<T>>,
-		OptionQuery,
-	>;
+	pub type Regions<T> = StorageMap<_, Blake2_128Concat, RegionId, RegionOf<T>, OptionQuery>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]

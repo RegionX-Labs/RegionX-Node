@@ -25,7 +25,9 @@ pallet-broker = { workspace = true, default-features = false }
 xcm-executor = { workspace = true, default-features = false }
 
 # Local
+nonfungible-primitives = { workspace = true, default-features = false }
 order-primitives = { workspace = true, default-features = false }
+region-primitives = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }
@@ -51,7 +53,9 @@ std = [
 	"frame-system/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
+    "nonfungible-primitives/std",
     "order-primitives/std",
+    "region-primitives/std",
 	"xcm/std",
 	"xcm-executor/std",
 	"xcm-builder/std",
