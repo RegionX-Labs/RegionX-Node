@@ -65,7 +65,9 @@ pub mod pallet {
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
-	pub enum Event<T: Config> {}
+	pub enum Event<T: Config> {
+		OrderFulfilled { order_id: OrderId, region_id: RegionId, seller: T::AccountId },
+	}
 
 	#[pallet::error]
 	#[derive(PartialEq)]
@@ -84,6 +86,8 @@ pub mod pallet {
 		RecordUnavailable,
 		/// Locked regions cannot be listed on sale.
 		RegionLocked,
+		/// The caller is not the owner of the region.
+		NotOwner,
 	}
 
 	#[pallet::call]
@@ -100,14 +104,23 @@ pub mod pallet {
 			let region = T::Regions::region(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
 			ensure!(!region.locked, Error::<T>::RegionLocked);
 
+			ensure!(region.owner == who, Error::<T>::NotOwner);
+
 			let record = region.record.get().ok_or(Error::<T>::RecordUnavailable)?;
 			let order = T::Orders::order(&order_id).ok_or(Error::<T>::UnknownOrder)?;
 
 			Self::ensure_matching_requirements(region_id, record, order.requirements)?;
 
-			// TODO: process fulfilling.
+			// Transfer the region to the order creator
+			T::Regions::transfer(&region_id.into(), &order.creator)?;
+			// Transfer the tokens collected by the order to the caller(ie the seller)
+			// FIXME: Price ???
+			// T::Currency::transfer(&order.creator, &region.owner)
 
-			// TODO: event
+			// remove the order
+			T::Orders::remove_order(&order_id);
+
+			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
 
 			Ok(())
 		}

@@ -293,5 +293,9 @@ pub mod pallet {
 		fn order(order_id: &OrderId) -> Option<Order<T::AccountId>> {
 			Orders::<T>::get(order_id)
 		}
+
+		fn remove_order(order_id: &OrderId) {
+			Orders::<T>::remove(order_id)
+		}
 	}
 }

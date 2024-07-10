@@ -50,4 +50,7 @@ pub trait OrderInspect<AccountId: Clone> {
 	///
 	/// If `None` the order was not found.
 	fn order(order_id: &OrderId) -> Option<Order<AccountId>>;
+
+	/// Remove an order with the associated id.
+	fn remove_order(order_id: &OrderId);
 }
