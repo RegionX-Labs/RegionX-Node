@@ -15,10 +15,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::Currency;
+use frame_support::traits::{Currency, ExistenceRequirement};
 pub use pallet::*;
 use pallet_broker::Timeslice;
-use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion};
+use sp_runtime::{
+	traits::{BlockNumberProvider, Convert},
+	SaturatedConversion,
+};
 use xcm_executor::traits::ConvertLocation;
 
 #[cfg(test)]
@@ -72,6 +75,9 @@ pub mod pallet {
 		///
 		/// This is used for determining the current timeslice.
 		type RCBlockNumberProvider: BlockNumberProvider;
+
+		/// A way for getting the associated account of an order.
+		type OrderToAccountId: Convert<OrderId, Self::AccountId>;
 
 		/// Number of Relay-chain blocks per timeslice.
 		#[pallet::constant]
@@ -220,6 +226,13 @@ pub mod pallet {
 			ensure!(Self::current_timeslice() < order.requirements.end, Error::<T>::OrderExpired);
 
 			ensure!(amount >= T::MinimumContribution::get(), Error::<T>::InvalidAmount);
+			let order_account = T::OrderToAccountId::convert(order_id);
+			<<T as Config>::Currency as Currency<T::AccountId>>::transfer(
+				&who,
+				&order_account,
+				amount,
+				ExistenceRequirement::KeepAlive,
+			)?;
 			T::Currency::reserve(&who, amount)?;
 
 			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
@@ -250,7 +263,7 @@ pub mod pallet {
 			let amount: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
 			ensure!(amount != Default::default(), Error::<T>::NoContribution);
 
-			T::Currency::unreserve(&who, amount);
+			// T::Currency::unreserve(&who, amount);
 			Contributions::<T>::remove(order_id, who.clone());
 
 			let mut total_contributions = TotalContributions::<T>::get(order_id);
