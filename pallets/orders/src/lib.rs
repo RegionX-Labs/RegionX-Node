@@ -125,15 +125,6 @@ pub mod pallet {
 		ValueQuery,
 	>;
 
-	/// The total amount that was contributed to an order.
-	///
-	/// The sum of contributions for a specific order from the `Contributions` map should be equal
-	/// to the total contribution stored here.
-	#[pallet::storage]
-	#[pallet::getter(fn total_contributions)]
-	pub type TotalContributions<T: Config> =
-		StorageMap<_, Blake2_128Concat, OrderId, BalanceOf<T>, ValueQuery>;
-
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
@@ -240,10 +231,6 @@ pub mod pallet {
 			contribution = contribution.saturating_add(amount);
 			Contributions::<T>::insert(order_id, who.clone(), contribution);
 
-			let mut total_contributions = TotalContributions::<T>::get(order_id);
-			total_contributions = total_contributions.saturating_add(amount);
-			TotalContributions::<T>::insert(order_id, total_contributions);
-
 			Self::deposit_event(Event::Contributed { order_id, who, amount });
 
 			Ok(())
@@ -272,10 +259,6 @@ pub mod pallet {
 				ExistenceRequirement::AllowDeath,
 			)?;
 			Contributions::<T>::remove(order_id, who.clone());
-
-			let mut total_contributions = TotalContributions::<T>::get(order_id);
-			total_contributions = total_contributions.saturating_sub(amount);
-			TotalContributions::<T>::insert(order_id, total_contributions);
 
 			Self::deposit_event(Event::ContributionRemoved { who, order_id, amount });
 

@@ -149,7 +149,6 @@ fn contribute_works() {
 		// Check storage items
 		assert_eq!(Orders::contributions(0, CHARLIE), 500);
 		assert_eq!(Orders::contributions(0, BOB), 100);
-		assert_eq!(Orders::total_contributions(0), 600);
 
 		assert_eq!(Balances::free_balance(CHARLIE), 500);
 		assert_eq!(Balances::free_balance(BOB), 900);
@@ -160,7 +159,6 @@ fn contribute_works() {
 		assert_ok!(Orders::contribute(RuntimeOrigin::signed(CHARLIE), 0, 300));
 		assert_eq!(Orders::contributions(0, CHARLIE), 800);
 		assert_eq!(Orders::contributions(0, BOB), 100);
-		assert_eq!(Orders::total_contributions(0), 900);
 
 		// Cannot contribute to an expired order
 		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
@@ -173,7 +171,6 @@ fn contribute_works() {
 
 		assert_eq!(Orders::contributions(0, CHARLIE), 800);
 		assert_eq!(Orders::contributions(0, BOB), 100);
-		assert_eq!(Orders::total_contributions(0), 900);
 	});
 }
 
@@ -198,7 +195,6 @@ fn remove_contribution_works() {
 		assert_ok!(Orders::contribute(RuntimeOrigin::signed(BOB), 0, 200));
 
 		assert_eq!(Balances::free_balance(CHARLIE), 500);
-		assert_eq!(Orders::total_contributions(0), 700);
 		let order_account = DummyOrderToAccountId::convert(0);
 		assert_eq!(Balances::free_balance(order_account.clone()), 700);
 
@@ -212,7 +208,6 @@ fn remove_contribution_works() {
 
 		// Check storage items
 		assert_eq!(Balances::free_balance(CHARLIE), 1000);
-		assert_eq!(Orders::total_contributions(0), 200);
 		assert_eq!(Balances::free_balance(order_account), 200);
 
 		// Check the events
