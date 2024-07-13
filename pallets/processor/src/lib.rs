@@ -15,13 +15,14 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::{nonfungible::Transfer, Currency};
+use frame_support::traits::{nonfungible::Transfer, Currency, ExistenceRequirement};
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderId, OrderInspect, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::RegionInspect;
+use sp_runtime::traits::Convert;
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -48,6 +49,9 @@ pub mod pallet {
 
 		/// Type over which we can access order data.
 		type Orders: OrderInspect<Self::AccountId>;
+
+		/// A way for getting the associated account of an order.
+		type OrderToAccountId: Convert<OrderId, Self::AccountId>;
 
 		/// Type providing a way of reading, transferring and locking regions.
 		//
@@ -113,9 +117,16 @@ pub mod pallet {
 
 			// Transfer the region to the order creator
 			T::Regions::transfer(&region_id.into(), &order.creator)?;
-			// Transfer the tokens collected by the order to the caller(ie the seller)
-			// FIXME: Price ???
-			// T::Currency::transfer(&order.creator, &region.owner)
+
+			let order_account = T::OrderToAccountId::convert(order_id);
+			let amount = T::Currency::free_balance(&order_account);
+
+			<<T as Config>::Currency as Currency<T::AccountId>>::transfer(
+				&order_account,
+				&who,
+				amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
 
 			// remove the order
 			T::Orders::remove_order(&order_id);
