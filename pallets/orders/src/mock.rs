@@ -130,7 +130,7 @@ impl BlockNumberProvider for RelayBlockNumberProvider {
 pub struct DummyOrderToAccountId;
 impl Convert<OrderId, AccountId> for DummyOrderToAccountId {
 	fn convert(o: OrderId) -> AccountId {
-		AccountId::new([o as u8; 32])
+		AccountId::new([255 - o as u8; 32])
 	}
 }
 

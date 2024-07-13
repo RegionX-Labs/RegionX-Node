@@ -90,6 +90,8 @@ pub mod pallet {
 		type OrderCreationCost: Get<BalanceOf<Self>>;
 
 		/// The minimum contribution to an order.
+		///
+		/// NOTE: This must be greater than existentail deposit.
 		#[pallet::constant]
 		type MinimumContribution: Get<BalanceOf<Self>>;
 
@@ -233,7 +235,6 @@ pub mod pallet {
 				amount,
 				ExistenceRequirement::KeepAlive,
 			)?;
-			T::Currency::reserve(&who, amount)?;
 
 			let mut contribution: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
 			contribution = contribution.saturating_add(amount);
@@ -263,7 +264,13 @@ pub mod pallet {
 			let amount: BalanceOf<T> = Contributions::<T>::get(order_id, who.clone());
 			ensure!(amount != Default::default(), Error::<T>::NoContribution);
 
-			// T::Currency::unreserve(&who, amount);
+			let order_account = T::OrderToAccountId::convert(order_id);
+			<<T as Config>::Currency as Currency<T::AccountId>>::transfer(
+				&order_account,
+				&who,
+				amount,
+				ExistenceRequirement::AllowDeath,
+			)?;
 			Contributions::<T>::remove(order_id, who.clone());
 
 			let mut total_contributions = TotalContributions::<T>::get(order_id);
