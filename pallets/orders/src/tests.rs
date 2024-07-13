@@ -152,7 +152,7 @@ fn contribute_works() {
 
 		assert_eq!(Balances::free_balance(CHARLIE), 500);
 		assert_eq!(Balances::free_balance(BOB), 900);
-		let order_account = DummyOrderToAccountId::convert(0);
+		let order_account = OrderToAccountId::convert(0);
 		assert_eq!(Balances::free_balance(order_account), 600);
 
 		// Additional contributions work:
@@ -195,7 +195,7 @@ fn remove_contribution_works() {
 		assert_ok!(Orders::contribute(RuntimeOrigin::signed(BOB), 0, 200));
 
 		assert_eq!(Balances::free_balance(CHARLIE), 500);
-		let order_account = DummyOrderToAccountId::convert(0);
+		let order_account = OrderToAccountId::convert(0);
 		assert_eq!(Balances::free_balance(order_account.clone()), 700);
 
 		// Cancel the expired order:

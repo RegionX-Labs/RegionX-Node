@@ -20,6 +20,7 @@ use frame_support::{
 	traits::{fungible::Mutate, tokens::Preservation, Everything},
 };
 use sp_core::{ConstU64, H256};
+use sp_io::hashing::blake2_256;
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
 	AccountId32, BuildStorage,
@@ -127,10 +128,10 @@ impl BlockNumberProvider for RelayBlockNumberProvider {
 	}
 }
 
-pub struct DummyOrderToAccountId;
-impl Convert<OrderId, AccountId> for DummyOrderToAccountId {
-	fn convert(o: OrderId) -> AccountId {
-		AccountId::new([255 - o as u8; 32])
+pub struct OrderToAccountId;
+impl Convert<OrderId, AccountId> for OrderToAccountId {
+	fn convert(order: OrderId) -> AccountId {
+		("order", order).using_encoded(blake2_256).into()
 	}
 }
 
@@ -141,7 +142,7 @@ impl crate::Config for Test {
 	type OrderCreationCost = ConstU64<100>;
 	type MinimumContribution = ConstU64<50>;
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
-	type OrderToAccountId = DummyOrderToAccountId;
+	type OrderToAccountId = OrderToAccountId;
 	type TimeslicePeriod = ConstU64<80>;
 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
 	type WeightInfo = ();
