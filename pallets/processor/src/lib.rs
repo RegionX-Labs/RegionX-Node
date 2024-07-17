@@ -131,6 +131,8 @@ pub mod pallet {
 			// remove the order
 			T::Orders::remove_order(&order_id);
 
+			// TODO: make assignment
+
 			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
 
 			Ok(())

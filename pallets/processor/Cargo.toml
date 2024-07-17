@@ -35,6 +35,8 @@ pallet-balances = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
 xcm-builder = { workspace = true, default-features = false }
 
+pallet-orders = { workspace = true, default-features = false }
+
 [features]
 default = ["std"]
 runtime-benchmarks = [
@@ -53,6 +55,7 @@ std = [
 	"frame-system/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
+	"pallet-orders/std",
     "nonfungible-primitives/std",
     "order-primitives/std",
     "region-primitives/std",
