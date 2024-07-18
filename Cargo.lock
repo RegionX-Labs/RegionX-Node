@@ -7025,6 +7025,7 @@ dependencies = [
  "order-primitives",
  "pallet-balances",
  "pallet-broker",
+ "pallet-orders",
  "parity-scale-codec",
  "region-primitives",
  "scale-info",
