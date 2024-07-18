@@ -53,7 +53,7 @@ use core::marker::PhantomData;
 
 /// Weights for `frame_system` using the Substrate node and recommended hardware.
 pub struct WeightInfo<T>(PhantomData<T>);
-impl<T: crate::Config> frame_system::WeightInfo for WeightInfo<T> {
+impl<T: frame_system::Config> frame_system::WeightInfo for WeightInfo<T> {
 	/// The range of component `b` is `[0, 3932160]`.
 	fn remark(b: u32, ) -> Weight {
 		// Proof Size summary in bytes:
