@@ -12,3 +12,10 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
+
+use crate::mock::new_test_ext;
+
+#[test]
+fn fulfill_order_works() {
+	new_test_ext(vec![(1, 1000)]).execute_with(|| {});
+}

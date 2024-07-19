@@ -122,6 +122,14 @@ pub mod pallet {
 			Self::ensure_matching_requirements(region_id, record, order.requirements)?;
 
 			// Transfer the region to the order creator
+			//
+			// NOTE: Since we are assigning the region in this extrinsic, we will transfer it to
+			// the order creator and in case the extrinsic fails we creator will keep the region and
+			// can assign it himelf.
+			//
+			// ADDITONAL NOTE: Instead of transferring to the creator we should maybe indicate
+			// somehow that the order was fulfilled, the region is reserved and anyone can call a
+			// separate extrinsic to assign it to the task.
 			T::Regions::transfer(&region_id.into(), &order.creator)?;
 
 			let order_account = T::OrderToAccountId::convert(order_id);
@@ -137,7 +145,9 @@ pub mod pallet {
 			// remove the order
 			T::Orders::remove_order(&order_id);
 
-			// TODO: make assignment
+			// TODO: make assignment - NOTE: if an error occurs don't return error, return ok and
+			// emit appropriate event so the transaction doesn't get reverted in case the assignment
+			// fails.
 
 			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
 
