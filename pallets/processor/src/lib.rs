@@ -15,6 +15,12 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+#[cfg(test)]
+mod mock;
+
+#[cfg(test)]
+mod tests;
+
 use frame_support::traits::{nonfungible::Transfer, Currency, ExistenceRequirement};
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;

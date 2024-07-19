@@ -35,7 +35,11 @@ pallet-balances = { workspace = true, default-features = false }
 xcm = { workspace = true, default-features = false }
 xcm-builder = { workspace = true, default-features = false }
 
+pallet-regions = { workspace = true, default-features = false }
 pallet-orders = { workspace = true, default-features = false }
+
+ismp = { workspace = true, default-features = false }
+ismp-testsuite = { workspace = true }
 
 [features]
 default = ["std"]
@@ -55,10 +59,12 @@ std = [
 	"frame-system/std",
 	"pallet-broker/std",
 	"pallet-balances/std",
+	"pallet-regions/std",
 	"pallet-orders/std",
     "nonfungible-primitives/std",
     "order-primitives/std",
     "region-primitives/std",
+	"ismp/std",
 	"xcm/std",
 	"xcm-executor/std",
 	"xcm-builder/std",
