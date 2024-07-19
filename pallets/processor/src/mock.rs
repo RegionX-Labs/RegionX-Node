@@ -20,28 +20,26 @@ use frame_support::{
 };
 use ismp::{
 	consensus::StateMachineId,
-	dispatcher::{FeeMetadata, IsmpDispatcher},
+	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
+	error::Error,
 	host::StateMachine,
+	router::PostResponse,
 };
 use ismp_testsuite::mocks::Host;
 use order_primitives::OrderId;
 use pallet_orders::FeeHandler;
 use pallet_regions::primitives::StateMachineHeightProvider;
 use sp_core::{ConstU64, H256};
-use sp_io::hashing::blake2_256;
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
-	AccountId32, BuildStorage, DispatchResult,
+	BuildStorage, DispatchResult,
 };
 use std::sync::Arc;
 
-type AccountId = AccountId32;
+type AccountId = u64;
 type Block = frame_system::mocking::MockBlock<Test>;
 
-pub const ALICE: AccountId = AccountId::new([0u8; 32]);
-pub const BOB: AccountId = AccountId::new([1u8; 32]);
-pub const CHARLIE: AccountId = AccountId::new([2u8; 32]);
-pub const TREASURY: AccountId = AccountId::new([3u8; 32]);
+pub const TREASURY: AccountId = 42;
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -51,6 +49,7 @@ frame_support::construct_runtime!(
 		Balances: pallet_balances,
 		Orders: pallet_orders::{Pallet, Call, Storage, Event<T>},
 		Regions: pallet_regions::{Pallet, Call, Storage, Event<T>},
+		Processor: crate::{Pallet, Call, Storage, Event<T>},
 	}
 );
 
@@ -179,7 +178,7 @@ impl BlockNumberProvider for RelayBlockNumberProvider {
 pub struct OrderToAccountId;
 impl Convert<OrderId, AccountId> for OrderToAccountId {
 	fn convert(order: OrderId) -> AccountId {
-		("order", order).using_encoded(blake2_256).into()
+		1000u64 + order as u64
 	}
 }
 
@@ -205,7 +204,7 @@ impl crate::Config for Test {
 }
 
 // Build genesis storage according to the mock runtime.
-pub fn new_test_ext(endowed_accounts: Vec<(AccountId32, u64)>) -> sp_io::TestExternalities {
+pub fn new_test_ext(endowed_accounts: Vec<(u64, u64)>) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 	pallet_balances::GenesisConfig::<Test> { balances: endowed_accounts }
 		.assimilate_storage(&mut t)
