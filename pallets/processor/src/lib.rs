@@ -17,10 +17,12 @@
 
 #[cfg(test)]
 mod mock;
-
 #[cfg(test)]
 mod tests;
 
+mod dispatcher;
+
+use crate::dispatcher::RegionAssigner;
 use frame_support::traits::{nonfungible::Transfer, Currency, ExistenceRequirement};
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
@@ -66,6 +68,9 @@ pub mod pallet {
 			+ LockableNonFungible<Self::AccountId, ItemId = u128>
 			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>;
 
+		/// Type assigning the region to the specified task.
+		type RegionAssigner: RegionAssigner;
+
 		/// Weight Info
 		type WeightInfo: WeightInfo;
 	}
@@ -76,7 +81,10 @@ pub mod pallet {
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
+		/// Order got fulfilled with a region which is matching the requirements.
 		OrderFulfilled { order_id: OrderId, region_id: RegionId, seller: T::AccountId },
+		/// Region assignment failed.
+		AssignmentFailed(DispatchError),
 	}
 
 	#[pallet::error]
@@ -145,9 +153,13 @@ pub mod pallet {
 			// remove the order
 			T::Orders::remove_order(&order_id);
 
-			// TODO: make assignment - NOTE: if an error occurs don't return error, return ok and
-			// emit appropriate event so the transaction doesn't get reverted in case the assignment
+			// NOTE: if an error occurs we don't return error, we instead return ok and emit
+			// appropriate event so the transaction doesn't get reverted in case the assignment
 			// fails.
+			if let Err(err) = T::RegionAssigner::assign(region_id, order.para_id) {
+				Self::deposit_event(Event::AssignmentFailed(err));
+				return Ok(())
+			}
 
 			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
 
