@@ -12,12 +12,19 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
+
 use crate::LOG_TARGET;
 use core::marker::PhantomData;
+use frame_support::weights::WeightToFee;
 use order_primitives::ParaId;
 use pallet_broker::RegionId;
 use sp_runtime::{traits::Get, DispatchResult};
 use xcm::latest::prelude::*;
+
+/// Type which encodes the region assignment call.
+pub trait AssignmentCallEncoder {
+	fn encode_assignment_call(region_id: RegionId, para_id: ParaId) -> Vec<u8>;
+}
 
 /// Type assigning the region to the specified task.
 pub trait RegionAssigner {
@@ -30,7 +37,31 @@ pub trait RegionAssigner {
 pub struct XcmRegionAssigner<T: crate::Config>(PhantomData<T>);
 impl<T: crate::Config + pallet_xcm::Config> RegionAssigner for XcmRegionAssigner<T> {
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
-		let message = Xcm(vec![]);
+		let assignment_call = T::AssignmentCallEncoder::encode_assignment_call(region_id, para_id);
+
+		// `ref_time` = TODO, we will round up to: TODO.
+		// `proof_size` = TODO, we will round up to: TODO.
+		let call_weight = Weight::from_parts(100_000_000, 10_000);
+		let fee = T::WeightToFee::weight_to_fee(&call_weight);
+
+		let message = Xcm(vec![
+			Instruction::WithdrawAsset(
+				MultiAsset { id: Concrete(MultiLocation::parent()), fun: Fungible(fee.into()) }
+					.into(),
+			),
+			Instruction::BuyExecution {
+				fees: MultiAsset {
+					id: Concrete(MultiLocation::parent()),
+					fun: Fungible(fee.into()),
+				},
+				weight_limit: Unlimited,
+			},
+			Instruction::Transact {
+				origin_kind: OriginKind::SovereignAccount,
+				require_weight_at_most: call_weight,
+				call: assignment_call.into(),
+			},
+		]);
 
 		match pallet_xcm::Pallet::<T>::send_xcm(
 			Here,

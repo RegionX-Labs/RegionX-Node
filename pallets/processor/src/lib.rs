@@ -15,8 +15,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use crate::assigner::RegionAssigner;
-use frame_support::traits::{nonfungible::Transfer, Currency, ExistenceRequirement};
+use crate::assigner::{AssignmentCallEncoder, RegionAssigner};
+use frame_support::{
+	traits::{nonfungible::Transfer, Currency, ExistenceRequirement},
+	weights::WeightToFee,
+};
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderId, OrderInspect, Requirements};
@@ -45,7 +48,11 @@ pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{fungible::Mutate, ReservableCurrency},
+		traits::{
+			fungible::{Inspect, Mutate},
+			tokens::Balance,
+			ReservableCurrency,
+		},
 	};
 	use frame_system::pallet_prelude::*;
 
@@ -57,6 +64,11 @@ pub mod pallet {
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
+
+		/// Relay chain balance type
+		type Balance: Balance
+			+ Into<<Self::Currency as Inspect<Self::AccountId>>::Balance>
+			+ Into<u128>;
 
 		/// Type over which we can access order data.
 		type Orders: OrderInspect<Self::AccountId>;
@@ -73,6 +85,12 @@ pub mod pallet {
 
 		/// Type assigning the region to the specified task.
 		type RegionAssigner: RegionAssigner;
+
+		/// Type whcih encodes the region assignment call.
+		type AssignmentCallEncoder: AssignmentCallEncoder;
+
+		/// Type for weight to fee conversion on the ReigonX parachain.
+		type WeightToFee: WeightToFee<Balance = Self::Balance>;
 
 		/// The Coretime chain from which we read region state.
 		type CoretimeChain: Get<MultiLocation>;
