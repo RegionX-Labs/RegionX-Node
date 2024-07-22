@@ -22,7 +22,11 @@ sp-io = { workspace = true, default-features = false }
 sp-core = { workspace = true, default-features = false }
 sp-runtime = { workspace = true, default-features = false }
 pallet-broker = { workspace = true, default-features = false }
+pallet-xcm = { workspace = true, default-features = false }
+
+xcm = { workspace = true, default-features = false }
 xcm-executor = { workspace = true, default-features = false }
+xcm-builder = { workspace = true, default-features = false }
 
 # Local
 nonfungible-primitives = { workspace = true, default-features = false }
@@ -32,8 +36,6 @@ region-primitives = { workspace = true, default-features = false }
 [dev-dependencies]
 serde = { workspace = true }
 pallet-balances = { workspace = true, default-features = false }
-xcm = { workspace = true, default-features = false }
-xcm-builder = { workspace = true, default-features = false }
 
 pallet-regions = { workspace = true, default-features = false }
 pallet-orders = { workspace = true, default-features = false }
@@ -61,6 +63,7 @@ std = [
 	"pallet-balances/std",
 	"pallet-regions/std",
 	"pallet-orders/std",
+	"pallet-xcm/std",
     "nonfungible-primitives/std",
     "order-primitives/std",
     "region-primitives/std",

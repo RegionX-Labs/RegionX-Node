@@ -7026,6 +7026,7 @@ dependencies = [
  "pallet-broker",
  "pallet-orders",
  "pallet-regions",
+ "pallet-xcm",
  "parity-scale-codec",
  "region-primitives",
  "scale-info",

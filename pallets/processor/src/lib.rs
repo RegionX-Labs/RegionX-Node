@@ -15,14 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-#[cfg(test)]
-mod mock;
-#[cfg(test)]
-mod tests;
-
-mod dispatcher;
-
-use crate::dispatcher::RegionAssigner;
+use crate::assigner::RegionAssigner;
 use frame_support::traits::{nonfungible::Transfer, Currency, ExistenceRequirement};
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
@@ -31,6 +24,16 @@ pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::RegionInspect;
 use sp_runtime::traits::Convert;
+use xcm::opaque::lts::MultiLocation;
+
+#[cfg(test)]
+mod mock;
+#[cfg(test)]
+mod tests;
+
+pub mod assigner;
+
+const LOG_TARGET: &str = "runtime::order-creator";
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
@@ -70,6 +73,9 @@ pub mod pallet {
 
 		/// Type assigning the region to the specified task.
 		type RegionAssigner: RegionAssigner;
+
+		/// The Coretime chain from which we read region state.
+		type CoretimeChain: Get<MultiLocation>;
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
