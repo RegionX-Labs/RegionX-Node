@@ -134,6 +134,16 @@ pub mod pallet {
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// Extrinsic for fulfilling an order.
+		///
+		/// This extrinsic will also attempt to assign the region to the `para_id` specified by the
+		/// order. In case this fails, the region will be TODO
+		///
+		/// ## Arguments:
+		/// - `origin`: Signed origin; the region owner.
+		/// - `order_id`: The order which the caller intends to fulfill.
+		/// - `region_id`: The region that the caller intends to sell to the coretime order. The
+		///   region must match the order requierements otherwise the extrinsic will fail
 		#[pallet::call_index(0)]
 		#[pallet::weight(10_000)]
 		pub fn fulfill_order(
@@ -177,6 +187,8 @@ pub mod pallet {
 			// remove the order
 			T::Orders::remove_order(&order_id);
 
+			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
+
 			// NOTE: if an error occurs we don't return error, we instead return ok and emit
 			// appropriate event so the transaction doesn't get reverted in case the assignment
 			// fails.
@@ -185,8 +197,13 @@ pub mod pallet {
 				return Ok(())
 			}
 
-			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
+			Ok(())
+		}
 
+		/// TODO
+		#[pallet::call_index(1)]
+		#[pallet::weight(10_000)]
+		pub fn assign(origin: OriginFor<T>) -> DispatchResult {
 			Ok(())
 		}
 	}
