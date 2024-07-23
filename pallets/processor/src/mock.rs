@@ -17,6 +17,10 @@ use frame_support::{
 	pallet_prelude::*,
 	parameter_types,
 	traits::{fungible::Mutate, tokens::Preservation, Everything},
+	weights::{
+		constants::ExtrinsicBaseWeight, WeightToFeeCoefficient, WeightToFeeCoefficients,
+		WeightToFeePolynomial,
+	},
 };
 use ismp::{
 	consensus::StateMachineId,
@@ -26,20 +30,41 @@ use ismp::{
 	router::PostResponse,
 };
 use ismp_testsuite::mocks::Host;
-use order_primitives::OrderId;
+use order_primitives::{OrderId, ParaId};
+use pallet_broker::RegionId;
 use pallet_orders::FeeHandler;
 use pallet_regions::primitives::StateMachineHeightProvider;
+use smallvec::smallvec;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
-	BuildStorage, DispatchResult,
+	BuildStorage, DispatchResult, Perbill,
 };
 use std::sync::Arc;
+use xcm::latest::prelude::*;
 
 type AccountId = u64;
 type Block = frame_system::mocking::MockBlock<Test>;
 
 pub const TREASURY: AccountId = 42;
+
+pub const MILLIUNIT: u64 = 1_000_000_000;
+pub struct WeightToFee;
+impl WeightToFeePolynomial for WeightToFee {
+	type Balance = u64;
+	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
+		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLIUNIT:
+		// in our template, we map to 1/10 of that, or 1/10 MILLIUNIT
+		let p = MILLIUNIT / 10;
+		let q = 100 * u64::from(ExtrinsicBaseWeight::get().ref_time());
+		smallvec![WeightToFeeCoefficient {
+			degree: 1,
+			negative: false,
+			coeff_frac: Perbill::from_rational(p % q, q),
+			coeff_integer: p / q,
+		}]
+	}
+}
 
 // Configure a mock runtime to test the pallet.
 frame_support::construct_runtime!(
@@ -137,13 +162,13 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
+	pub const CoretimeChainStateMachine: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 }
 
 impl pallet_regions::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
-	type CoretimeChain = CoretimeChain;
+	type CoretimeChain = CoretimeChainStateMachine;
 	type IsmpDispatcher = MockDispatcher<Self>;
 	type StateMachineHeightProvider = MockStateMachineHeightProvider;
 	type Timeout = ConstU64<1000>;
@@ -194,12 +219,51 @@ impl pallet_orders::Config for Test {
 	type WeightInfo = ();
 }
 
+parameter_types! {
+	// The location of the Coretime parachain.
+	pub const CoretimeChain: MultiLocation = MultiLocation { parents: 1, interior: X1(Parachain(1005)) };
+}
+
+#[derive(Encode, Decode)]
+enum CoretimeRuntimeCalls {
+	#[codec(index = 92)]
+	Broker(BrokerPalletCalls),
+}
+
+/// Broker pallet calls.
+//
+// NOTE: We only use the `CreateOrder` call.
+#[derive(Encode, Decode)]
+enum BrokerPalletCalls {
+	#[codec(index = 0)]
+	Assign(RegionId, ParaId),
+}
+
+pub struct AssignmentCallEncoder;
+impl crate::AssignmentCallEncoder for AssignmentCallEncoder {
+	fn encode_assignment_call(region_id: RegionId, para_id: ParaId) -> Vec<u8> {
+		CoretimeRuntimeCalls::Broker(BrokerPalletCalls::Assign(region_id, para_id)).encode()
+	}
+}
+
+pub struct DummyRegionAssigner;
+impl crate::RegionAssigner for DummyRegionAssigner {
+	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
+		Ok(())
+	}
+}
+
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
+	type Balance = u64;
 	type Orders = Orders;
 	type OrderToAccountId = OrderToAccountId;
 	type Regions = Regions;
+	type AssignmentCallEncoder = AssignmentCallEncoder;
+	type RegionAssigner = DummyRegionAssigner;
+	type CoretimeChain = CoretimeChain;
+	type WeightToFee = WeightToFee;
 	type WeightInfo = ();
 }
 

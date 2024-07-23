@@ -35,6 +35,7 @@ region-primitives = { workspace = true, default-features = false }
 
 [dev-dependencies]
 serde = { workspace = true }
+smallvec = { workspace = true }
 pallet-balances = { workspace = true, default-features = false }
 
 pallet-regions = { workspace = true, default-features = false }
