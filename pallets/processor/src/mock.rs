@@ -251,6 +251,10 @@ thread_local! {
 	pub static ASSIGNMENTS: RefCell<Vec<(RegionId, ParaId)>> = Default::default();
 }
 
+pub fn assignments() -> Vec<(RegionId, ParaId)> {
+	ASSIGNMENTS.with(|assignments| assignments.borrow().clone())
+}
+
 pub struct DummyRegionAssigner;
 impl crate::RegionAssigner for DummyRegionAssigner {
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
