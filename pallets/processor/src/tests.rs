@@ -96,3 +96,51 @@ fn fulfill_order_works() {
 		assert_eq!(assignments(), vec![(region_id, 2000.into())]);
 	});
 }
+
+#[test]
+fn ensure_matching_requirements_works() {
+	new_test_ext(vec![]).execute_with(|| {
+		let requirements = Requirements {
+			begin: 0,
+			end: 8,
+			core_occupancy: 28800, // Half of a core.
+		};
+
+		// Region starts too late:
+		assert_noop!(
+			Processor::ensure_matching_requirements(
+				RegionId { begin: 2, core: 0, mask: CoreMask::complete() },
+				RegionRecord { end: 10, owner: 1, paid: None },
+				requirements.clone()
+			),
+			Error::<Test>::RegionStartsTooLate
+		);
+
+		// Region ends too soon:
+		assert_noop!(
+			Processor::ensure_matching_requirements(
+				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
+				RegionRecord { end: 4, owner: 1, paid: None },
+				requirements.clone()
+			),
+			Error::<Test>::RegionEndsTooSoon
+		);
+
+		// Region core occupancy insufficient:
+		assert_noop!(
+			Processor::ensure_matching_requirements(
+				RegionId { begin: 0, core: 0, mask: CoreMask::from_chunk(0, 39) },
+				RegionRecord { end: 8, owner: 1, paid: None },
+				requirements.clone()
+			),
+			Error::<Test>::RegionCoreOccupancyInsufficient
+		);
+
+		// Works when all requirements are met:
+		assert_ok!(Processor::ensure_matching_requirements(
+			RegionId { begin: 0, core: 0, mask: CoreMask::from_chunk(0, 40) },
+			RegionRecord { end: 8, owner: 1, paid: None },
+			requirements.clone()
+		),);
+	})
+}
