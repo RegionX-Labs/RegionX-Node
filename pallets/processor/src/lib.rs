@@ -112,7 +112,7 @@ pub mod pallet {
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Order got fulfilled with a region which is matching the requirements.
-		OrderFulfilled { order_id: OrderId, region_id: RegionId, seller: T::AccountId },
+		OrderProcessed { order_id: OrderId, region_id: RegionId, seller: T::AccountId },
 		/// Region got successfully assigned to a parachain.
 		RegionAssigned { region_id: RegionId, para_id: ParaId },
 		/// Region assignment failed.
@@ -202,7 +202,7 @@ pub mod pallet {
 			// remove the order
 			T::Orders::remove_order(&order_id);
 
-			Self::deposit_event(Event::OrderFulfilled { order_id, region_id, seller: who });
+			Self::deposit_event(Event::OrderProcessed { order_id, region_id, seller: who });
 
 			// NOTE: if an error occurs we don't return error, we instead return ok and emit
 			// appropriate event so the transaction doesn't get reverted in case the assignment

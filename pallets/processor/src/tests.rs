@@ -14,15 +14,18 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	mock::{assignments, new_test_ext, Balances, Orders, Processor, Regions, RuntimeOrigin, Test},
-	Error,
+	mock::{
+		assignments, new_test_ext, Balances, Orders, Processor, Regions, RuntimeOrigin, System,
+		Test,
+	},
+	Error, Event,
 };
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{nonfungible::Mutate, Currency},
 };
 use nonfungible_primitives::LockableNonFungible;
-use order_primitives::{Order, Requirements};
+use order_primitives::{Order, ParaId, Requirements};
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 
 #[test]
@@ -84,6 +87,11 @@ fn fulfill_order_works() {
 
 		Regions::unlock(&region_id.into(), None).unwrap();
 		assert_ok!(Processor::fulfill_order(RuntimeOrigin::signed(region_owner), 0, region_id));
+		// Check events
+		System::assert_has_event(Event::RegionAssigned { region_id, para_id: 2000.into() }.into());
+		System::assert_has_event(
+			Event::OrderProcessed { order_id: 0, region_id, seller: region_owner }.into(),
+		);
 
 		// Ensure order is removed:
 		assert!(Orders::orders(0).is_none());
@@ -94,6 +102,24 @@ fn fulfill_order_works() {
 
 		// Assignment request is emmited:
 		assert_eq!(assignments(), vec![(region_id, 2000.into())]);
+	});
+}
+
+#[test]
+fn assign_works() {
+	new_test_ext(vec![]).execute_with(|| {
+		let para_id: ParaId = 2000.into();
+		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+
+		// Fails if the record cannot be found in `RegionAssignments`
+		assert_noop!(
+			Processor::assign(RuntimeOrigin::signed(1), region_id),
+			Error::<Test>::RegionAssignmentNotFound
+		);
+
+		crate::RegionAssignments::<Test>::insert(&region_id, para_id);
+		assert_ok!(Processor::assign(RuntimeOrigin::signed(1), region_id));
+		System::assert_last_event(Event::RegionAssigned { region_id, para_id: 2000.into() }.into());
 	});
 }
 
