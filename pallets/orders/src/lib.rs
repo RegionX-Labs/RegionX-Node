@@ -168,14 +168,7 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			T::OrderCreationFeeHandler::handle(&who, T::OrderCreationCost::get())?;
-
-			let order_id = NextOrderId::<T>::get();
-			Orders::<T>::insert(order_id, Order { creator: who.clone(), para_id, requirements });
-			NextOrderId::<T>::put(order_id.saturating_add(1));
-
-			Self::deposit_event(Event::OrderCreated { order_id, by: who });
-			Ok(())
+			Self::do_create_order(who, para_id, requirements)
 		}
 
 		/// Extrinsic for cancelling an order.
@@ -264,6 +257,24 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
+		pub fn do_create_order(
+			creator: T::AccountId,
+			para_id: ParaId,
+			requirements: Requirements,
+		) -> DispatchResult {
+			T::OrderCreationFeeHandler::handle(&creator, T::OrderCreationCost::get())?;
+
+			let order_id = NextOrderId::<T>::get();
+			Orders::<T>::insert(
+				order_id,
+				Order { creator: creator.clone(), para_id, requirements },
+			);
+			NextOrderId::<T>::put(order_id.saturating_add(1));
+
+			Self::deposit_event(Event::OrderCreated { order_id, by: creator });
+			Ok(())
+		}
+
 		pub(crate) fn do_cancel_order(
 			order_id: OrderId,
 			current_timeslice: Timeslice,

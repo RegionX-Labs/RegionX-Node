@@ -29,10 +29,18 @@ use region_primitives::RegionInspect;
 use sp_runtime::traits::Convert;
 use xcm::opaque::lts::MultiLocation;
 
+mod types;
+
+#[cfg(feature = "runtime-benchmarks")]
+use crate::types::OrderFactory;
+
 #[cfg(test)]
 mod mock;
 #[cfg(test)]
 mod tests;
+
+#[cfg(feature = "runtime-benchmarks")]
+mod benchmarking;
 
 pub mod assigner;
 
@@ -97,6 +105,9 @@ pub mod pallet {
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
+
+		#[cfg(feature = "runtime-benchmarks")]
+		type BenchmarkHelper: RegionFactory<Self> + OrderFactory<Self>;
 	}
 
 	#[pallet::pallet]
