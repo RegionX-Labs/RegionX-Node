@@ -19,7 +19,7 @@ use frame_support::traits::{fungible::Inspect, tokens::Preservation};
 use nonfungible_primitives::LockableNonFungible;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
-use region_primitives::RegionInspect;
+use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion, Saturating};
 
 mod types;
@@ -67,7 +67,8 @@ pub mod pallet {
 		// The item id is `u128` encoded RegionId.
 		type Regions: Transfer<Self::AccountId, ItemId = u128>
 			+ LockableNonFungible<Self::AccountId, ItemId = u128>
-			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>;
+			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>
+			+ RegionFactory<Self::AccountId, RegionRecordOf<Self>>;
 
 		/// Type for getting the current relay chain block.
 		///
@@ -80,9 +81,6 @@ pub mod pallet {
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
-
-		#[cfg(feature = "runtime-benchmarks")]
-		type BenchmarkHelper: RegionFactory<Self>;
 	}
 
 	#[pallet::pallet]

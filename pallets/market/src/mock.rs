@@ -13,12 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{RegionId, RegionRecordOf};
-use frame_support::{
-	pallet_prelude::*,
-	parameter_types,
-	traits::{nonfungible::Mutate, Everything},
-};
+use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
 use ismp::{
 	consensus::StateMachineId,
 	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
@@ -31,7 +26,7 @@ use pallet_regions::primitives::StateMachineHeightProvider;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-	BuildStorage, DispatchResult,
+	BuildStorage,
 };
 use std::sync::Arc;
 
@@ -158,19 +153,6 @@ impl BlockNumberProvider for RelayBlockNumberProvider {
 	}
 }
 
-pub struct RegionFactory;
-impl crate::RegionFactory<Test> for RegionFactory {
-	fn create_region(
-		region_id: RegionId,
-		record: RegionRecordOf<Test>,
-		owner: <Test as frame_system::Config>::AccountId,
-	) -> DispatchResult {
-		Regions::mint_into(&region_id.into(), &owner)?;
-		Regions::set_record(region_id, record.clone())?;
-		Ok(())
-	}
-}
-
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -178,8 +160,6 @@ impl crate::Config for Test {
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
 	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = RegionFactory;
 }
 
 // Build genesis storage according to the mock runtime.
