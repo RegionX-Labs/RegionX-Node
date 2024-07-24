@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use core::cell::RefCell;
 use frame_support::{
 	pallet_prelude::*,
 	parameter_types,
@@ -246,9 +247,17 @@ impl crate::AssignmentCallEncoder for AssignmentCallEncoder {
 	}
 }
 
+thread_local! {
+	pub static ASSIGNMENTS: RefCell<Vec<(RegionId, ParaId)>> = Default::default();
+}
+
 pub struct DummyRegionAssigner;
 impl crate::RegionAssigner for DummyRegionAssigner {
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
+		ASSIGNMENTS.with(|assignments| {
+			let mut assignments = assignments.borrow_mut();
+			assignments.push((region_id, para_id));
+		});
 		Ok(())
 	}
 }

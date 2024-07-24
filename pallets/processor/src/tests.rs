@@ -77,3 +77,5 @@ fn fulfill_order_works() {
 		assert_eq!(Regions::regions(region_id).unwrap().owner, 2000);
 	});
 }
+
+// TODO test: can't fulfill with a locked region.

@@ -22,7 +22,7 @@ use frame_support::{
 };
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
-use order_primitives::{OrderId, OrderInspect, Requirements};
+use order_primitives::{OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::RegionInspect;
@@ -102,11 +102,19 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	/// Specifies the assignment for each region.
+	#[pallet::storage]
+	#[pallet::getter(fn listings)]
+	pub type RegionAssignments<T: Config> =
+		StorageMap<_, Blake2_128Concat, RegionId, ParaId, OptionQuery>;
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {
 		/// Order got fulfilled with a region which is matching the requirements.
 		OrderFulfilled { order_id: OrderId, region_id: RegionId, seller: T::AccountId },
+		/// Region got successfully assigned to a parachain.
+		RegionAssigned { region_id: RegionId, para_id: ParaId },
 		/// Region assignment failed.
 		AssignmentFailed(DispatchError),
 	}
@@ -130,6 +138,8 @@ pub mod pallet {
 		RegionLocked,
 		/// The caller is not the owner of the region.
 		NotOwner,
+		/// We didn't find the task to which the region is supposed to be assigned.
+		RegionAssignmentNotFound,
 	}
 
 	#[pallet::call]
@@ -137,7 +147,11 @@ pub mod pallet {
 		/// Extrinsic for fulfilling an order.
 		///
 		/// This extrinsic will also attempt to assign the region to the `para_id` specified by the
-		/// order. In case this fails, the region will be TODO
+		/// order.
+		///
+		/// In case this fails, the region will be tranferred to the order creator and anyone can
+		/// call the `assign` extrinsic to assign it to specific para. The region will be locked,
+		/// and only assignment is allowed.
 		///
 		/// ## Arguments:
 		/// - `origin`: Signed origin; the region owner.
@@ -165,14 +179,15 @@ pub mod pallet {
 
 			// Transfer the region to the order creator
 			//
-			// NOTE: Since we are assigning the region in this extrinsic, we will transfer it to
-			// the order creator and in case the extrinsic fails we creator will keep the region and
-			// can assign it himelf.
-			//
-			// ADDITONAL NOTE: Instead of transferring to the creator we should maybe indicate
-			// somehow that the order was fulfilled, the region is reserved and anyone can call a
-			// separate extrinsic to assign it to the task.
+			// We will try to assign the region to the task, however before we do that we will
+			// transfer it to the order creator. This way in case the assignment fails the region
+			// will still be owned by the creator.
 			T::Regions::transfer(&region_id.into(), &order.creator)?;
+			// Lock the region so the owner creator cannot transfer it.
+			T::Regions::lock(&region_id.into(), None)?;
+			// Even though the region will be owned by the creator, anyone can assign it to the task
+			// by calling the `assign` extrinsic.
+			RegionAssignments::<T>::insert(&region_id, order.para_id);
 
 			let order_account = T::OrderToAccountId::convert(order_id);
 			let amount = T::Currency::free_balance(&order_account);
@@ -197,13 +212,26 @@ pub mod pallet {
 				return Ok(())
 			}
 
+			Self::deposit_event(Event::RegionAssigned { region_id, para_id: order.para_id });
 			Ok(())
 		}
 
-		/// TODO
+		/// Assign a region to the specific `para_id`.
+		///
+		/// ## Arguments:
+		/// - `origin`: Signed origin; can be anyone.
+		/// - `region_id`: The region that the caller intends assign. Must be found in the
+		///   `RegionAssignments` mapping.
 		#[pallet::call_index(1)]
 		#[pallet::weight(10_000)]
-		pub fn assign(origin: OriginFor<T>) -> DispatchResult {
+		pub fn assign(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
+			let _who = ensure_signed(origin)?;
+			let para_id = RegionAssignments::<T>::get(region_id)
+				.ok_or(Error::<T>::RegionAssignmentNotFound)?;
+
+			T::RegionAssigner::assign(region_id, para_id)?;
+
+			Self::deposit_event(Event::RegionAssigned { region_id, para_id });
 			Ok(())
 		}
 	}
