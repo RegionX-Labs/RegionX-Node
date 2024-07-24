@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::types::OrderFactory;
 use core::cell::RefCell;
 use frame_support::{
 	pallet_prelude::*,
@@ -32,8 +31,8 @@ use ismp::{
 	router::PostResponse,
 };
 use ismp_testsuite::mocks::Host;
-use order_primitives::{OrderId, ParaId, Requirements};
-use pallet_broker::{RegionId, RegionRecordOf};
+use order_primitives::{OrderId, ParaId};
+use pallet_broker::RegionId;
 use pallet_orders::FeeHandler;
 use pallet_regions::primitives::StateMachineHeightProvider;
 use smallvec::smallvec;
@@ -267,25 +266,6 @@ impl crate::RegionAssigner for DummyRegionAssigner {
 	}
 }
 
-pub struct BenchmarkHelper;
-impl RegionFactory<Test> for BenchmarkHelper {
-	fn create_region(
-		region_id: RegionId,
-		record: RegionRecordOf<Test>,
-		owner: <Test as frame_system::Config>::AccountId,
-	) -> DispatchResult {
-		Regions::mint_into(&region_id.into(), &owner)?;
-		Regions::set_record(region_id, record.clone())?;
-		Ok(())
-	}
-}
-
-impl crate::OrderFactory<Test> for BenchmarkHelper {
-	fn create_region(para_id: ParaId, requirements: Requirements) -> DispatchResult {
-		Orders::do_create_order(para_id, requirements)
-	}
-}
-
 impl crate::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
@@ -297,8 +277,6 @@ impl crate::Config for Test {
 	type RegionAssigner = DummyRegionAssigner;
 	type CoretimeChain = CoretimeChain;
 	type WeightToFee = WeightToFee;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = BenchmarkHelper;
 	type WeightInfo = ();
 }
 

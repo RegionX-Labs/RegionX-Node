@@ -43,13 +43,13 @@ mod benchmarks {
 			core_occupancy: 57600, // Full core.
 		};
 
-		assert_ok!(Orders::create_order(
+		assert_ok!(T::Orders::create_order(
 			T::RuntimeOrigin::signed(caller.clone()),
 			2000.into(),
 			requirements.clone()
 		));
 		// Create a region which meets the requirements:
-		// let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
 		// assert_ok!(Regions::mint_into(&region_id.into(), &caller));
 		// assert_ok!(Regions::set_record(region_id, RegionRecord { end: 10, owner: 1, paid: None
 		// }));

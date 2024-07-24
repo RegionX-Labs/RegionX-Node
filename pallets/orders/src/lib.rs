@@ -16,7 +16,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::traits::{Currency, ExistenceRequirement};
-use order_primitives::{Order, OrderId, OrderInspect, Requirements};
+use order_primitives::{Order, OrderFactory, OrderId, OrderInspect, Requirements};
 pub use pallet::*;
 use pallet_broker::Timeslice;
 use sp_runtime::{
@@ -257,7 +257,7 @@ pub mod pallet {
 	}
 
 	impl<T: Config> Pallet<T> {
-		pub fn do_create_order(
+		pub(crate) fn do_create_order(
 			creator: T::AccountId,
 			para_id: ParaId,
 			requirements: Requirements,
@@ -307,5 +307,16 @@ pub mod pallet {
 		fn remove_order(order_id: &OrderId) {
 			Orders::<T>::remove(order_id)
 		}
+	}
+}
+
+impl<T: crate::Config> OrderFactory<T::AccountId> for Pallet<T> {
+	fn create_order(
+		creator: T::AccountId,
+		para_id: ParaId,
+		requirements: Requirements,
+	) -> sp_runtime::DispatchResult {
+		crate::Pallet::<T>::do_create_order(creator, para_id, requirements)?;
+		Ok(())
 	}
 }

@@ -22,17 +22,12 @@ use frame_support::{
 };
 use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
-use order_primitives::{OrderId, OrderInspect, ParaId, Requirements};
+use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::RegionInspect;
 use sp_runtime::traits::Convert;
 use xcm::opaque::lts::MultiLocation;
-
-mod types;
-
-#[cfg(feature = "runtime-benchmarks")]
-use crate::types::OrderFactory;
 
 #[cfg(test)]
 mod mock;
@@ -79,7 +74,7 @@ pub mod pallet {
 			+ Into<u128>;
 
 		/// Type over which we can access order data.
-		type Orders: OrderInspect<Self::AccountId>;
+		type Orders: OrderInspect<Self::AccountId> + OrderFactory<Self::AccountId>;
 
 		/// A way for getting the associated account of an order.
 		type OrderToAccountId: Convert<OrderId, Self::AccountId>;
@@ -105,9 +100,6 @@ pub mod pallet {
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
-
-		#[cfg(feature = "runtime-benchmarks")]
-		type BenchmarkHelper: RegionFactory<Self> + OrderFactory<Self>;
 	}
 
 	#[pallet::pallet]

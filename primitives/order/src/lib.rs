@@ -15,6 +15,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 use codec::{Decode, Encode, MaxEncodedLen};
 pub use cumulus_primitives_core::ParaId;
+use frame_support::pallet_prelude::DispatchResult;
 use pallet_broker::{PartsOf57600, Timeslice};
 use scale_info::TypeInfo;
 
@@ -53,4 +54,13 @@ pub trait OrderInspect<AccountId: Clone> {
 
 	/// Remove an order with the associated id.
 	fn remove_order(order_id: &OrderId);
+}
+
+/// Trait for creating orders. Mostly used for benchmarking.
+pub trait OrderFactory<AccountId> {
+	fn create_order(
+		creator: AccountId,
+		para_id: ParaId,
+		requirements: Requirements,
+	) -> DispatchResult;
 }
