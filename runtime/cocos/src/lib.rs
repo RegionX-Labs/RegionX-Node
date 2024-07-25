@@ -787,7 +787,7 @@ impl pallet_orders::Config for Runtime {
 
 impl pallet_processor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
+	type Currency = RelaychainCurrency;
 	type Balance = Balance;
 	type Orders = Orders;
 	type OrderToAccountId = OrderToAccountId;

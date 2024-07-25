@@ -211,7 +211,7 @@ enum BrokerPalletCalls {
 
 pub struct AssignmentCallEncoder;
 impl AssignmentCallEncoderT for AssignmentCallEncoder {
-	fn encode_assignment_call(region_id: RegionId, para_id: ParaId) -> Vec<u8> {
+	fn encode_assignment_call(region_id: RegionId, para_id: ParaId) -> sp_std::vec::Vec<u8> {
 		CoretimeRuntimeCalls::Broker(BrokerPalletCalls::Assign(region_id, para_id)).encode()
 	}
 }
