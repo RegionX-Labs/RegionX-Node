@@ -18,6 +18,8 @@ use core::marker::PhantomData;
 use frame_support::weights::WeightToFee;
 use order_primitives::ParaId;
 use pallet_broker::RegionId;
+#[cfg(not(feature = "std"))]
+use scale_info::prelude::{vec, vec::Vec};
 use sp_runtime::{traits::Get, DispatchResult};
 use xcm::latest::prelude::*;
 

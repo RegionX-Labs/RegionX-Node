@@ -227,16 +227,14 @@ parameter_types! {
 
 #[derive(Encode, Decode)]
 enum CoretimeRuntimeCalls {
-	#[codec(index = 92)]
+	#[codec(index = 50)]
 	Broker(BrokerPalletCalls),
 }
 
-/// Broker pallet calls.
-//
-// NOTE: We only use the `CreateOrder` call.
+/// Broker pallet calls. We don't define all of them, only the ones we use.
 #[derive(Encode, Decode)]
 enum BrokerPalletCalls {
-	#[codec(index = 0)]
+	#[codec(index = 10)]
 	Assign(RegionId, ParaId),
 }
 
