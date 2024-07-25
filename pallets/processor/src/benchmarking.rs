@@ -24,8 +24,6 @@ use frame_support::{assert_ok, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 
-const SEED: u32 = 0;
-
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
 }
@@ -43,32 +41,37 @@ mod benchmarks {
 			core_occupancy: 57600, // Full core.
 		};
 
-		assert_ok!(T::Orders::create_order(
-			T::RuntimeOrigin::signed(caller.clone()),
-			2000.into(),
-			requirements.clone()
-		));
+		<T as crate::Config>::Currency::set_balance(&caller.clone(), u32::MAX.into());
+		assert_ok!(T::Orders::create_order(caller.clone(), 2000.into(), requirements.clone()));
+
 		// Create a region which meets the requirements:
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		// assert_ok!(Regions::mint_into(&region_id.into(), &caller));
-		// assert_ok!(Regions::set_record(region_id, RegionRecord { end: 10, owner: 1, paid: None
-		// }));
+		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), 0, region_id);
 
-		// assert_last_event::<T>(
-		// 	Event::Listed {
-		// 		region_id,
-		// 		timeslice_price,
-		// 		seller: caller.clone(),
-		// 		sale_recipient: caller,
-		// 	}
-		// 	.into(),
-		// );
+		assert_last_event::<T>(Event::RegionAssigned { region_id, para_id: 2000.into() }.into());
 
 		Ok(())
 	}
 
-	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(), crate::mock::Test);
+	#[benchmark]
+	fn assign() -> Result<(), BenchmarkError> {
+		let caller: T::AccountId = whitelisted_caller();
+		let para_id: ParaId = 2000.into();
+
+		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+		crate::RegionAssignments::<T>::insert(&region_id, para_id);
+
+		#[extrinsic_call]
+		_(RawOrigin::Signed(caller.clone()), region_id);
+
+		assert_last_event::<T>(Event::RegionAssigned { region_id, para_id }.into());
+
+		Ok(())
+	}
+
+	impl_benchmark_test_suite!(Pallet, crate::mock::new_test_ext(vec![]), crate::mock::Test);
 }

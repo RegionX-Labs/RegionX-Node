@@ -25,7 +25,7 @@ use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
-use region_primitives::RegionInspect;
+use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::traits::Convert;
 use xcm::opaque::lts::MultiLocation;
 
@@ -84,7 +84,8 @@ pub mod pallet {
 		// The item id is `u128` encoded RegionId.
 		type Regions: Transfer<Self::AccountId, ItemId = u128>
 			+ LockableNonFungible<Self::AccountId, ItemId = u128>
-			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>;
+			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>
+			+ RegionFactory<Self::AccountId, RegionRecordOf<Self>>;
 
 		/// Type assigning the region to the specified task.
 		type RegionAssigner: RegionAssigner;
