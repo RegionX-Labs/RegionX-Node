@@ -25,9 +25,9 @@ frame-support = { workspace = true, default-features = false }
 default = ["std"]
 std = [
     "cumulus-primitives-core/std",
-	"log/std",
-	"codec/std",
-	"scale-info/std",
+    "log/std",
+    "codec/std",
+    "scale-info/std",
     "sp-core/std",
     "pallet-broker/std",
     "frame-support/std",

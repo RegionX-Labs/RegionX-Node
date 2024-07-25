@@ -187,7 +187,7 @@ pub mod pallet {
 			// transfer it to the order creator. This way in case the assignment fails the region
 			// will still be owned by the creator.
 			T::Regions::transfer(&region_id.into(), &order.creator)?;
-			// Lock the region so the owner creator cannot transfer it.
+			// Lock the region so the order creator cannot transfer it.
 			T::Regions::lock(&region_id.into(), None)?;
 			// Even though the region will be owned by the creator, anyone can assign it to the task
 			// by calling the `assign` extrinsic.

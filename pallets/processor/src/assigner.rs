@@ -39,8 +39,11 @@ impl<T: crate::Config + pallet_xcm::Config> RegionAssigner for XcmRegionAssigner
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
 		let assignment_call = T::AssignmentCallEncoder::encode_assignment_call(region_id, para_id);
 
-		// `ref_time` = TODO, we will round up to: TODO.
-		// `proof_size` = TODO, we will round up to: TODO.
+		// NOTE: the weight is runtime dependant, however we are rounding up a lot so it should
+		// always be sufficient.
+		//
+		// `ref_time` = `31_500`, we will round up to: `100_000_000`.
+		// `proof_size` = `4700`, we will round up to: `10_000`.
 		let call_weight = Weight::from_parts(100_000_000, 10_000);
 		let fee = T::WeightToFee::weight_to_fee(&call_weight);
 
