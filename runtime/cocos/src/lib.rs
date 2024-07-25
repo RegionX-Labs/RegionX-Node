@@ -759,8 +759,6 @@ impl pallet_market::Config for Runtime {
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = impls::benchmarks::RegionFactory;
 }
 
 parameter_types! {
