@@ -23,6 +23,9 @@ use frame_benchmarking::v2::*;
 use frame_support::{assert_ok, traits::fungible::Mutate};
 use frame_system::RawOrigin;
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
+use sp_runtime::SaturatedConversion;
+
+const SEED: u32 = 0;
 
 fn assert_last_event<T: Config>(generic_event: <T as Config>::RuntimeEvent) {
 	frame_system::Pallet::<T>::assert_last_event(generic_event.into());
@@ -35,14 +38,19 @@ mod benchmarks {
 	#[benchmark]
 	fn fulfill_order() -> Result<(), BenchmarkError> {
 		let caller: T::AccountId = whitelisted_caller();
+		let alice: T::AccountId = account("alice", 0, SEED);
+
 		let requirements = Requirements {
 			begin: 0,
 			end: 8,
 			core_occupancy: 57600, // Full core.
 		};
 
-		<T as crate::Config>::Currency::set_balance(&caller.clone(), u32::MAX.into());
-		assert_ok!(T::Orders::create_order(caller.clone(), 2000.into(), requirements.clone()));
+		<T as crate::Config>::Currency::make_free_balance_be(
+			&alice.clone(),
+			u64::MAX.saturated_into(),
+		);
+		assert_ok!(T::Orders::create_order(alice.clone(), 2000.into(), requirements.clone()));
 
 		// Create a region which meets the requirements:
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
