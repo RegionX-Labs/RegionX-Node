@@ -20,7 +20,6 @@ use frame_support::{
 	traits::{nonfungible::Transfer, Currency, ExistenceRequirement},
 	weights::WeightToFee,
 };
-use frame_system::WeightInfo;
 use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
@@ -38,6 +37,9 @@ mod tests;
 mod benchmarking;
 
 pub mod assigner;
+
+mod weights;
+pub use weights::WeightInfo;
 
 const LOG_TARGET: &str = "runtime::order-creator";
 
@@ -163,7 +165,7 @@ pub mod pallet {
 		/// - `region_id`: The region that the caller intends to sell to the coretime order. The
 		///   region must match the order requierements otherwise the extrinsic will fail
 		#[pallet::call_index(0)]
-		#[pallet::weight(10_000)]
+		#[pallet::weight(T::WeightInfo::fulfill_order())]
 		pub fn fulfill_order(
 			origin: OriginFor<T>,
 			order_id: OrderId,
@@ -227,7 +229,7 @@ pub mod pallet {
 		/// - `region_id`: The region that the caller intends assign. Must be found in the
 		///   `RegionAssignments` mapping.
 		#[pallet::call_index(1)]
-		#[pallet::weight(10_000)]
+		#[pallet::weight(T::WeightInfo::assign())]
 		pub fn assign(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let _who = ensure_signed(origin)?;
 			let para_id = RegionAssignments::<T>::get(region_id)
