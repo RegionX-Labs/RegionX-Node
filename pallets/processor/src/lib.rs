@@ -193,7 +193,7 @@ pub mod pallet {
 			T::Regions::lock(&region_id.into(), None)?;
 			// Even though the region will be owned by the creator, anyone can assign it to the task
 			// by calling the `assign` extrinsic.
-			RegionAssignments::<T>::insert(&region_id, order.para_id);
+			RegionAssignments::<T>::insert(region_id, order.para_id);
 
 			let order_account = T::OrderToAccountId::convert(order_id);
 			let amount = T::Currency::free_balance(&order_account);
