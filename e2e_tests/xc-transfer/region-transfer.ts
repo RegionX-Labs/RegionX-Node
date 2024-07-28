@@ -1,11 +1,17 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { KeyringPair } from '@polkadot/keyring/types';
-import { ISubmittableResult } from '@polkadot/types/types';
-import { getEncodedRegionId, RegionId } from 'coretime-utils';
+import { getEncodedRegionId } from 'coretime-utils';
 import assert from 'node:assert';
-import { setupRelayAsset, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
-import { CONFIG, CORE_COUNT, INITIAL_PRICE, UNIT } from '../consts';
-import { Get, IsmpRequest, REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from './types';
+import {
+  openHrmpChannel,
+  setupRelayAsset,
+  sleep,
+  submitExtrinsic,
+  transferRelayAssetToPara,
+} from '../common';
+import { UNIT } from '../consts';
+import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
+import { ismpAddParachain, makeIsmpResponse, queryRequest } from '../ismp.common';
+import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
 
 const REGIONX_SOVEREIGN_ACCOUNT = '5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8';
 
@@ -35,6 +41,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
+  await ismpAddParachain(alice, regionXApi);
 
   // Needed for fee payment
   // The Coretime chain account by default has tokens for fee payment.
@@ -43,10 +50,8 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);
 
-  const txSetBalance = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000 * UNIT);
+  const txSetBalance = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000n * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetBalance), {});
-
-  await ismpAddParachain(alice, regionXApi);
 
   const regionId = await purchaseRegion(coretimeApi, alice);
   if (!regionId) throw new Error('RegionId not found');
@@ -193,148 +198,5 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
   assert.equal((regions[0][1].toHuman() as any).owner, alice.address);
 }
-
-async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
-  const addParaCall = regionXApi.tx.ismpParachain.addParachain([1005]);
-  const sudoCall = regionXApi.tx.sudo.sudo(addParaCall);
-  return submitExtrinsic(signer, sudoCall, {});
-}
-
-async function openHrmpChannel(
-  signer: KeyringPair,
-  relayApi: ApiPromise,
-  senderParaId: number,
-  recipientParaId: number
-) {
-  const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(
-    senderParaId, // sender
-    recipientParaId, // recipient
-    8, // Max capacity
-    102400 // Max message size
-  );
-  const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
-
-  return submitExtrinsic(signer, sudoCall, {});
-}
-
-async function configureBroker(coretimeApi: ApiPromise, signer: KeyringPair): Promise<void> {
-  const configCall = coretimeApi.tx.broker.configure(CONFIG);
-  const sudo = coretimeApi.tx.sudo.sudo(configCall);
-  return submitExtrinsic(signer, sudo, {});
-}
-
-async function startSales(coretimeApi: ApiPromise, signer: KeyringPair): Promise<void> {
-  const startSaleCall = coretimeApi.tx.broker.startSales(INITIAL_PRICE, CORE_COUNT);
-  const sudo = coretimeApi.tx.sudo.sudo(startSaleCall);
-  return submitExtrinsic(signer, sudo, {});
-}
-
-async function purchaseRegion(
-  coretimeApi: ApiPromise,
-  buyer: KeyringPair
-): Promise<RegionId | null> {
-  const callTx = async (resolve: (regionId: RegionId | null) => void) => {
-    const purchase = coretimeApi.tx.broker.purchase(INITIAL_PRICE * 2);
-    const unsub = await purchase.signAndSend(buyer, async (result: any) => {
-      if (result.status.isInBlock) {
-        const regionId = await getRegionId(coretimeApi);
-        unsub();
-        resolve(regionId);
-      }
-    });
-  };
-
-  return new Promise(callTx);
-}
-
-async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId | null> {
-  const events: any = await coretimeApi.query.system.events();
-
-  for (const record of events) {
-    const { event } = record;
-    if (event.section === 'broker' && event.method === 'Purchased') {
-      const data = event.data[1].toHuman();
-      return data;
-    }
-  }
-
-  return null;
-}
-
-async function queryRequest(regionxApi: ApiPromise, commitment: string): Promise<IsmpRequest> {
-  const leafIndex = regionxApi.createType('LeafIndexQuery', { commitment });
-  const requests = await (regionxApi as any).rpc.ismp.queryRequests([leafIndex]);
-  // We only requested a single request so we only get one in the response.
-  return requests.toJSON()[0] as IsmpRequest;
-}
-
-async function makeIsmpResponse(
-  regionXApi: ApiPromise,
-  coretimeApi: ApiPromise,
-  request: IsmpRequest,
-  responderAddress: string
-): Promise<void> {
-  if (isGetRequest(request)) {
-    const hashAt = (
-      await coretimeApi.query.system.blockHash(Number(request.get.height))
-    ).toString();
-    const proofData = await coretimeApi.rpc.state.getReadProof([request.get.keys[0]], hashAt);
-
-    const stateMachineProof = regionXApi.createType('StateMachineProof', {
-      hasher: 'Blake2',
-      storage_proof: proofData.proof,
-    });
-
-    const substrateStateProof = regionXApi.createType('SubstrateStateProof', {
-      StateProof: stateMachineProof,
-    });
-    const response = regionXApi.tx.ismp.handleUnsigned([
-      {
-        Response: {
-          datagram: {
-            Request: [request],
-          },
-          proof: {
-            height: {
-              id: {
-                stateId: {
-                  Kusama: 1005,
-                },
-                consensusStateId: 'PARA',
-              },
-              height: request.get.height.toString(),
-            },
-            proof: substrateStateProof.toHex(),
-          },
-          signer: responderAddress,
-        },
-      },
-    ]);
-
-    return new Promise((resolve, reject) => {
-      const unsub = response.send((result: ISubmittableResult) => {
-        const { status, isError } = result;
-        console.log(`Current status is ${status}`);
-        if (status.isInBlock) {
-          console.log(`Transaction included at blockHash ${status.asInBlock}`);
-        } else if (status.isFinalized) {
-          console.log(`Transaction finalized at blockHash ${status.asFinalized}`);
-          unsub.then();
-          return resolve();
-        } else if (isError) {
-          console.log('Transaction error');
-          unsub.then();
-          return reject();
-        }
-      });
-    });
-  } else {
-    new Error('Expected a Get request');
-  }
-}
-
-const isGetRequest = (request: IsmpRequest): request is { get: Get } => {
-  return (request as { get: Get }).get !== undefined;
-};
 
 export { run };

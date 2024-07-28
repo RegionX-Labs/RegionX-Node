@@ -97,6 +97,23 @@ async function transferRelayAssetToPara(
   await submitExtrinsic(signer, reserveTransfer, {});
 }
 
+async function openHrmpChannel(
+  signer: KeyringPair,
+  relayApi: ApiPromise,
+  senderParaId: number,
+  recipientParaId: number
+) {
+  const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(
+    senderParaId, // sender
+    recipientParaId, // recipient
+    8, // Max capacity
+    102400 // Max message size
+  );
+  const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
+
+  return submitExtrinsic(signer, sudoCall, {});
+}
+
 async function sleep(milliseconds: number) {
   return new Promise((resolve) => setTimeout(resolve, milliseconds));
 }
@@ -121,6 +138,7 @@ export {
   RELAY_ASSET_ID,
   setupRelayAsset,
   sleep,
+  openHrmpChannel,
   submitExtrinsic,
   transferRelayAssetToPara,
   getAddressFromModuleId,
