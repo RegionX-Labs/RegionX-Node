@@ -10,16 +10,7 @@
     cargo build --release --features fast-runtime
     ```
 
-3. Get the polkadot binary:
-
-    ```sh
-    zombienet-linux setup polkadot polkadot-parachain
-
-    Please add the dir to your $PATH by running the command:
-    export PATH=/home/<username>/RegionX-Node/:$PATH
-    ```
-
-4. Run the tests:
+3. Run the tests:
 
     - block production
 
@@ -66,4 +57,12 @@
 
             ```
             npm run test -- ./zombienet_tests/xc-transfer/region-transfer.zndsl
+            ```
+
+    - order tests
+
+        - processing
+        
+            ```
+            npm run test -- ./zombienet_tests/order/processing.zndsl
             ```

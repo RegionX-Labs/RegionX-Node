@@ -1,14 +1,18 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
+import { KeyringPair } from '@polkadot/keyring/types';
+import { getEncodedRegionId, RegionId } from 'coretime-utils';
+import assert from 'node:assert';
 import {
   openHrmpChannel,
   RELAY_ASSET_ID,
   setupRelayAsset,
+  sleep,
   submitExtrinsic,
   transferRelayAssetToPara,
 } from '../common';
 import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
-import { ismpAddParachain } from '../ismp.common';
+import { ismpAddParachain, makeIsmpResponse, queryRequest } from '../ismp.common';
 import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
 
 async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
@@ -54,7 +58,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const regionId = await purchaseRegion(coretimeApi, alice);
   if (!regionId) throw new Error('RegionId not found');
 
-  // TODO: xc transfer
+  await transferRegionToRegionX(coretimeApi, regionXApi, alice, regionId);
 
   // 2. An order is created
   const paraId = 2000;
@@ -66,6 +70,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
   const createOrderCall = regionXApi.tx.orders.createOrder(paraId, orderRequirements);
   await submitExtrinsic(alice, createOrderCall, {});
+  // TODO: check state
 
   // 3. Fund the order
   // Give Bob tokens:
@@ -76,16 +81,95 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     0
   );
   await submitExtrinsic(alice, regionXApi.tx.sudo.sudo(giveBalanceCall), {});
+  // TODO: check state
 
   // Bob contributes:
   const contributeCall = regionXApi.tx.orders.contribute(0, 10n * UNIT);
   await submitExtrinsic(bob, contributeCall, {});
 
   // 4. A trader sees a profitable opportunity and fulfills the order.
+  const fulfillCall = regionXApi.tx.processor.fulfillOrder(0, regionId);
+  await submitExtrinsic(alice, fulfillCall, {});
+  // TODO: check state
 
   // 5. Ensure the region gets assigned to the specified parachain.
 }
 
-async function transferRegionToRegionX() {}
+async function transferRegionToRegionX(
+  coretimeApi: ApiPromise,
+  regionXApi: ApiPromise,
+  sender: KeyringPair,
+  regionId: RegionId
+) {
+  const receiverKeypair = new Keyring();
+  receiverKeypair.addFromAddress(sender.address);
+
+  const feeAssetItem = 0;
+  const weightLimit = 'Unlimited';
+  const reserveTransferToRegionX = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
+    { V3: { parents: 1, interior: { X1: { Parachain: 2000 } } } }, //dest
+    {
+      V3: {
+        parents: 0,
+        interior: {
+          X1: {
+            AccountId32: {
+              chain: 'Any',
+              id: receiverKeypair.pairs[0].publicKey,
+            },
+          },
+        },
+      },
+    }, //beneficiary
+    {
+      V3: [
+        {
+          id: {
+            Concrete: {
+              parents: 1,
+              interior: 'Here',
+            },
+          },
+          fun: {
+            Fungible: 10n ** 10n,
+          },
+        }, // ^^ fee payment asset
+        {
+          id: {
+            Concrete: {
+              parents: 0,
+              interior: { X1: { PalletInstance: 50 } },
+            },
+          },
+          fun: {
+            NonFungible: {
+              Index: getEncodedRegionId(regionId, coretimeApi).toString(),
+            },
+          },
+        },
+      ],
+    }, //asset
+    feeAssetItem,
+    weightLimit
+  );
+  await submitExtrinsic(sender, reserveTransferToRegionX, {});
+
+  await sleep(5000);
+
+  let regions = await regionXApi.query.regions.regions.entries();
+  let region = regions[0][1].toHuman() as any;
+  assert(region.owner == sender.address);
+  assert(typeof region.record.Pending === 'string');
+
+  // Respond to the ISMP get request:
+  const request = await queryRequest(regionXApi, region.record.Pending);
+  await makeIsmpResponse(regionXApi, coretimeApi, request, sender.address);
+
+  // The record should be set after ISMP response:
+  regions = await regionXApi.query.regions.regions.entries();
+  region = regions[0][1].toHuman() as any;
+  assert.equal(region.record.Available.end, '66');
+  assert.equal(region.record.Available.paid, null);
+}
 
 export { run };
