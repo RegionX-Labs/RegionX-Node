@@ -7,7 +7,16 @@ if [ ! -e "regionx-node" ]; then
 fi
 
 if [ ! -e "polkadot" ] || [ ! -e "polkadot-parachain" ]; then
-    zombienet-linux setup polkadot polkadot-parachain
+    ZOMBIENET_COMMAND="setup polkadot polkadot-parachain"
+    if which zombienet-macos &> /dev/null; then
+        zombienet-macos $zZOMBIENET_COMMAND
+    elif which zombienet-linux &> /dev/null; then
+        zombienet-linux $ZOMBIENET_COMMAND
+    elif which zombienet &> /dev/null; then
+        zombienet $ZOMBIENET_COMMAND
+    else
+        echo "Zombienet couldn't be located"
+    fi
 fi
 
 export PATH=$PWD:$PATH
