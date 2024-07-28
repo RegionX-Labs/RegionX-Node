@@ -6,8 +6,9 @@ if [ ! -e "regionx-node" ]; then
     exit 1
 fi
 
-if [ ! -e "polkadot" ] || [ ! -e "polkadot-parachain" ]; then
-    ZOMBIENET_COMMAND="setup polkadot polkadot-parachain"
+zombienet() {
+    local ZOMBIENET_COMMAND=$1
+
     if which zombienet-macos &> /dev/null; then
         zombienet-macos $ZOMBIENET_COMMAND
     elif which zombienet-linux &> /dev/null; then
@@ -17,10 +18,14 @@ if [ ! -e "polkadot" ] || [ ! -e "polkadot-parachain" ]; then
     else
         echo "Zombienet couldn't be located"
     fi
+}
+
+if [ ! -e "polkadot" ] || [ ! -e "polkadot-parachain" ]; then
+    zombienet "setup polkadot polkadot-parachain"
 fi
 
 export PATH=$PWD:$PATH
 
 npm run build
 
-zombienet-linux -p native test $1
+zombienet "-p native test $1"
