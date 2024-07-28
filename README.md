@@ -10,7 +10,12 @@
     cargo build --release --features fast-runtime
     ```
 
-3. Run the tests:
+3. Install dependencies:  
+    ```
+    npm i
+    ```
+
+4. Run the tests:
 
     - block production
 
