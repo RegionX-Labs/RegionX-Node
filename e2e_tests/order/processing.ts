@@ -7,6 +7,7 @@ import {
   transferRelayAssetToPara,
 } from '../common';
 import { UNIT } from '../consts';
+import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
 import { ismpAddParachain } from '../ismp.common';
 import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
 
@@ -40,23 +41,34 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   await ismpAddParachain(alice, regionXApi);
 
   // Needed for fee payment
+  // Alice has relay tokens on Coretime chain by default, so no need to send there.
   await transferRelayAssetToPara(UNIT, 2000, rococoApi, alice);
 
+  // 1. A region is listed on sale
+  await configureBroker(coretimeApi, alice);
+  await startSales(coretimeApi, alice);
+
+  const txSetBalance = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000n * UNIT);
+  await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetBalance), {});
+
+  const regionId = await purchaseRegion(coretimeApi, alice);
+  if (!regionId) throw new Error('RegionId not found');
+
+  // TODO: xc transfer
+
+  // 2. An order is created
   const paraId = 2000;
   const orderRequirements = {
     begin: 10,
     end: 20,
     coreOccupancy: 57600, // full core
   };
-  // 1. Create order
+
   const createOrderCall = regionXApi.tx.orders.createOrder(paraId, orderRequirements);
   await submitExtrinsic(alice, createOrderCall, {});
 
-  // 2. A region is listed on sale
-
   // 3. Fund the order
-
-  // Fund Bob's account:
+  // Give Bob tokens:
   const giveBalanceCall = regionXApi.tx.tokens.setBalance(
     bob.address,
     RELAY_ASSET_ID,

@@ -44,7 +44,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   await ismpAddParachain(alice, regionXApi);
 
   // Needed for fee payment
-  // The Coretime chain account by default has tokens for fee payment.
+  // Alice has relay tokens on Coretime chain by default, so no need to send there.
   await transferRelayAssetToPara(10n ** 12n, 2000, rococoApi, alice);
 
   await configureBroker(coretimeApi, alice);
