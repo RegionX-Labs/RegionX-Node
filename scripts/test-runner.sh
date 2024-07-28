@@ -9,7 +9,7 @@ fi
 if [ ! -e "polkadot" ] || [ ! -e "polkadot-parachain" ]; then
     ZOMBIENET_COMMAND="setup polkadot polkadot-parachain"
     if which zombienet-macos &> /dev/null; then
-        zombienet-macos $zZOMBIENET_COMMAND
+        zombienet-macos $ZOMBIENET_COMMAND
     elif which zombienet-linux &> /dev/null; then
         zombienet-linux $ZOMBIENET_COMMAND
     elif which zombienet &> /dev/null; then
