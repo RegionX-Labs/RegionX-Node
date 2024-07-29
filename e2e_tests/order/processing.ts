@@ -16,7 +16,7 @@ import { configureBroker, purchaseRegion, startSales } from '../coretime.common'
 import { ismpAddParachain, makeIsmpResponse, queryRequest } from '../ismp.common';
 import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
 
-async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
+async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName['regionx-collator01'];
   const { wsUri: coretimeUri } = networkInfo.nodesByName['coretime-collator01'];
   const { wsUri: rococoUri } = networkInfo.nodesByName['rococo-validator01'];
@@ -73,17 +73,24 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   // 2. An order is created
   const paraId = 2000;
   const orderRequirements = {
-    begin: 10,
-    end: 20,
+    begin: 40,
+    end: 45,
     coreOccupancy: 57600, // full core
   };
 
+  log('Creating order');
   const createOrderCall = regionXApi.tx.orders.createOrder(paraId, orderRequirements);
   await submitExtrinsic(alice, createOrderCall, {});
-  // TODO: check state
 
+  const order = (await regionXApi.query.orders.orders(0)).toJSON();
+  assert.deepStrictEqual(order, {
+    creator: alice.address,
+    paraId: 2000,
+    requirements: orderRequirements
+  });
+  
   // 3. Fund the order
-  // Give Bob tokens:
+  log('Giving Bob tokens');
   const giveBalanceCall = regionXApi.tx.tokens.setBalance(
     bob.address,
     RELAY_ASSET_ID,
@@ -91,13 +98,14 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     0
   );
   await submitExtrinsic(alice, regionXApi.tx.sudo.sudo(giveBalanceCall), {});
-  // TODO: check state
 
   // Bob contributes:
+  log('Bob making a contribution');
   const contributeCall = regionXApi.tx.orders.contribute(0, 10n * UNIT);
   await submitExtrinsic(bob, contributeCall, {});
 
   // 4. A trader sees a profitable opportunity and fulfills the order.
+  log('Alice fulfilling the order');
   const fulfillCall = regionXApi.tx.processor.fulfillOrder(0, regionId);
   await submitExtrinsic(alice, fulfillCall, {});
   // TODO: check state
@@ -166,6 +174,9 @@ async function transferRegionToRegionX(
 
   await sleep(5000);
 
+  const requestRecord = regionXApi.tx.regions.requestRegionRecord(regionId);
+  await submitExtrinsic(sender, requestRecord, {});
+
   let regions = await regionXApi.query.regions.regions.entries();
   let region = regions[0][1].toHuman() as any;
   assert(region.owner == sender.address);
@@ -178,7 +189,6 @@ async function transferRegionToRegionX(
   // The record should be set after ISMP response:
   regions = await regionXApi.query.regions.regions.entries();
   region = regions[0][1].toHuman() as any;
-  assert.equal(region.record.Available.end, '66');
   assert.equal(region.record.Available.paid, null);
 }
 

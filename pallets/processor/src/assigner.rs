@@ -46,7 +46,7 @@ impl<T: crate::Config + pallet_xcm::Config> RegionAssigner for XcmRegionAssigner
 		//
 		// `ref_time` = `31_500`, we will round up to: `100_000_000`.
 		// `proof_size` = `4700`, we will round up to: `10_000`.
-		let call_weight = Weight::from_parts(100_000_000, 10_000);
+		let call_weight = Weight::from_parts(200_000_000, 10_000);
 		let fee = T::WeightToFee::weight_to_fee(&call_weight);
 
 		let message = Xcm(vec![
