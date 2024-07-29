@@ -134,8 +134,14 @@ const getFreeBalance = async (api: ApiPromise, address: string): Promise<bigint>
   return BigInt(free);
 };
 
+function log(message: string) {
+  // Green log.
+  console.log('\x1b[32m%s\x1b[0m', message);
+}
+
 export {
   RELAY_ASSET_ID,
+  log,
   setupRelayAsset,
   sleep,
   openHrmpChannel,

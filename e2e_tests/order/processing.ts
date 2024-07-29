@@ -3,6 +3,7 @@ import { KeyringPair } from '@polkadot/keyring/types';
 import { getEncodedRegionId, RegionId } from 'coretime-utils';
 import assert from 'node:assert';
 import {
+  log,
   openHrmpChannel,
   RELAY_ASSET_ID,
   setupRelayAsset,
@@ -33,31 +34,40 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const alice = keyring.addFromUri('//Alice');
   const bob = keyring.addFromUri('//Bob');
 
-  const txSetCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
   const txSetRelayXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
-  await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetCoretimeXcmVersion), {});
+  const txSetCoretimeXcmVersion = coretimeApi.tx.polkadotXcm.forceDefaultXcmVersion([3]);
+  log('Setting XCM version: ');
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(txSetRelayXcmVersion), {});
+  await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetCoretimeXcmVersion), {});
 
+  log('Setting up relay asset: ');
   await setupRelayAsset(regionXApi, alice, 500n * UNIT);
 
+  log('Opening HRMP: ');
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);
+  log('Adding ISMP: ');
   await ismpAddParachain(alice, regionXApi);
 
   // Needed for fee payment
   // Alice has relay tokens on Coretime chain by default, so no need to send there.
+  log('Transfering rc token to RegionX:');
   await transferRelayAssetToPara(UNIT, 2000, rococoApi, alice);
 
   // 1. A region is listed on sale
+  log('Configuring coretime chain:');
   await configureBroker(coretimeApi, alice);
+  log('Starting sales:');
   await startSales(coretimeApi, alice);
 
+  log('Giving alice balance on Coretime chain:');
   const txSetBalance = coretimeApi.tx.balances.forceSetBalance(alice.address, 1000n * UNIT);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetBalance), {});
 
   const regionId = await purchaseRegion(coretimeApi, alice);
   if (!regionId) throw new Error('RegionId not found');
 
+  log('Transferring region to RegionX');
   await transferRegionToRegionX(coretimeApi, regionXApi, alice, regionId);
 
   // 2. An order is created
