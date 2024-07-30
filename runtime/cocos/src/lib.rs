@@ -785,6 +785,10 @@ impl pallet_orders::Config for Runtime {
 	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
 }
 
+parameter_types! {
+	pub const FeeBuffer: Balance = MILLI_ROC;
+}
+
 impl pallet_processor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = RelaychainCurrency;
@@ -793,9 +797,9 @@ impl pallet_processor::Config for Runtime {
 	type OrderToAccountId = OrderToAccountId;
 	type Regions = Regions;
 	type AssignmentCallEncoder = AssignmentCallEncoder;
-	type RegionAssigner = XcmRegionAssigner<Self>;
+	type RegionAssigner = XcmRegionAssigner<Self, FeeBuffer>;
 	type CoretimeChain = CoretimeChainLocation;
-	type WeightToFee = WeightToFee;
+	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
 	type WeightInfo = ();
 }
 

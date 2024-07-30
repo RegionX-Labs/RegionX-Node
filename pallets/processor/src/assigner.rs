@@ -20,7 +20,7 @@ use order_primitives::ParaId;
 use pallet_broker::RegionId;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
-use sp_runtime::{traits::Get, DispatchResult};
+use sp_runtime::{traits::Get, DispatchResult, SaturatedConversion, Saturating};
 use xcm::latest::prelude::*;
 
 /// Type which encodes the region assignment call.
@@ -36,18 +36,22 @@ pub trait RegionAssigner {
 
 /// A type that implements the RegionAssigner trait and assigns a region to a task by sending the
 /// appropriate XCM message to the Coretime chain.
-pub struct XcmRegionAssigner<T: crate::Config>(PhantomData<T>);
-impl<T: crate::Config + pallet_xcm::Config> RegionAssigner for XcmRegionAssigner<T> {
+pub struct XcmRegionAssigner<T: crate::Config, FeeBuffer: Get<<T as crate::Config>::Balance>>(
+	PhantomData<(T, FeeBuffer)>,
+);
+impl<T: crate::Config + pallet_xcm::Config, FeeBuffer: Get<<T as crate::Config>::Balance>>
+	RegionAssigner for XcmRegionAssigner<T, FeeBuffer>
+{
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
 		let assignment_call = T::AssignmentCallEncoder::encode_assignment_call(region_id, para_id);
 
 		// NOTE: the weight is runtime dependant, however we are rounding up a lot so it should
 		// always be sufficient.
 		//
-		// `ref_time` = `31_500`, we will round up to: `100_000_000`.
-		// `proof_size` = `4700`, we will round up to: `10_000`.
-		let call_weight = Weight::from_parts(200_000_000, 10_000);
-		let fee = T::WeightToFee::weight_to_fee(&call_weight);
+		// After some testing, the conclusion is that the following weight limit is sufficient:
+		let call_weight = Weight::from_parts(500_000_000, 20_000);
+		let fee = T::WeightToFee::weight_to_fee(&call_weight)
+			.saturating_add(FeeBuffer::get().saturated_into());
 
 		let message = Xcm(vec![
 			Instruction::WithdrawAsset(

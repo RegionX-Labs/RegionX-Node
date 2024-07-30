@@ -43,10 +43,8 @@ pub use weights::WeightInfo;
 
 const LOG_TARGET: &str = "runtime::order-creator";
 
-pub type BalanceOf<T> =
-	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
-
-pub type RegionRecordOf<T> = RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;
+pub type RegionRecordOf<T> =
+	RegionRecord<<T as frame_system::Config>::AccountId, <T as crate::Config>::Balance>;
 
 #[frame_support::pallet]
 pub mod pallet {
@@ -86,7 +84,7 @@ pub mod pallet {
 		// The item id is `u128` encoded RegionId.
 		type Regions: Transfer<Self::AccountId, ItemId = u128>
 			+ LockableNonFungible<Self::AccountId, ItemId = u128>
-			+ RegionInspect<Self::AccountId, BalanceOf<Self>, ItemId = u128>
+			+ RegionInspect<Self::AccountId, Self::Balance, ItemId = u128>
 			+ RegionFactory<Self::AccountId, RegionRecordOf<Self>>;
 
 		/// Type assigning the region to the specified task.
