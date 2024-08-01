@@ -20,8 +20,9 @@ use order_primitives::ParaId;
 use pallet_broker::RegionId;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
-use sp_runtime::{traits::Get, DispatchResult, SaturatedConversion, Saturating};
+use sp_runtime::{traits::Get, DispatchError, DispatchResult, SaturatedConversion, Saturating};
 use xcm::latest::prelude::*;
+use xcm_executor::traits::ConvertLocation;
 
 /// Type which encodes the region assignment call.
 pub trait AssignmentCallEncoder {
@@ -36,11 +37,21 @@ pub trait RegionAssigner {
 
 /// A type that implements the RegionAssigner trait and assigns a region to a task by sending the
 /// appropriate XCM message to the Coretime chain.
-pub struct XcmRegionAssigner<T: crate::Config, FeeBuffer: Get<<T as crate::Config>::Balance>>(
-	PhantomData<(T, FeeBuffer)>,
-);
-impl<T: crate::Config + pallet_xcm::Config, FeeBuffer: Get<<T as crate::Config>::Balance>>
-	RegionAssigner for XcmRegionAssigner<T, FeeBuffer>
+pub struct XcmRegionAssigner<
+	T: crate::Config,
+	SovereignAccountOf: ConvertLocation<T::AccountId>,
+	OwnParaId: Get<u32>,
+	FeeBuffer: Get<<T as crate::Config>::Balance>,
+>(PhantomData<(T, SovereignAccountOf, OwnParaId, FeeBuffer)>);
+
+impl<
+		T: crate::Config + pallet_xcm::Config,
+		SovereignAccountOf: ConvertLocation<T::AccountId>,
+		OwnParaId: Get<u32>,
+		FeeBuffer: Get<<T as crate::Config>::Balance>,
+	> RegionAssigner for XcmRegionAssigner<T, SovereignAccountOf, OwnParaId, FeeBuffer>
+where
+	T::AccountId: Into<[u8; 32]>,
 {
 	fn assign(region_id: RegionId, para_id: ParaId) -> DispatchResult {
 		let assignment_call = T::AssignmentCallEncoder::encode_assignment_call(region_id, para_id);
@@ -49,26 +60,37 @@ impl<T: crate::Config + pallet_xcm::Config, FeeBuffer: Get<<T as crate::Config>:
 		// always be sufficient.
 		//
 		// After some testing, the conclusion is that the following weight limit is sufficient:
-		let call_weight = Weight::from_parts(500_000_000, 20_000);
+		let call_weight = Weight::from_parts(500_000_000, 10_000);
 		let fee = T::WeightToFee::weight_to_fee(&call_weight)
 			.saturating_add(FeeBuffer::get().saturated_into());
 
+		let sovereign_account = SovereignAccountOf::convert_location(&MultiLocation::new(
+			1,
+			X1(Parachain(OwnParaId::get())),
+		))
+		.ok_or(DispatchError::Other("Couldn't get the sovereign account"))?;
+
 		let message = Xcm(vec![
-			Instruction::WithdrawAsset(
+			WithdrawAsset(
 				MultiAsset { id: Concrete(MultiLocation::parent()), fun: Fungible(fee.into()) }
 					.into(),
 			),
-			Instruction::BuyExecution {
+			BuyExecution {
 				fees: MultiAsset {
 					id: Concrete(MultiLocation::parent()),
 					fun: Fungible(fee.into()),
 				},
 				weight_limit: Unlimited,
 			},
-			Instruction::Transact {
+			Transact {
 				origin_kind: OriginKind::SovereignAccount,
 				require_weight_at_most: call_weight,
 				call: assignment_call.into(),
+			},
+			RefundSurplus,
+			DepositAsset {
+				assets: All.into(),
+				beneficiary: AccountId32 { id: sovereign_account.into(), network: None }.into(),
 			},
 		]);
 
