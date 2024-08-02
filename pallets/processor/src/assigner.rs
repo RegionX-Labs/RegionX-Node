@@ -64,7 +64,7 @@ where
 		let fee = T::WeightToFee::weight_to_fee(&call_weight)
 			.saturating_add(FeeBuffer::get().saturated_into());
 
-		let sovereign_account = SovereignAccountOf::convert_location(&MultiLocation::new(
+		let _sovereign_account = SovereignAccountOf::convert_location(&MultiLocation::new(
 			1,
 			X1(Parachain(OwnParaId::get())),
 		))
@@ -88,10 +88,12 @@ where
 				call: assignment_call.into(),
 			},
 			RefundSurplus,
+			/* TODO: https://github.com/RegionX-Labs/RegionX-Node/issues/220
 			DepositAsset {
 				assets: All.into(),
 				beneficiary: AccountId32 { id: sovereign_account.into(), network: None }.into(),
 			},
+			*/
 		]);
 
 		match pallet_xcm::Pallet::<T>::send_xcm(

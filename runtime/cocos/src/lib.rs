@@ -786,7 +786,7 @@ impl pallet_orders::Config for Runtime {
 }
 
 parameter_types! {
-	pub const FeeBuffer: Balance = MILLI_ROC;
+	pub const FeeBuffer: Balance = MILLI_ROC / 10;
 	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
 }
 
