@@ -13,7 +13,7 @@ import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
 import { ismpAddParachain } from '../ismp.common';
 import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
-import { transferRegionToRegionX } from '../xc.common';
+import { transferRegionToRegionX } from '../xc-regions.common';
 
 async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName['regionx-collator01'];
@@ -48,14 +48,9 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   log('Adding ISMP: ');
   await ismpAddParachain(alice, regionXApi);
 
-  // Needed for fee payment
-  // Alice has relay tokens on Coretime chain by default, so no need to send there.
   log('Transfering rc token to RegionX:');
   await transferRelayAssetToPara(rococoApi, alice, 1005, alice.address, 100n * UNIT);
   await transferRelayAssetToPara(rococoApi, alice, 2000, alice.address, 100n * UNIT);
-
-  // It takes time to cross-chain transfer assets.
-  await sleep(10000);
 
   log('Configuring coretime chain:');
   await configureBroker(coretimeApi, alice);

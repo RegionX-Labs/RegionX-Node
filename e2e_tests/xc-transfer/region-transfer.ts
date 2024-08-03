@@ -9,7 +9,7 @@ import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
 import { ismpAddParachain } from '../ismp.common';
 import { REGIONX_API_TYPES, REGIONX_CUSTOM_RPC } from '../types';
-import { transferRegionToCoretimeChain, transferRegionToRegionX } from '../xc.common';
+import { transferRegionToCoretimeChain, transferRegionToRegionX } from '../xc-regions.common';
 
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName['regionx-collator01'];
