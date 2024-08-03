@@ -51,13 +51,14 @@ async function setupRelayAsset(api: ApiPromise, signer: KeyringPair, initialBala
 // Transfer the relay chain asset to the parachain specified by paraId.
 // Receiver address is same as the sender's.
 async function transferRelayAssetToPara(
-  amount: bigint,
-  paraId: number,
   relayApi: ApiPromise,
-  signer: KeyringPair
+  signer: KeyringPair,
+  paraId: number,
+  receiver: string,
+  amount: bigint,
 ) {
   const receiverKeypair = new Keyring();
-  receiverKeypair.addFromAddress(signer.address);
+  receiverKeypair.addFromAddress(receiver);
 
   // If system parachain we use teleportation, otherwise we do a reserve transfer.
   const transferKind = paraId < 2000 ? 'limitedTeleportAssets' : 'limitedReserveTransferAssets';

@@ -21,7 +21,7 @@ async function purchaseRegion(
   buyer: KeyringPair
 ): Promise<RegionId | null> {
   const callTx = async (resolve: (regionId: RegionId | null) => void) => {
-    const purchase = coretimeApi.tx.broker.purchase(INITIAL_PRICE * 2n);
+    const purchase = coretimeApi.tx.broker.purchase(INITIAL_PRICE * 10n);
     const unsub = await purchase.signAndSend(buyer, async (result: any) => {
       if (result.status.isInBlock) {
         const regionId = await getRegionId(coretimeApi);
