@@ -85,7 +85,6 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   const transferToBobCall = regionXApi.tx.tokens.transfer(bob.address, RELAY_ASSET_ID, 30n * UNIT);
   await submitExtrinsic(alice, regionXApi.tx.sudo.sudo(transferToBobCall), {});
 
-  // Bob contributes:
   log('Bob making a contribution');
   const contributeCall = regionXApi.tx.orders.contribute(0, 10n * UNIT);
   await submitExtrinsic(bob, contributeCall, {});
@@ -93,14 +92,15 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   log('Alice fulfilling the order');
   const fulfillCall = regionXApi.tx.processor.fulfillOrder(0, regionId);
   await submitExtrinsic(alice, fulfillCall, {});
-  // Region should be removed after assigning it:
+  // Region should be removed after making the assignment call:
   const regions = await regionXApi.query.regions.regions.entries();
   assert.equal(regions.length, 0);
 
+  // `fulfillOrder` will make a cross-chain call to the Coretime chain to make the assignment.
+  // We will wait a bit since it will take some time.
   await sleep(5000);
 
   const workplan = await coretimeApi.query.broker.workplan.entries();
-  console.log(workplan); // TODO: remove
   assert.equal(workplan.length, 1);
 }
 
