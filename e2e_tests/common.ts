@@ -55,7 +55,7 @@ async function transferRelayAssetToPara(
   signer: KeyringPair,
   paraId: number,
   receiver: string,
-  amount: bigint,
+  amount: bigint
 ) {
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(receiver);

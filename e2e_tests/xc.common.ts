@@ -1,8 +1,8 @@
 import { ApiPromise, Keyring } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { getEncodedRegionId, RegionId } from 'coretime-utils';
-import { sleep, submitExtrinsic } from './common';
 import assert from 'node:assert';
+import { sleep, submitExtrinsic } from './common';
 import { makeIsmpResponse, queryRequest } from './ismp.common';
 
 const REGIONX_SOVEREIGN_ACCOUNT = '5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8';
@@ -106,7 +106,7 @@ async function transferRegionToCoretimeChain(
 
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
-  
+
   // Transfer the region back to the Coretime chain:
   const reserveTransferToCoretime = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
     { V3: { parents: 1, interior: { X1: { Parachain: 1005 } } } }, // dest

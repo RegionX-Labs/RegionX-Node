@@ -83,16 +83,12 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   assert.deepStrictEqual(order, {
     creator: alice.address,
     paraId: 2000,
-    requirements: orderRequirements
+    requirements: orderRequirements,
   });
-  
+
   log('Giving Bob tokens');
-  const giveBalanceCall = regionXApi.tx.tokens.transfer(
-    bob.address,
-    RELAY_ASSET_ID,
-    30n * UNIT,
-  );
-  await submitExtrinsic(alice, regionXApi.tx.sudo.sudo(giveBalanceCall), {});
+  const transferToBobCall = regionXApi.tx.tokens.transfer(bob.address, RELAY_ASSET_ID, 30n * UNIT);
+  await submitExtrinsic(alice, regionXApi.tx.sudo.sudo(transferToBobCall), {});
 
   // Bob contributes:
   log('Bob making a contribution');
@@ -103,10 +99,14 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   const fulfillCall = regionXApi.tx.processor.fulfillOrder(0, regionId);
   await submitExtrinsic(alice, fulfillCall, {});
   // Region should be removed after assigning it:
-  let regions = await regionXApi.query.regions.regions.entries();
+  const regions = await regionXApi.query.regions.regions.entries();
   assert.equal(regions.length, 0);
 
-  // TODO: Ensure the region gets assigned to the specified parachain.
+  await sleep(5000);
+
+  const workplan = await coretimeApi.query.broker.workplan.entries();
+  console.log(workplan); // TODO: remove
+  assert.equal(workplan.length, 1);
 }
 
 export { run };
