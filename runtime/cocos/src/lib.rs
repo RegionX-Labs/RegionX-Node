@@ -801,7 +801,7 @@ impl pallet_processor::Config for Runtime {
 	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
 	type CoretimeChain = CoretimeChainLocation;
 	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
