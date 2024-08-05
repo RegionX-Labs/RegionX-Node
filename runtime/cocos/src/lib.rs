@@ -63,7 +63,7 @@ use sp_runtime::{
 	traits::{
 		AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, Convert, IdentityLookup,
 	},
-	transaction_validity::{TransactionSource, TransactionValidity},
+	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
 
@@ -612,6 +612,7 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 
 parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
+	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
 }
 
 impl pallet_regions::Config for Runtime {
@@ -621,6 +622,7 @@ impl pallet_regions::Config for Runtime {
 	type IsmpDispatcher = Ismp;
 	type StateMachineHeightProvider = StateMachineHeightProvider;
 	type Timeout = ConstU64<300>; // 5 minutes
+	type UnsignedPriority = RegionsUnsignedPriority;
 	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
 }
 
