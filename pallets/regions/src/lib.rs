@@ -315,6 +315,8 @@ pub mod pallet {
 		}
 
 		fn pre_dispatch(_call: &Self::Call) -> Result<(), TransactionValidityError> {
+			// Given that the `request_region_record` function contains checks there is no need to
+			// call `validate_unsigned` again.
 			Ok(())
 		}
 	}
