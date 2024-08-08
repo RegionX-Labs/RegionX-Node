@@ -205,18 +205,6 @@ impl FeeHandler<AccountId, u64> for OrderCreationFeeHandler {
 	}
 }
 
-parameter_types! {
-	pub static RelayBlockNumber: u64 = 0;
-}
-
-pub struct RelayBlockNumberProvider;
-impl BlockNumberProvider for RelayBlockNumberProvider {
-	type BlockNumber = u64;
-	fn current_block_number() -> Self::BlockNumber {
-		RelayBlockNumber::get()
-	}
-}
-
 pub struct OrderToAccountId;
 impl Convert<OrderId, AccountId> for OrderToAccountId {
 	fn convert(order: OrderId) -> AccountId {
