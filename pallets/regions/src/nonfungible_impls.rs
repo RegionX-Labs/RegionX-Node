@@ -115,10 +115,7 @@ impl<T: Config> RegionInspect<T::AccountId, BalanceOf<T>> for Pallet<T> {
 impl<T: Config> LockableNonFungible<T::AccountId> for Pallet<T> {
 	fn lock(item: &Self::ItemId, maybe_check_owner: Option<T::AccountId>) -> DispatchResult {
 		let region_id: RegionId = (*item).into();
-		let mut region: Region<
-			<T as Config>::AccountId,
-			<<T as Config>::Currency as Inspect<<T as Config>::AccountId>>::Balance,
-		> = Regions::<T>::get(region_id).ok_or(Error::<T>::UnknownRegion)?;
+		let mut region = Regions::<T>::get(region_id).ok_or(Error::<T>::UnknownRegion)?;
 
 		if let Some(owner) = maybe_check_owner {
 			ensure!(owner.clone() == region.owner, Error::<T>::NotOwner);
