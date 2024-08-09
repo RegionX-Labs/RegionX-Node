@@ -157,6 +157,8 @@ pub mod pallet {
 		RegionMinted {
 			/// id of the minted region
 			region_id: RegionId,
+			/// address of the minter
+			by: T::AccountId,
 		},
 		/// A region was burnt.
 		RegionBurnt {

@@ -41,7 +41,7 @@ fn nonfungibles_implementation_works() {
 
 		assert!(Regions::regions(&region_id).is_none());
 		assert_ok!(Regions::mint_into(&region_id.into(), &2));
-		System::assert_last_event(Event::RegionMinted { region_id }.into());
+		System::assert_last_event(Event::RegionMinted { region_id, by: 2u32.into() }.into());
 		assert_eq!(
 			Regions::regions(&region_id).unwrap(),
 			Region { owner: 2, locked: false, record: Record::Unavailable }
