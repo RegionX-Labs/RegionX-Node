@@ -38,3 +38,15 @@ for module_name in "${modules[@]}"; do
     --wasm-execution=compiled \
     --heap-pages=4096
 done
+
+./target/release/regionx-node benchmark pallet \
+--chain cocos \
+--pallet pallet_processor \
+--steps 20 \
+--repeat 50 \
+--output ./runtime/cocos/src/weights/ \
+--header ./config/HEADER-GPL3 \
+--template ./config/runtime-weight-template.hbs \
+--extrinsic=* \
+--wasm-execution=compiled \
+--heap-pages=4096

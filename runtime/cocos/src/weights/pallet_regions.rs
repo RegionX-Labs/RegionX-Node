@@ -60,8 +60,13 @@ impl<T: frame_system::Config> pallet_regions::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `135`
 		//  Estimated: `3584`
+<<<<<<< Updated upstream
 		// Minimum execution time: 15_655_000 picoseconds.
 		Weight::from_parts(16_237_000, 3584)
+=======
+		// Minimum execution time: 16_285_000 picoseconds.
+		Weight::from_parts(17_070_000, 3584)
+>>>>>>> Stashed changes
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -81,17 +86,45 @@ impl<T: frame_system::Config> pallet_regions::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `527`
 		//  Estimated: `3992`
+<<<<<<< Updated upstream
 		// Minimum execution time: 49_287_000 picoseconds.
 		Weight::from_parts(50_832_000, 3992)
 			.saturating_add(T::DbWeight::get().reads(6_u64))
 			.saturating_add(T::DbWeight::get().writes(3_u64))
 	}
+=======
+		// Minimum execution time: 48_632_000 picoseconds.
+		Weight::from_parts(50_431_000, 3992)
+			.saturating_add(T::DbWeight::get().reads(6_u64))
+			.saturating_add(T::DbWeight::get().writes(3_u64))
+	}
+	/// Storage: `Regions::Regions` (r:1 w:1)
+	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
+	/// Storage: `ParachainSystem::ValidationData` (r:1 w:0)
+	/// Proof: `ParachainSystem::ValidationData` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	/// Storage: `ParachainSystem::LastRelayChainBlockNumber` (r:1 w:0)
+	/// Proof: `ParachainSystem::LastRelayChainBlockNumber` (`max_values`: Some(1), `max_size`: None, mode: `Measured`)
+	fn drop_region() -> Weight {
+		// Proof Size summary in bytes:
+		//  Measured:  `249`
+		//  Estimated: `3584`
+		// Minimum execution time: 19_877_000 picoseconds.
+		Weight::from_parts(20_433_000, 3584)
+			.saturating_add(T::DbWeight::get().reads(3_u64))
+			.saturating_add(T::DbWeight::get().writes(1_u64))
+	}
+>>>>>>> Stashed changes
 	fn on_accept() -> Weight {
 		// Proof Size summary in bytes:
 		//  Measured:  `0`
 		//  Estimated: `0`
+<<<<<<< Updated upstream
 		// Minimum execution time: 802_000 picoseconds.
 		Weight::from_parts(886_000, 0)
+=======
+		// Minimum execution time: 793_000 picoseconds.
+		Weight::from_parts(867_000, 0)
+>>>>>>> Stashed changes
 	}
 	/// Storage: `Regions::Regions` (r:1 w:1)
 	/// Proof: `Regions::Regions` (`max_values`: None, `max_size`: Some(119), added: 2594, mode: `MaxEncodedLen`)
@@ -99,8 +132,13 @@ impl<T: frame_system::Config> pallet_regions::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `135`
 		//  Estimated: `3584`
+<<<<<<< Updated upstream
 		// Minimum execution time: 12_782_000 picoseconds.
 		Weight::from_parts(13_277_000, 3584)
+=======
+		// Minimum execution time: 12_775_000 picoseconds.
+		Weight::from_parts(13_159_000, 3584)
+>>>>>>> Stashed changes
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
@@ -110,8 +148,13 @@ impl<T: frame_system::Config> pallet_regions::WeightInfo for WeightInfo<T> {
 		// Proof Size summary in bytes:
 		//  Measured:  `135`
 		//  Estimated: `3584`
+<<<<<<< Updated upstream
 		// Minimum execution time: 8_561_000 picoseconds.
 		Weight::from_parts(8_827_000, 3584)
+=======
+		// Minimum execution time: 8_290_000 picoseconds.
+		Weight::from_parts(8_623_000, 3584)
+>>>>>>> Stashed changes
 			.saturating_add(T::DbWeight::get().reads(1_u64))
 			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
