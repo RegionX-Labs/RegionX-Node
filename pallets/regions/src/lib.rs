@@ -244,7 +244,7 @@ pub mod pallet {
 		}
 
 		#[pallet::call_index(2)]
-		#[pallet::weight(1000)]
+		#[pallet::weight(T::WeightInfo::drop_region())]
 		pub fn drop_region(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
@@ -256,8 +256,8 @@ pub mod pallet {
 				// Cannot drop a region that is not expired yet.
 
 				// Allowing region removal 1 timeslice before it truly expires makes writing
-				// benchmarks much easier. With this we can set the start and end to 0 and be able to
-				// drop the region without having to modify the current timeslice.
+				// benchmarks much easier. With this we can set the start and end to 0 and be able
+				// to drop the region without having to modify the current timeslice.
 				let current_timeslice = Self::current_timeslice();
 				#[cfg(feature = "runtime-benchmarks")]
 				ensure!(record.end <= current_timeslice, Error::<T>::RegionNotExpired);
