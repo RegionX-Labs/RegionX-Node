@@ -18,7 +18,7 @@ use crate::{
 	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
 };
 use frame_support::{
-	assert_noop, assert_ok,
+	assert_err, assert_noop, assert_ok,
 	pallet_prelude::*,
 	traits::nonfungible::{Inspect, Mutate, Transfer as NonFungibleTransfer},
 };
@@ -287,7 +287,7 @@ fn on_timeout_works() {
 		// failed to decode region_id
 		let mut invalid_get_req = get.clone();
 		invalid_get_req.keys.push(vec![0u8; 15]);
-		assert_noop!(
+		assert_err!(
 			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
 			IsmpCustomError::KeyDecodeFailed
 		);
