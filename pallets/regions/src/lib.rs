@@ -254,7 +254,14 @@ pub mod pallet {
 
 			if let Record::Available(record) = region.record {
 				// Cannot drop a region that is not expired yet.
+
+				// Allowing region removal 1 timeslice before it truly expires makes writing
+				// benchmarks much easier. With this we can set the start and end to 0 and be able to
+				// drop the region without having to modify the current timeslice.
 				let current_timeslice = Self::current_timeslice();
+				#[cfg(feature = "runtime-benchmarks")]
+				ensure!(record.end <= current_timeslice, Error::<T>::RegionNotExpired);
+				#[cfg(not(feature = "runtime-benchmarks"))]
 				ensure!(record.end < current_timeslice, Error::<T>::RegionNotExpired);
 
 				Regions::<T>::remove(region_id);
