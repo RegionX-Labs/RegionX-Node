@@ -418,7 +418,6 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 	}
 }
 
-use frame_support::ensure;
 impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 	fn on_accept(&self, _request: Post) -> Result<(), IsmpError> {
 		Err(IsmpCustomError::NotSupported.into())
