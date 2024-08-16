@@ -43,7 +43,7 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
         with:
           persist-credentials: false
       - uses: taiki-e/create-gh-release-action@v1
@@ -80,7 +80,7 @@ jobs:
       contents: write
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v4.1.7
         with:
           persist-credentials: false
 
@@ -127,14 +127,14 @@ jobs:
     steps:
       # Login to Docker hub using the credentials stored in the repository secrets
       - name: Log in to Docker Hub
-        uses: docker/login-action@v3.1.0
+        uses: docker/login-action@v3.3.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - name: Check out the repo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v4.1.7
 
       # Download the binary from the previous job
       - name: Download x86_64 linux binary
@@ -145,7 +145,7 @@ jobs:
 
       # Build and push 2 images, One with the version tag and the other with latest tag
       - name: Build and push Docker images
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Containerfile
