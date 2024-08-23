@@ -297,10 +297,9 @@ pub mod pallet {
 		}
 
 		fn order_expired(order: &Order<T::AccountId>) -> bool {
-			// Allowing order cancellation 1 timeslice before it truly expires makes writing
-			// benchmarks much easier. With this we can set the start and end to 0 and be able to
-			// cancel the order without having to modify the current timeslice.
-
+			// Defining the order expiry 1 timeslice before it truly expires makes writing
+			// benchmarks much easier. With this approach, we can set the start and end to 0,
+			// thereby defining the order as expired, to allow actions like order cancellation.
 			#[cfg(feature = "runtime-benchmarks")]
 			return order.requirements.end <= Self::current_timeslice();
 
