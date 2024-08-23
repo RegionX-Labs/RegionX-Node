@@ -128,7 +128,7 @@ mod benchmarks {
 		let para_id: ParaId = 2000.into();
 		let requirements = Requirements {
 			begin: 0,
-			end: 8,
+			end: 0,
 			core_occupancy: 28800, // Half of a core.
 		};
 
@@ -143,12 +143,21 @@ mod benchmarks {
 			para_id,
 			requirements,
 		)?;
-		crate::Pallet::<T>::contribute(
-			RawOrigin::Signed(creator.clone()).into(),
-			0,
+
+		// manually contribute since the order 'expired':
+		<<T as Config>::Currency as Currency<T::AccountId>>::transfer(
+			&creator.clone(),
+			&T::OrderToAccountId::convert(0),
 			<T as crate::Config>::MinimumContribution::get(),
+			ExistenceRequirement::KeepAlive,
 		)?;
-		crate::Pallet::<T>::do_cancel_order(0, 10)?;
+		Contributions::<T>::insert(
+			0,
+			creator.clone(),
+			<T as crate::Config>::MinimumContribution::get(),
+		);
+
+		crate::Pallet::<T>::do_cancel_order(0)?;
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(creator.clone()), 0);

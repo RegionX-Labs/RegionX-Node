@@ -15,8 +15,8 @@
 
 use crate::{
 	mock::{
-		assignments, new_test_ext, Balances, Orders, Processor, Regions, RuntimeOrigin, System,
-		Test,
+		assignments, new_test_ext, Balances, Orders, Processor, Regions, RelayBlockNumber,
+		RuntimeOrigin, System, Test,
 	},
 	Error, Event,
 };
@@ -105,6 +105,36 @@ fn fulfill_order_works() {
 
 		// Assignment request is emmited:
 		assert_eq!(assignments(), vec![(region_id, 2000.into())]);
+	});
+}
+
+#[test]
+fn cannot_fulfill_expired_order() {
+	new_test_ext(vec![]).execute_with(|| {
+		let region_owner = 1;
+		let order_creator = 2000;
+		let requirements = Requirements {
+			begin: 1,
+			end: 8,
+			core_occupancy: 28800, // Half of a core.
+		};
+
+		<Test as crate::Config>::Currency::make_free_balance_be(&order_creator, 1000u32.into());
+		assert_ok!(Orders::create_order(
+			RuntimeOrigin::signed(order_creator.clone()),
+			2000.into(),
+			requirements.clone()
+		));
+
+		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+		assert_ok!(Regions::mint_into(&region_id.into(), &region_owner));
+		assert_ok!(Regions::set_record(region_id, RegionRecord { end: 0, owner: 1, paid: None }));
+
+		RelayBlockNumber::set(10 * 80);
+		assert_noop!(
+			Processor::fulfill_order(RuntimeOrigin::signed(region_owner), 0, region_id),
+			Error::<Test>::OrderExpired
+		);
 	});
 }
 
