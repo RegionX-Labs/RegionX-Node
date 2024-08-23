@@ -52,6 +52,9 @@ pub trait OrderInspect<AccountId: Clone> {
 	/// If `None` the order was not found.
 	fn order(order_id: &OrderId) -> Option<Order<AccountId>>;
 
+	/// Returns whether an order expired or not.
+	fn order_expired(order_id: &Order<AccountId>) -> bool;
+
 	/// Remove an order with the associated id.
 	fn remove_order(order_id: &OrderId);
 }

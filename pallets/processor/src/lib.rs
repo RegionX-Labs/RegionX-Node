@@ -154,6 +154,8 @@ pub mod pallet {
 		NotOwner,
 		/// We didn't find the task to which the region is supposed to be assigned.
 		RegionAssignmentNotFound,
+		/// The order user tried to fulfill expired.
+		OrderExpired,
 	}
 
 	#[pallet::call]
@@ -187,7 +189,9 @@ pub mod pallet {
 			ensure!(region.owner == who, Error::<T>::NotOwner);
 
 			let record = region.record.get().ok_or(Error::<T>::RecordUnavailable)?;
+
 			let order = T::Orders::order(&order_id).ok_or(Error::<T>::UnknownOrder)?;
+			ensure!(!T::Orders::order_expired(&order), Error::<T>::OrderExpired);
 
 			Self::ensure_matching_requirements(region_id, record, order.requirements)?;
 
