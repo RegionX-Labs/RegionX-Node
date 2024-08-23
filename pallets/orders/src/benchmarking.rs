@@ -146,12 +146,16 @@ mod benchmarks {
 
 		// manually contribute since the order 'expired':
 		<<T as Config>::Currency as Currency<T::AccountId>>::transfer(
-				&creator.clone(),
-				&T::OrderToAccountId::convert(0),
-				<T as crate::Config>::MinimumContribution::get(),
-				ExistenceRequirement::KeepAlive,
+			&creator.clone(),
+			&T::OrderToAccountId::convert(0),
+			<T as crate::Config>::MinimumContribution::get(),
+			ExistenceRequirement::KeepAlive,
 		)?;
-		Contributions::<T>::insert(0, creator.clone(), <T as crate::Config>::MinimumContribution::get());
+		Contributions::<T>::insert(
+			0,
+			creator.clone(),
+			<T as crate::Config>::MinimumContribution::get(),
+		);
 
 		crate::Pallet::<T>::do_cancel_order(0)?;
 
