@@ -165,3 +165,4 @@ pallet-market = { path = "./pallets/market", default-features = false }
 pallet-orders = { path = "./pallets/orders", default-features = false }
 pallet-processor = { path = "./pallets/processor", default-features = false }
 pallet-regions = { path = "./pallets/regions", default-features = false }
+pallet-rewards = { path = "./pallets/rewards", default-features = false }
