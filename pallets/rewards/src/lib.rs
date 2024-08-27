@@ -15,7 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::Currency;
+use frame_support::traits::fungibles;
 use frame_system::WeightInfo;
 use order_primitives::{OrderFactory, OrderId, OrderInspect};
 pub use pallet::*;
@@ -25,19 +25,20 @@ mod types;
 
 const LOG_TARGET: &str = "runtime::rewards";
 
-pub type BalanceOf<T> =
-	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
+pub type BalanceOf<T> = <<T as crate::Config>::Assets as fungibles::Inspect<
+	<T as frame_system::Config>::AccountId,
+>>::Balance;
+
+pub type AssetIdOf<T> = <<T as crate::Config>::Assets as fungibles::Inspect<
+	<T as frame_system::Config>::AccountId,
+>>::AssetId;
 
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
 	use frame_support::{
 		pallet_prelude::*,
-		traits::{
-			fungible::{Inspect, Mutate},
-			tokens::Balance,
-			ReservableCurrency,
-		},
+		traits::{fungibles::Inspect, tokens::Balance},
 	};
 	use frame_system::pallet_prelude::*;
 	use types::PrizePoolDetails;
@@ -48,22 +49,13 @@ pub mod pallet {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-		/// The type used as a unique asset id,
-		type AssetId: Parameter
-			+ Member
-			+ Default
-			+ TypeInfo
-			+ MaybeSerializeDeserialize
-			+ MaxEncodedLen
-			+ Zero;
-
-		/// TODO: remove and replace with a multicurrency type.
-		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
-
 		/// Relay chain balance type
 		type Balance: Balance
-			+ Into<<Self::Currency as Inspect<Self::AccountId>>::Balance>
+			+ Into<<Self::Assets as Inspect<Self::AccountId>>::Balance>
 			+ Into<u128>;
+
+		/// The type should provide access to assets which can be used as reward.
+		type Assets: Inspect<Self::AccountId>;
 
 		/// Type over which we can access order data.
 		type Orders: OrderInspect<Self::AccountId> + OrderFactory<Self::AccountId>;
@@ -80,7 +72,7 @@ pub mod pallet {
 	#[pallet::storage]
 	#[pallet::getter(fn order_rewards)]
 	pub type PrizePools<T: Config> =
-		StorageMap<_, Blake2_128Concat, OrderId, PrizePoolDetails<T::AssetId, BalanceOf<T>>>;
+		StorageMap<_, Blake2_128Concat, OrderId, PrizePoolDetails<AssetIdOf<T>, BalanceOf<T>>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -100,6 +92,8 @@ pub mod pallet {
 		CantConfigure,
 		/// The reward pool of an order was not found.
 		PrizePoolNotFound,
+		/// The asset the user wanted to use for rewards does not exist.
+		AssetNotFound,
 	}
 
 	#[pallet::call]
@@ -110,7 +104,7 @@ pub mod pallet {
 		pub fn configure_rewards(
 			origin: OriginFor<T>,
 			order_id: OrderId,
-			asset_id: T::AssetId,
+			asset_id: AssetIdOf<T>,
 		) -> DispatchResult {
 			let caller = ensure_signed(origin)?;
 
@@ -124,6 +118,8 @@ pub mod pallet {
 			if let Some(pool) = maybe_pool {
 				ensure!(pool.amount == Zero::zero(), Error::<T>::CantConfigure);
 			}
+
+			ensure!(T::Assets::asset_exists(asset_id.clone()) == true, Error::<T>::AssetNotFound);
 
 			PrizePools::<T>::insert(order_id, PrizePoolDetails { asset_id, amount: Zero::zero() });
 
