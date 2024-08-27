@@ -40,7 +40,7 @@ pub mod pallet {
 		},
 	};
 	use frame_system::pallet_prelude::*;
-	use types::RewardDetails;
+	use types::PrizePoolDetails;
 
 	/// The module configuration trait.
 	#[pallet::config]
@@ -79,8 +79,8 @@ pub mod pallet {
 	/// fulfilled on time.
 	#[pallet::storage]
 	#[pallet::getter(fn order_rewards)]
-	pub type RewardPools<T: Config> =
-		StorageMap<_, Blake2_128Concat, OrderId, RewardDetails<T::AssetId, BalanceOf<T>>>;
+	pub type PrizePools<T: Config> =
+		StorageMap<_, Blake2_128Concat, OrderId, PrizePoolDetails<T::AssetId, BalanceOf<T>>>;
 
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
@@ -99,7 +99,7 @@ pub mod pallet {
 		/// are not yet set and are currently zero.
 		CantConfigure,
 		/// The reward pool of an order was not found.
-		RewardPoolNotFound,
+		PrizePoolNotFound,
 	}
 
 	#[pallet::call]
@@ -119,13 +119,13 @@ pub mod pallet {
 			ensure!(!T::Orders::order_expired(&order), Error::<T>::OrderExpired);
 			ensure!(order.creator == caller, Error::<T>::Unallowed);
 
-			let maybe_pool = RewardPools::<T>::get(order_id);
+			let maybe_pool = PrizePools::<T>::get(order_id);
 			// Rewards can be reconfigured if the amount is still zero.
 			if let Some(pool) = maybe_pool {
 				ensure!(pool.amount == Zero::zero(), Error::<T>::CantConfigure);
 			}
 
-			RewardPools::<T>::insert(order_id, RewardDetails { asset_id, amount: Zero::zero() });
+			PrizePools::<T>::insert(order_id, PrizePoolDetails { asset_id, amount: Zero::zero() });
 
 			// TODO: deposit event
 			Ok(())
@@ -150,8 +150,8 @@ pub mod pallet {
 		) -> DispatchResult {
 			let _caller = ensure_signed(origin)?;
 
-			let Some(pool) = RewardPools::<T>::get(order_id) else {
-				return Err(Error::<T>::RewardPoolNotFound.into())
+			let Some(pool) = PrizePools::<T>::get(order_id) else {
+				return Err(Error::<T>::PrizePoolNotFound.into())
 			};
 
 			// TODO: check if user has enough tokens

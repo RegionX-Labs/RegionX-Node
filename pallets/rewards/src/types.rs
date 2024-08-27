@@ -18,7 +18,7 @@ use scale_info::TypeInfo;
 
 /// Contains reward details of an order.
 #[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub struct RewardDetails<AssetId, Balance> {
+pub struct PrizePoolDetails<AssetId, Balance> {
 	/// The asset which the contributors will receive,
 	pub asset_id: AssetId,
 	/// Amount of tokens that will be distributed to contributors.
