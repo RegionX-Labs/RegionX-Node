@@ -79,7 +79,7 @@ pub mod pallet {
 	/// fulfilled on time.
 	#[pallet::storage]
 	#[pallet::getter(fn order_rewards)]
-	pub type OrderRewards<T: Config> =
+	pub type RewardPools<T: Config> =
 		StorageMap<_, Blake2_128Concat, OrderId, RewardDetails<T::AssetId, BalanceOf<T>>>;
 
 	#[pallet::event]
@@ -98,6 +98,8 @@ pub mod pallet {
 		/// Rewards can only be configured if there is no existing configuration or if the rewards
 		/// are not yet set and are currently zero.
 		CantConfigure,
+		/// The reward pool of an order was not found.
+		RewardPoolNotFound,
 	}
 
 	#[pallet::call]
@@ -117,15 +119,44 @@ pub mod pallet {
 			ensure!(!T::Orders::order_expired(&order), Error::<T>::OrderExpired);
 			ensure!(order.creator == caller, Error::<T>::Unallowed);
 
-			let maybe_rewards = OrderRewards::<T>::get(order_id);
+			let maybe_pool = RewardPools::<T>::get(order_id);
 			// Rewards can be reconfigured if the amount is still zero.
-			if let Some(rewards) = maybe_rewards {
-				ensure!(rewards.amount == Zero::zero(), Error::<T>::CantConfigure);
+			if let Some(pool) = maybe_pool {
+				ensure!(pool.amount == Zero::zero(), Error::<T>::CantConfigure);
 			}
 
-			OrderRewards::<T>::insert(order_id, RewardDetails { asset_id, amount: Zero::zero() });
+			RewardPools::<T>::insert(order_id, RewardDetails { asset_id, amount: Zero::zero() });
 
 			// TODO: deposit event
+			Ok(())
+		}
+
+		/// Add rewards to a reward pool of an order.
+		///
+		/// The added rewards will be of the configured asset kind.
+		///
+		/// ## Parameters
+		///
+		/// - `origin`: Signed origin. Can be called by any account.
+		/// - `order_id`: The order to which the user wants to contribute rewards. There must exist
+		///   a reward pool for the specified order.
+		///  -`amount`: number of tokens the user wants to add to the reward pool.
+		#[pallet::call_index(1)]
+		#[pallet::weight(10_000)]
+		pub fn add_rewards(
+			origin: OriginFor<T>,
+			order_id: OrderId,
+			amount: BalanceOf<T>,
+		) -> DispatchResult {
+			let _caller = ensure_signed(origin)?;
+
+			let Some(pool) = RewardPools::<T>::get(order_id) else {
+				return Err(Error::<T>::RewardPoolNotFound.into())
+			};
+
+			// TODO: check if user has enough tokens
+			// TODO: contribute to the pool.
+
 			Ok(())
 		}
 	}
