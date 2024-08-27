@@ -41,7 +41,7 @@ pub mod assigner;
 mod weights;
 pub use weights::WeightInfo;
 
-const LOG_TARGET: &str = "runtime::order-creator";
+const LOG_TARGET: &str = "runtime::processor";
 
 pub type BalanceOf<T> =
 	<<T as crate::Config>::Currency as Currency<<T as frame_system::Config>::AccountId>>::Balance;
