@@ -15,14 +15,13 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::{
-	traits::{nonfungible::Transfer, Currency, ExistenceRequirement},
-	weights::WeightToFee,
-};
+use frame_support::traits::Currency;
 use frame_system::WeightInfo;
-use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
+use order_primitives::{OrderFactory, OrderId, OrderInspect};
 pub use pallet::*;
-use sp_runtime::traits::Convert;
+use sp_runtime::traits::Zero;
+
+mod types;
 
 const LOG_TARGET: &str = "runtime::rewards";
 
@@ -36,12 +35,12 @@ pub mod pallet {
 		pallet_prelude::*,
 		traits::{
 			fungible::{Inspect, Mutate},
-			nonfungible::Mutate as NftMutate,
 			tokens::Balance,
 			ReservableCurrency,
 		},
 	};
 	use frame_system::pallet_prelude::*;
+	use types::RewardDetails;
 
 	/// The module configuration trait.
 	#[pallet::config]
@@ -49,7 +48,16 @@ pub mod pallet {
 		/// The overarching event type.
 		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
 
-		/// Currency used for purchasing coretime.
+		/// The type used as a unique asset id,
+		type AssetId: Parameter
+			+ Member
+			+ Default
+			+ TypeInfo
+			+ MaybeSerializeDeserialize
+			+ MaxEncodedLen
+			+ Zero;
+
+		/// TODO: remove and replace with a multicurrency type.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;
 
 		/// Relay chain balance type
@@ -67,22 +75,57 @@ pub mod pallet {
 	#[pallet::pallet]
 	pub struct Pallet<T>(_);
 
+	/// Defines the rewards that will be distributed among order contributors if the order is
+	/// fulfilled on time.
+	#[pallet::storage]
+	#[pallet::getter(fn order_rewards)]
+	pub type OrderRewards<T: Config> =
+		StorageMap<_, Blake2_128Concat, OrderId, RewardDetails<T::AssetId, BalanceOf<T>>>;
+
 	#[pallet::event]
 	#[pallet::generate_deposit(pub(super) fn deposit_event)]
 	pub enum Event<T: Config> {}
 
 	#[pallet::error]
 	#[derive(PartialEq)]
-	pub enum Error<T> {}
+	pub enum Error<T> {
+		/// The caller submitted an extrinsic which wasn't allowed with their origin.
+		Unallowed,
+		/// The order expired and there is no point in configuring rewards.
+		OrderExpired,
+		/// Order not found.
+		UnknownOrder,
+		/// Rewards can only be configured if there is no existing configuration or if the rewards
+		/// are not yet set and are currently zero.
+		CantConfigure,
+	}
 
 	#[pallet::call]
 	impl<T: Config> Pallet<T> {
+		/// The order creator can configure the asset which will be used for rewarding contributors.
 		#[pallet::call_index(0)]
 		#[pallet::weight(10_000)]
-		pub fn configure_rewards(origin: OriginFor<T>, order_id: OrderId) -> DispatchResult {
-			let who = ensure_signed(origin)?;
-			// TODO
+		pub fn configure_rewards(
+			origin: OriginFor<T>,
+			order_id: OrderId,
+			asset_id: T::AssetId,
+		) -> DispatchResult {
+			let caller = ensure_signed(origin)?;
 
+			let order = T::Orders::order(&order_id).ok_or(Error::<T>::UnknownOrder)?;
+
+			ensure!(!T::Orders::order_expired(&order), Error::<T>::OrderExpired);
+			ensure!(order.creator == caller, Error::<T>::Unallowed);
+
+			let maybe_rewards = OrderRewards::<T>::get(order_id);
+			// Rewards can be reconfigured if the amount is still zero.
+			if let Some(rewards) = maybe_rewards {
+				ensure!(rewards.amount == Zero::zero(), Error::<T>::CantConfigure);
+			}
+
+			OrderRewards::<T>::insert(order_id, RewardDetails { asset_id, amount: Zero::zero() });
+
+			// TODO: deposit event
 			Ok(())
 		}
 	}
