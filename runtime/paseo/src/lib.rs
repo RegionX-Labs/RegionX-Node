@@ -435,7 +435,7 @@ impl orml_asset_registry::Config for Runtime {
 
 parameter_types! {
 	// TODO: Make sure this is reasonable
-	pub const TransactionByteFee: Balance = 20 * MICRO_REGX;
+	pub const TransactionByteFee: Balance = 50 * MICRO_REGX;
 }
 
 impl pallet_transaction_payment::Config for Runtime {

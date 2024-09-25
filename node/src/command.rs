@@ -29,11 +29,15 @@ use sp_runtime::traits::AccountIdConversion;
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{is_cocos, new_partial},
+	service::{is_cocos, is_paseo, new_partial},
 };
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
+		// TODO: Para Id
+		"regionx-paseo" => Box::new(chain_spec::paseo::paseo_config(2000)),
+		"regionx-paseo-dev" => Box::new(chain_spec::paseo::development_config(2000)),
+		"regionx-paseo-local" => Box::new(chain_spec::paseo::local_testnet_config(2000)),
 		"cocos" => Box::new(chain_spec::cocos::cocos_config(4479)),
 		"cocos-dev" | "dev" | "" => Box::new(chain_spec::cocos::development_config(2000)),
 		"cocos-local" | "local" => Box::new(chain_spec::cocos::local_testnet_config(2000)),
@@ -120,7 +124,15 @@ macro_rules! construct_async_run {
 	(|$components:ident, $cli:ident, $cmd:ident, $config:ident| $( $code:tt )* ) => {{
 		let runner = $cli.create_runner($cmd)?;
 		match runner.config().chain_spec.id() {
-            chain if is_cocos(chain) => {
+            chain if is_paseo(chain) => {
+				runner.async_run(|$config| {
+					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&$config);
+					let $components = new_partial::<paseo_runtime::RuntimeApi, _>(&$config, executor)?;
+					let task_manager = $components.task_manager;
+					{ $( $code )* }.map(|v| (v, task_manager))
+				})
+			},
+			chain if is_cocos(chain) => {
 				runner.async_run(|$config| {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&$config);
 					let $components = new_partial::<cocos_runtime::RuntimeApi, _>(&$config, executor)?;
@@ -191,6 +203,11 @@ pub fn run() -> Result<()> {
 			runner.sync_run(|config| {
 				let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 				match config.chain_spec.id() {
+           			chain if is_paseo(chain) => {
+						let partials =
+						new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+						cmd.run(partials.client)
+					},
            			chain if is_cocos(chain) => {
 						let partials =
 						new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
@@ -223,6 +240,11 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
+            			chain if is_paseo(chain) => {
+							let partials =
+								new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+							cmd.run(partials.client)
+						},
             			chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
@@ -244,6 +266,13 @@ pub fn run() -> Result<()> {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
+            			chain if is_paseo(chain) => {
+							let partials =
+								new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+							let db = partials.backend.expose_db();
+							let storage = partials.backend.expose_storage();
+							cmd.run(config, partials.client.clone(), db, storage)
+						},
             			chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;

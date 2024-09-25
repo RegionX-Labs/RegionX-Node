@@ -9741,6 +9741,7 @@ dependencies = [
  "pallet-ismp-runtime-api",
  "pallet-transaction-payment-rpc",
  "parity-scale-codec",
+ "paseo-runtime",
  "polkadot-cli",
  "polkadot-primitives",
  "regionx-runtime-common",
