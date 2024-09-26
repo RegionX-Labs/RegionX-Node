@@ -67,7 +67,7 @@ pub fn development_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisCon
 	ChainSpec::builder(
 		paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
-			relay_chain: "rococo-local".into(),
+			relay_chain: "paseo-local".into(),
 			// You MUST set this to the correct network!
 			para_id: id,
 		},
@@ -119,7 +119,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisC
 	ChainSpec::builder(
 		paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
-			relay_chain: "rococo-local".into(),
+			relay_chain: "paseo-local".into(),
 			// You MUST set this to the correct network!
 			para_id: id,
 		},
