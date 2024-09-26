@@ -35,7 +35,7 @@ use crate::{
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// TODO: Para Id
-		"regionx-paseo" => Box::new(chain_spec::paseo::paseo_config(2000)),
+		"regionx-paseo" => Box::new(chain_spec::paseo::paseo_config(4509)),
 		"regionx-paseo-dev" | "" => Box::new(chain_spec::paseo::development_config(2000)),
 		"regionx-paseo-local" => Box::new(chain_spec::paseo::local_testnet_config(2000)),
 		"cocos" => Box::new(chain_spec::cocos::cocos_config(4479)),
