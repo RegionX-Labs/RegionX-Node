@@ -19,6 +19,7 @@ use sp_core::{Pair, Public};
 use sp_runtime::traits::{IdentifyAccount, Verify};
 
 pub mod cocos;
+pub mod paseo;
 
 type AccountPublic = <Signature as Verify>::Signer;
 

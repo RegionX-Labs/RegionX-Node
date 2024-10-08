@@ -19,6 +19,7 @@ serde_json = { workspace = true }
 
 # Local
 cocos-runtime = { workspace = true }
+paseo-runtime = { workspace = true }
 regionx-runtime-common = { workspace = true }
 
 # Polytope Labs

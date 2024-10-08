@@ -67,8 +67,13 @@ pub type Service<Runtime, Executor> = PartialComponents<
 	(ParachainBlockImport<Runtime, Executor>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 >;
 
+pub fn is_paseo(id: &str) -> bool {
+	// Default to paseo
+	id.contains("paseo") || id.is_empty()
+}
+
 pub fn is_cocos(id: &str) -> bool {
-	id.contains("cocos") || id.is_empty() || id.contains("dev") || id.contains("local")
+	id.contains("cocos")
 }
 
 /// Starts a `ServiceBuilder` for a full service.
@@ -471,6 +476,15 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
+		chain if is_paseo(chain) =>
+			start_node_impl::<paseo_runtime::RuntimeApi>(
+				parachain_config,
+				polkadot_config,
+				collator_options,
+				para_id,
+				hwbench,
+			)
+			.await,
 		chain if is_cocos(chain) =>
 			start_node_impl::<cocos_runtime::RuntimeApi>(
 				parachain_config,

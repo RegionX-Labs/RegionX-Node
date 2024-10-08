@@ -13,13 +13,16 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use sp_core::ConstU32;
+#[cfg(feature = "std")]
+fn main() {
+	substrate_wasm_builder::WasmBuilder::new()
+		.with_current_project()
+		.export_heap_base()
+		.import_memory()
+		.build()
+}
 
-/// Asset identifier.
-pub type AssetId = u32;
-
-pub const COCOS_ASSET_ID: AssetId = 0;
-pub const REGX_ASSET_ID: AssetId = 0;
-pub const RELAY_CHAIN_ASSET_ID: AssetId = 1;
-
-pub type AssetsStringLimit = ConstU32<50>;
+/// The wasm builder is deactivated when compiling
+/// this crate for wasm to speed up the compilation.
+#[cfg(not(feature = "std"))]
+fn main() {}
