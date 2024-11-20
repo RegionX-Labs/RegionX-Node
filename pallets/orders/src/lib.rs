@@ -88,7 +88,7 @@ pub mod pallet {
 
 		/// The minimum contribution to an order.
 		///
-		/// NOTE: This must be greater than existentail deposit.
+		/// NOTE: This must be greater than existential deposit.
 		#[pallet::constant]
 		type MinimumContribution: Get<BalanceOf<Self>>;
 
