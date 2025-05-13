@@ -30,9 +30,6 @@ use adapter::NonFungibleAdapter;
 mod weights;
 pub mod xcm_config;
 
-mod governance;
-use governance::{pallet_custom_origins, EnsureTwoThirdTechnicalCommittee, Spender};
-
 mod impls;
 mod ismp;
 
@@ -153,9 +150,6 @@ pub type Executive = frame_executive::Executive<
 	AllPalletsWithSystem,
 >;
 
-/// The relay chain currency on the RegionX parachain.
-pub type RelaychainCurrency = CurrencyAdapter<Runtime, ConstU32<RELAY_CHAIN_ASSET_ID>>;
-
 /// Handles converting a weight scalar to a fee value, based on the scale and granularity of the
 /// node's balance type.
 ///
@@ -218,18 +212,13 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
-// Unit = the base number of indivisible units for balances
-pub const REGX: Balance = 1_000_000_000_000;
-pub const MILLI_REGX: Balance = 1_000_000_000;
-pub const MICRO_REGX: Balance = 1_000_000;
-
-pub const ROC: Balance = 1_000_000_000_000;
-pub const MILLI_ROC: Balance = 1_000_000_000;
-pub const MICRO_ROC: Balance = 1_000_000;
+pub const KSM: Balance = 1_000_000_000_000;
+pub const MILLI_KSM: Balance = 1_000_000_000;
+pub const MICRO_KSM: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
 	// TODO: ensure this is a sensible value.
-	items as Balance * REGX + (bytes as Balance) * 300 * MILLI_REGX
+	items as Balance * MILLI_KSM + (bytes as Balance) * 10 * MICRO_KSM
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -241,8 +230,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-pub const REGX_EXISTENTIAL_DEPOSIT: Balance = MILLI_REGX;
-pub const ROC_EXISTENTIAL_DEPOSIT: Balance = MILLI_ROC;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_KSM;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
 /// used to limit the maximal weight of a single extrinsic.
@@ -362,14 +350,14 @@ impl pallet_authorship::Config for Runtime {
 }
 
 parameter_types! {
-	pub const ExistentialDeposit: Balance = REGX_EXISTENTIAL_DEPOSIT;
+	pub const ExistentialDeposit: Balance = EXISTENTIAL_DEPOSIT;
 	pub const MaxLocks: u32 = 50;
 	pub const MaxReserves: u32 = 50;
 }
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
-	type MaxHolds = ConstU32<1>;
+	type MaxHolds = ConstU32<50>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -387,55 +375,8 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const AssetDeposit: Balance = deposit(1, 190);
-	pub const AssetAccountDeposit: Balance = deposit(1, 16);
-	/// Key = 32 bytes, Value = 36 bytes (32+1+1+1+1)
-	// https://github.com/paritytech/substrate/blob/069917b/frame/assets/src/lib.rs#L257L271
-	pub const MetadataDepositBase: Balance = deposit(1, 68);
-	pub const MetadataDepositPerByte: Balance = deposit(0, 1);
-}
-
-impl orml_tokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Balance = Balance;
-	type Amount = Amount;
-	type CurrencyId = AssetId;
-	type WeightInfo = ();
-	/// Tokens are registered through the orml asset registry.
-	type ExistentialDeposits = ExistentialDeposits;
-	type CurrencyHooks = ();
-	type MaxLocks = MaxLocks;
-	type MaxReserves = MaxReserves;
-	type ReserveIdentifier = [u8; 8];
-	type DustRemovalWhitelist = ();
-}
-
-parameter_types! {
-	pub const NativeAssetId: AssetId = REGX_ASSET_ID;
-}
-
-impl orml_currencies::Config for Runtime {
-	type MultiCurrency = Tokens;
-	type NativeCurrency = BasicCurrencyAdapter<Runtime, Balances, Amount, BlockNumber>;
-	type GetNativeCurrencyId = NativeAssetId;
-	type WeightInfo = ();
-}
-
-impl orml_asset_registry::Config for Runtime {
-	type AssetId = AssetId;
-	type AssetProcessor = CustomAssetProcessor;
-	type AuthorityOrigin = EitherOfDiverse<EnsureRoot<AccountId>, EnsureTwoThirdTechnicalCommittee>;
-	type Balance = Balance;
-	type CustomMetadata = ();
-	type StringLimit = AssetsStringLimit;
-	type RuntimeEvent = RuntimeEvent;
-	// TODO: accurate weight
-	type WeightInfo = ();
-}
-
-parameter_types! {
 	// TODO: Make sure this is reasonable
-	pub const TransactionByteFee: Balance = 50 * MICRO_REGX;
+	pub const TransactionByteFee: Balance = MILLI_KSM;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -445,28 +386,6 @@ impl pallet_transaction_payment::Config for Runtime {
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
-}
-
-impl pallet_asset_rate::Config for Runtime {
-	type CreateOrigin = EnsureRoot<AccountId>;
-	type RemoveOrigin = EnsureRoot<AccountId>;
-	type UpdateOrigin = EnsureRoot<AccountId>;
-	type Currency = Balances;
-	type AssetKind = AssetId;
-	type RuntimeEvent = RuntimeEvent;
-	type WeightInfo = ();
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
-impl orml_unknown_tokens::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-}
-
-impl pallet_asset_tx_payment::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Fungibles = Tokens;
-	type OnChargeAssetTransaction = FungiblesAdapter<TokenToNativeConverter, TokensToBlockAuthor>;
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -717,48 +636,9 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-parameter_types! {
-	pub const TreasuryPalletId: PalletId = PalletId(*b"rgx/trsy");
-	pub RegionXTreasuryAccount: AccountId = TreasuryPalletId::get().into_account_truncating();
-	pub const ProposalBond: Permill = Permill::from_percent(5);
-	pub const ProposalBondMinimum: Balance = 100 * REGX;
-	pub const ProposalBondMaximum: Balance = 5_000 * REGX;
-	pub const SpendPeriod: BlockNumber = 7 * DAYS;
-	pub const PayoutPeriod: BlockNumber = 30 * DAYS;
-	pub const MaxApprovals: u32 = 50;
-	pub const Burn: Permill = Permill::from_percent(0);
-}
-
-impl pallet_treasury::Config for Runtime {
-	type PalletId = TreasuryPalletId;
-	type Currency = Balances;
-	type ApproveOrigin = Spender;
-	type RejectOrigin = Spender;
-	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
-	type SpendPeriod = SpendPeriod;
-	type Burn = Burn;
-	type BurnDestination = ();
-	type MaxApprovals = MaxApprovals;
-	type WeightInfo = ();
-	type SpendFunds = ();
-	type SpendOrigin = Spender;
-	type AssetKind = ();
-	type Beneficiary = AccountId;
-	type BeneficiaryLookup = IdentityLookup<Self::Beneficiary>;
-	type Paymaster = PayFromAccount<Balances, RegionXTreasuryAccount>;
-	type BalanceConverter = UnityAssetBalanceConversion;
-	type PayoutPeriod = PayoutPeriod;
-	#[cfg(feature = "runtime-benchmarks")]
-	type BenchmarkHelper = ();
-}
-
 impl pallet_market::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Currency = RelaychainCurrency;
+	type Currency = Balance;
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
@@ -766,8 +646,8 @@ impl pallet_market::Config for Runtime {
 }
 
 parameter_types! {
-	pub const OrderCreationCost: Balance = ROC;
-	pub const MinimumContribution: Balance = ROC;
+	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
+	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
 }
 
 pub struct OrderToAccountId;
@@ -779,7 +659,7 @@ impl Convert<OrderId, AccountId> for OrderToAccountId {
 
 impl pallet_orders::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Currency = RelaychainCurrency;
+	type Currency = Balance;
 	type OrderCreationCost = OrderCreationCost;
 	type MinimumContribution = MinimumContribution;
 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
@@ -790,13 +670,13 @@ impl pallet_orders::Config for Runtime {
 }
 
 parameter_types! {
-	pub const FeeBuffer: Balance = MILLI_ROC / 10;
+	pub const FeeBuffer: Balance = MILLI_KSM / 10;
 	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
 }
 
 impl pallet_processor::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type Currency = RelaychainCurrency;
+	type Currency = Balance;
 	type Balance = Balance;
 	type Orders = Orders;
 	type OrderToAccountId = OrderToAccountId;
@@ -823,25 +703,9 @@ construct_runtime!(
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
-		AssetTxPayment: pallet_asset_tx_payment = 12,
-		AssetRegistry: orml_asset_registry = 13,
-		Tokens: orml_tokens = 14,
-		Currencies: orml_currencies = 15,
-		AssetRate: pallet_asset_rate = 16,
-		UnknownTokens: orml_unknown_tokens = 17,
 
 		// Governance
 		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
-		DelegatedReferenda: pallet_referenda::<Instance1> = 21,
-		NativeReferenda: pallet_referenda::<Instance2> = 22,
-		DelegatedConvictionVoting: pallet_conviction_voting::<Instance1> = 23,
-		NativeConvictionVoting: pallet_conviction_voting::<Instance2> = 24,
-		GeneralCouncil: pallet_collective::<Instance1> = 25,
-		TechnicalCommittee: pallet_collective::<Instance2> = 26,
-		GeneralCouncilMembership: pallet_membership::<Instance1> = 27,
-		TechnicalCommitteeMembership: pallet_membership::<Instance2> = 28,
-		Origins: pallet_custom_origins = 29,
-		Whitelist: pallet_whitelist = 30,
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 40,
@@ -851,7 +715,6 @@ construct_runtime!(
 		AuraExt: cumulus_pallet_aura_ext = 44,
 
 		// Treasury
-		Treasury: pallet_treasury = 50,
 
 		// Handy utilities
 		Utility: pallet_utility = 60,
@@ -882,7 +745,6 @@ mod benches {
 	frame_benchmarking::define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[cumulus_pallet_parachain_system, ParachainSystem]
-		[pallet_asset_rate, AssetRate]
 		[pallet_balances, Balances]
 		[pallet_session, SessionBench::<Runtime>]
 		[pallet_multisig, Multisig]
@@ -900,15 +762,7 @@ mod benches {
 		[pallet_orders, Orders]
 		[pallet_preimage, Preimage]
 		[pallet_processor, Processor]
-		[pallet_referenda, NativeReferenda]
-		[pallet_referenda, DelegatedReferenda]
 		[pallet_scheduler, Scheduler]
-		[pallet_treasury, Treasury]
-		[pallet_conviction_voting, NativeConvictionVoting]
-		[pallet_conviction_voting, DelegatedConvictionVoting]
-		[pallet_collective, GeneralCouncil]
-		[pallet_collective, TechnicalCommittee]
-		[pallet_whitelist, Whitelist]
 	);
 }
 
