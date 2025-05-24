@@ -14,9 +14,10 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	AccountId, AssetId, AssetRegistry, Authorship, Balance, Balances, PalletCurrency, PotId,
-	RegionXTreasuryAccount, Runtime, RuntimeCall, Tokens, Treasury,
+	AccountId, Authorship, Balance, Balances, PalletCurrency, PotId,
+	Runtime, RuntimeCall,
 };
+use parachains_common::impls::ToStakingPot;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::{
 	fungibles, tokens::ConversionToAssetBalance, Defensive, ExistenceRequirement, Imbalance,

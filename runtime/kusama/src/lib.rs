@@ -110,7 +110,6 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::{
-	assets::{AssetId, AssetsStringLimit, REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID},
 	primitives::{
 		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 	},
@@ -164,9 +163,7 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		// in Rococo, extrinsic base weight (smallest non-zero weight) is mapped to 1 MILLI_REGX:
-		// in our template, we map to 1/10 of that, or 1/10 MILLI_REGX
-		let p = MILLI_REGX / 10;
+		let p = MILLI_KSM / 10;
 		let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -185,10 +182,10 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("regionx-parachain"),
-	impl_name: create_runtime_str!("regionx-parachain"),
+	spec_name: create_runtime_str!("regionx-kusama-parachain"),
+	impl_name: create_runtime_str!("regionx-kusama-parachain"),
 	authoring_version: 1,
-	spec_version: 3_000_000,
+	spec_version: 1_000_000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -515,37 +512,37 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
 }
 
-pub struct StateMachineHeightProvider;
-impl StateMachineHeightProviderT for StateMachineHeightProvider {
-	fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
-		#[cfg(not(feature = "runtime-benchmarks"))]
-		{
-			Ismp::latest_state_machine_height(id)
-		}
-		#[cfg(feature = "runtime-benchmarks")]
-		{
-			Some(Ismp::latest_state_machine_height(id).unwrap_or(0))
-		}
-	}
-}
+// pub struct StateMachineHeightProvider;
+// impl StateMachineHeightProviderT for StateMachineHeightProvider {
+// 	fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+// 		#[cfg(not(feature = "runtime-benchmarks"))]
+// 		{
+// 			Ismp::latest_state_machine_height(id)
+// 		}
+// 		#[cfg(feature = "runtime-benchmarks")]
+// 		{
+// 			Some(Ismp::latest_state_machine_height(id).unwrap_or(0))
+// 		}
+// 	}
+// }
 
-parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
-	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
-}
+// parameter_types! {
+// 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
+// 	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+// }
 
-impl pallet_regions::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balances;
-	type CoretimeChain = CoretimeChain;
-	type IsmpDispatcher = Ismp;
-	type StateMachineHeightProvider = StateMachineHeightProvider;
-	type Timeout = ConstU64<300>; // 5 minutes
-	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-	type TimeslicePeriod = ConstU32<80>;
-	type UnsignedPriority = RegionsUnsignedPriority;
-	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
-}
+// impl pallet_regions::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Currency = Balances;
+// 	type CoretimeChain = CoretimeChain;
+// 	type IsmpDispatcher = Ismp;
+// 	type StateMachineHeightProvider = StateMachineHeightProvider;
+// 	type Timeout = ConstU64<300>; // 5 minutes
+// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+// 	type TimeslicePeriod = ConstU32<80>;
+// 	type UnsignedPriority = RegionsUnsignedPriority;
+// 	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
+// }
 
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -636,57 +633,57 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-impl pallet_market::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balance;
-	type Regions = Regions;
-	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-	type TimeslicePeriod = ConstU32<80>;
-	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
-}
+// impl pallet_market::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Currency = Balance;
+// 	type Regions = Regions;
+// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+// 	type TimeslicePeriod = ConstU32<80>;
+// 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
+// }
 
-parameter_types! {
-	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
-	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
-}
+// parameter_types! {
+// 	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
+// 	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
+// }
 
-pub struct OrderToAccountId;
-impl Convert<OrderId, AccountId> for OrderToAccountId {
-	fn convert(order: OrderId) -> AccountId {
-		("order", order).using_encoded(blake2_256).into()
-	}
-}
+// pub struct OrderToAccountId;
+// impl Convert<OrderId, AccountId> for OrderToAccountId {
+// 	fn convert(order: OrderId) -> AccountId {
+// 		("order", order).using_encoded(blake2_256).into()
+// 	}
+// }
 
-impl pallet_orders::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balance;
-	type OrderCreationCost = OrderCreationCost;
-	type MinimumContribution = MinimumContribution;
-	type OrderCreationFeeHandler = OrderCreationFeeHandler;
-	type OrderToAccountId = OrderToAccountId;
-	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-	type TimeslicePeriod = ConstU32<80>;
-	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
-}
+// impl pallet_orders::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Currency = Balance;
+// 	type OrderCreationCost = OrderCreationCost;
+// 	type MinimumContribution = MinimumContribution;
+// 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
+// 	type OrderToAccountId = OrderToAccountId;
+// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+// 	type TimeslicePeriod = ConstU32<80>;
+// 	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
+// }
 
-parameter_types! {
-	pub const FeeBuffer: Balance = MILLI_KSM / 10;
-	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
-}
+// parameter_types! {
+// 	pub const FeeBuffer: Balance = MILLI_KSM / 10;
+// 	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
+// }
 
-impl pallet_processor::Config for Runtime {
-	type RuntimeEvent = RuntimeEvent;
-	type Currency = Balance;
-	type Balance = Balance;
-	type Orders = Orders;
-	type OrderToAccountId = OrderToAccountId;
-	type Regions = Regions;
-	type AssignmentCallEncoder = AssignmentCallEncoder;
-	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
-	type CoretimeChain = CoretimeChainLocation;
-	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
-	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
-}
+// impl pallet_processor::Config for Runtime {
+// 	type RuntimeEvent = RuntimeEvent;
+// 	type Currency = Balance;
+// 	type Balance = Balance;
+// 	type Orders = Orders;
+// 	type OrderToAccountId = OrderToAccountId;
+// 	type Regions = Regions;
+// 	type AssignmentCallEncoder = AssignmentCallEncoder;
+// 	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
+// 	type CoretimeChain = CoretimeChainLocation;
+// 	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
+// 	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
+// }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -732,10 +729,10 @@ construct_runtime!(
 		IsmpParachain: ismp_parachain = 81,
 
 		// Main stage:
-		Regions: pallet_regions = 90,
-		Market: pallet_market = 91,
-		Orders: pallet_orders = 92,
-		Processor: pallet_processor = 93,
+		// Regions: pallet_regions = 90,
+		// Market: pallet_market = 91,
+		// Orders: pallet_orders = 92,
+		// Processor: pallet_processor = 93,
 	}
 );
 
@@ -756,12 +753,12 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		[pallet_regions, Regions]
-		[pallet_market, Market]
+		// [pallet_regions, Regions]
+		// [pallet_market, Market]
 		[pallet_message_queue, MessageQueue]
-		[pallet_orders, Orders]
+		// [pallet_orders, Orders]
 		[pallet_preimage, Preimage]
-		[pallet_processor, Processor]
+		// [pallet_processor, Processor]
 		[pallet_scheduler, Scheduler]
 	);
 }

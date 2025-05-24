@@ -14,9 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, AssetId, Balance, Balances, Currencies, NonFungibleAdapter,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, UnknownTokens, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
+	AccountId, AllPalletsWithSystem, Balance, Balances, NonFungibleAdapter,
+	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
+	RuntimeOrigin, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -79,63 +79,33 @@ parameter_types! {
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
-/// Means for transacting assets on this chain.
-pub type FungiblesAssetTransactor = MultiCurrencyAdapter<
-	Currencies,
-	UnknownTokens,
-	IsNativeConcrete<AssetId, AssetIdConverter>,
-	AccountId,
-	LocationToAccountId,
-	AssetId,
-	AssetIdConverter,
-	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
->;
+// /// Means for transacting assets on this chain.
+// pub type FungiblesAssetTransactor = MultiCurrencyAdapter<
+// 	Currencies,
+// 	UnknownTokens,
+// 	IsNativeConcrete<AssetId, AssetIdConverter>,
+// 	AccountId,
+// 	LocationToAccountId,
+// 	AssetId,
+// 	AssetIdConverter,
+// 	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
+// >;
 
-pub type RegionTransactor = NonFungibleAdapter<
-	// Use this non-fungible implementation:
-	Regions,
-	// This adapter will handle coretime regions from the broker pallet.
-	IsConcrete<BrokerPalletLocation>,
-	// Convert an XCM Location into a local account id:
-	LocationToAccountId,
-	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-	AccountId,
-	// We don't track any teleports.
-	(),
->;
+// pub type RegionTransactor = NonFungibleAdapter<
+// 	// Use this non-fungible implementation:
+// 	Regions,
+// 	// This adapter will handle coretime regions from the broker pallet.
+// 	IsConcrete<BrokerPalletLocation>,
+// 	// Convert an XCM Location into a local account id:
+// 	LocationToAccountId,
+// 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+// 	AccountId,
+// 	// We don't track any teleports.
+// 	(),
+// >;
 
-pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
-
-pub struct AssetIdConverter;
-impl Convert<AssetId, Option<MultiLocation>> for AssetIdConverter {
-	fn convert(id: AssetId) -> Option<MultiLocation> {
-		match id {
-			RELAY_CHAIN_ASSET_ID => Some(MultiLocation::parent()),
-			REGX_ASSET_ID => Some(MultiLocation::here()),
-			_ => None,
-		}
-	}
-}
-
-impl Convert<MultiLocation, Option<AssetId>> for AssetIdConverter {
-	fn convert(location: MultiLocation) -> Option<AssetId> {
-		match location {
-			MultiLocation { parents: 1, interior: Here } => Some(RELAY_CHAIN_ASSET_ID),
-			MultiLocation { parents: 0, interior: Here } => Some(REGX_ASSET_ID),
-			_ => None,
-		}
-	}
-}
-
-impl Convert<MultiAsset, Option<AssetId>> for AssetIdConverter {
-	fn convert(asset: MultiAsset) -> Option<AssetId> {
-		if let MultiAsset { id: Concrete(location), .. } = asset {
-			Self::convert(location)
-		} else {
-			None
-		}
-	}
-}
+// pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
+pub type AssetTransactors = ();
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
