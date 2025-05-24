@@ -14,8 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	AccountId, Authorship, Balance, Balances, PalletCurrency, PotId,
-	Runtime, RuntimeCall,
+	AccountId, Authorship, Balance, Balances, PalletCurrency, PotId, Runtime, RuntimeCall,
 };
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::{
@@ -69,10 +68,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 	fn filter(&self, c: &RuntimeCall) -> bool {
 		match self {
 			ProxyType::Any => true,
-			ProxyType::NonTransfer => !matches!(
-				c,
-				RuntimeCall::Balances { .. }
-			),
+			ProxyType::NonTransfer => !matches!(c, RuntimeCall::Balances { .. }),
 			ProxyType::CancelProxy =>
 				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
 		}

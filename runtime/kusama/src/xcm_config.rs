@@ -14,9 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balance, Balances,
-	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID, Regions, NonFungibleAdapter,
+	AccountId, AllPalletsWithSystem, Balance, Balances, NonFungibleAdapter, ParachainInfo,
+	ParachainSystem, PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
+	WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };
 use frame_support::{
 	match_types, parameter_types,

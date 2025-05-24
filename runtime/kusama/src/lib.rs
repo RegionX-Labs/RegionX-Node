@@ -109,10 +109,8 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 // XCM Imports
 use xcm::latest::prelude::BodyId;
 
-use regionx_runtime_common::{
-	primitives::{
-		AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
-	},
+use regionx_runtime_common::primitives::{
+	AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
