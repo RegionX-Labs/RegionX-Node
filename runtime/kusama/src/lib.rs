@@ -24,8 +24,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 extern crate alloc;
 
 // TODO remove:
-mod adapter;
-use adapter::NonFungibleAdapter;
+// mod adapter;
+// use adapter::NonFungibleAdapter;
 
 mod weights;
 pub mod xcm_config;
@@ -130,7 +130,6 @@ pub type SignedExtra = (
 	frame_system::CheckEra<Runtime>,
 	frame_system::CheckNonce<Runtime>,
 	frame_system::CheckWeight<Runtime>,
-	pallet_asset_tx_payment::ChargeAssetTxPayment<Runtime>,
 );
 
 /// Unchecked extrinsic type as expected by this runtime.
@@ -512,37 +511,37 @@ impl pallet_collator_selection::Config for Runtime {
 	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
 }
 
-// pub struct StateMachineHeightProvider;
-// impl StateMachineHeightProviderT for StateMachineHeightProvider {
-// 	fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
-// 		#[cfg(not(feature = "runtime-benchmarks"))]
-// 		{
-// 			Ismp::latest_state_machine_height(id)
-// 		}
-// 		#[cfg(feature = "runtime-benchmarks")]
-// 		{
-// 			Some(Ismp::latest_state_machine_height(id).unwrap_or(0))
-// 		}
-// 	}
-// }
+pub struct StateMachineHeightProvider;
+impl StateMachineHeightProviderT for StateMachineHeightProvider {
+	fn latest_state_machine_height(id: StateMachineId) -> Option<u64> {
+		#[cfg(not(feature = "runtime-benchmarks"))]
+		{
+			Ismp::latest_state_machine_height(id)
+		}
+		#[cfg(feature = "runtime-benchmarks")]
+		{
+			Some(Ismp::latest_state_machine_height(id).unwrap_or(0))
+		}
+	}
+}
 
-// parameter_types! {
-// 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
-// 	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
-// }
+parameter_types! {
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
+	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+}
 
-// impl pallet_regions::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type Currency = Balances;
-// 	type CoretimeChain = CoretimeChain;
-// 	type IsmpDispatcher = Ismp;
-// 	type StateMachineHeightProvider = StateMachineHeightProvider;
-// 	type Timeout = ConstU64<300>; // 5 minutes
-// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-// 	type TimeslicePeriod = ConstU32<80>;
-// 	type UnsignedPriority = RegionsUnsignedPriority;
-// 	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
-// }
+impl pallet_regions::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type CoretimeChain = CoretimeChain;
+	type IsmpDispatcher = Ismp;
+	type StateMachineHeightProvider = StateMachineHeightProvider;
+	type Timeout = ConstU64<300>; // 5 minutes
+	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+	type TimeslicePeriod = ConstU32<80>;
+	type UnsignedPriority = RegionsUnsignedPriority;
+	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
+}
 
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
@@ -697,6 +696,7 @@ construct_runtime!(
 		Preimage: pallet_preimage = 4,
 		Scheduler: pallet_scheduler = 5,
 
+
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
@@ -729,7 +729,7 @@ construct_runtime!(
 		IsmpParachain: ismp_parachain = 81,
 
 		// Main stage:
-		// Regions: pallet_regions = 90,
+		Regions: pallet_regions = 90,
 		// Market: pallet_market = 91,
 		// Orders: pallet_orders = 92,
 		// Processor: pallet_processor = 93,
@@ -753,7 +753,7 @@ mod benches {
 		[pallet_scheduler, Scheduler]
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
-		// [pallet_regions, Regions]
+		[pallet_regions, Regions]
 		// [pallet_market, Market]
 		[pallet_message_queue, MessageQueue]
 		// [pallet_orders, Orders]

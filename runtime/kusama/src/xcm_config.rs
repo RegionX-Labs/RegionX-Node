@@ -14,7 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balance, Balances, NonFungibleAdapter,
+	AccountId, AllPalletsWithSystem, Balance, Balances,
 	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
 	RuntimeOrigin, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };

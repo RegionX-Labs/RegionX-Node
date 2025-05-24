@@ -17,7 +17,6 @@ use crate::{
 	AccountId, Authorship, Balance, Balances, PalletCurrency, PotId,
 	Runtime, RuntimeCall,
 };
-use parachains_common::impls::ToStakingPot;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::traits::{
 	fungibles, tokens::ConversionToAssetBalance, Defensive, ExistenceRequirement, Imbalance,
@@ -72,9 +71,7 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 			ProxyType::Any => true,
 			ProxyType::NonTransfer => !matches!(
 				c,
-				RuntimeCall::Balances { .. } |
-					RuntimeCall::Tokens { .. } |
-					RuntimeCall::Currencies { .. }
+				RuntimeCall::Balances { .. }
 			),
 			ProxyType::CancelProxy =>
 				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
@@ -83,6 +80,14 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 }
 
 type NegativeImbalance = <Balances as PalletCurrency<AccountId>>::NegativeImbalance;
+
+pub struct ToStakingPot;
+impl OnUnbalanced<NegativeImbalance> for ToStakingPot {
+	fn on_nonzero_unbalanced(amount: NegativeImbalance) {
+		let staking_pot = PotId::get().into_account_truncating();
+		Balances::resolve_creating(&staking_pot, amount);
+	}
+}
 
 pub struct DealWithFees;
 impl OnUnbalanced<NegativeImbalance> for DealWithFees {
@@ -97,7 +102,7 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 			}
 
 			<ToStakingPot as OnUnbalanced<_>>::on_unbalanced(collators);
-			Treasury::on_unbalanced(treasury);
+			// TODO: to treasury
 		}
 	}
 }
@@ -106,12 +111,13 @@ pub struct OrderCreationFeeHandler;
 impl pallet_orders::FeeHandler<AccountId, Balance> for OrderCreationFeeHandler {
 	fn handle(who: &AccountId, fee: Balance) -> DispatchResult {
 		// We send the order creation fee to the treasury:
-		<Runtime as pallet_orders::Config>::Currency::transfer(
-			who,
-			&RegionXTreasuryAccount::get(),
-			fee,
-			ExistenceRequirement::KeepAlive,
-		)?;
+		// TODO:
+		// <Runtime as pallet_orders::Config>::Currency::transfer(
+		// 	who,
+		// 	&RegionXTreasuryAccount::get(),
+		// 	fee,
+		// 	ExistenceRequirement::KeepAlive,
+		// )?;
 		Ok(())
 	}
 }
