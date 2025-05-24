@@ -16,7 +16,7 @@
 use super::{
 	AccountId, AllPalletsWithSystem, Balance, Balances,
 	ParachainInfo, ParachainSystem, PolkadotXcm, Runtime, RuntimeCall, RuntimeEvent,
-	RuntimeOrigin, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
+	RuntimeOrigin, WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID, Regions, NonFungibleAdapter,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -91,21 +91,21 @@ parameter_types! {
 // 	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
 // >;
 
-// pub type RegionTransactor = NonFungibleAdapter<
-// 	// Use this non-fungible implementation:
-// 	Regions,
-// 	// This adapter will handle coretime regions from the broker pallet.
-// 	IsConcrete<BrokerPalletLocation>,
-// 	// Convert an XCM Location into a local account id:
-// 	LocationToAccountId,
-// 	// Our chain's account ID type (we can't get away without mentioning it explicitly):
-// 	AccountId,
-// 	// We don't track any teleports.
-// 	(),
-// >;
+pub type RegionTransactor = NonFungibleAdapter<
+	// Use this non-fungible implementation:
+	Regions,
+	// This adapter will handle coretime regions from the broker pallet.
+	IsConcrete<BrokerPalletLocation>,
+	// Convert an XCM Location into a local account id:
+	LocationToAccountId,
+	// Our chain's account ID type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports.
+	(),
+>;
 
 // pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
-pub type AssetTransactors = ();
+pub type AssetTransactors = (RegionTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can

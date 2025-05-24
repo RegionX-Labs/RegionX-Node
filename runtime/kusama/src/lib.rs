@@ -24,8 +24,8 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 extern crate alloc;
 
 // TODO remove:
-// mod adapter;
-// use adapter::NonFungibleAdapter;
+mod adapter;
+use adapter::NonFungibleAdapter;
 
 mod weights;
 pub mod xcm_config;
