@@ -630,14 +630,14 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-// impl pallet_market::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type Currency = Balance;
-// 	type Regions = Regions;
-// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-// 	type TimeslicePeriod = ConstU32<80>;
-// 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
-// }
+impl pallet_market::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Regions = Regions;
+	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+	type TimeslicePeriod = ConstU32<80>;
+	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
+}
 
 // parameter_types! {
 // 	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
@@ -728,7 +728,7 @@ construct_runtime!(
 
 		// Main stage:
 		Regions: pallet_regions = 90,
-		// Market: pallet_market = 91,
+		Market: pallet_market = 91,
 		// Orders: pallet_orders = 92,
 		// Processor: pallet_processor = 93,
 	}
@@ -752,7 +752,7 @@ mod benches {
 		[pallet_collator_selection, CollatorSelection]
 		[cumulus_pallet_xcmp_queue, XcmpQueue]
 		[pallet_regions, Regions]
-		// [pallet_market, Market]
+		[pallet_market, Market]
 		[pallet_message_queue, MessageQueue]
 		// [pallet_orders, Orders]
 		[pallet_preimage, Preimage]
