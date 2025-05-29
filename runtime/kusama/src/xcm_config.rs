@@ -14,9 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balance, Balances, NonFungibleAdapter, ParachainInfo,
-	ParachainSystem, PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin,
-	WeightToFee, XcmpQueue, CORETIME_CHAIN_PARA_ID,
+	AccountId, AllPalletsWithSystem, Balances, NonFungibleAdapter, ParachainInfo, ParachainSystem,
+	PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
+	XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };
 use frame_support::{
 	match_types, parameter_types,
@@ -24,12 +24,10 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::EnsureRoot;
-use orml_xcm_support::{DepositToAlternative, IsNativeConcrete, MultiCurrencyAdapter};
 use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
-use regionx_runtime_common::assets::{REGX_ASSET_ID, RELAY_CHAIN_ASSET_ID};
-use sp_runtime::traits::{AccountIdConversion, Convert};
+use sp_runtime::traits::AccountIdConversion;
 use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
@@ -105,7 +103,7 @@ pub type RegionTransactor = NonFungibleAdapter<
 >;
 
 // pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
-pub type AssetTransactors = (RegionTransactor);
+pub type AssetTransactors = RegionTransactor;
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can

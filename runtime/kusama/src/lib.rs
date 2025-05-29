@@ -42,9 +42,8 @@ use cumulus_pallet_parachain_system::{
 };
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::{
-	fungible::HoldConsideration,
-	tokens::{PayFromAccount, UnityAssetBalanceConversion},
-	Currency as PalletCurrency, EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
+	fungible::HoldConsideration, Currency as PalletCurrency, EqualPrivilegeOnly,
+	LinearStoragePrice, TransformOrigin,
 };
 use order_primitives::OrderId;
 use pallet_processor::assigner::XcmRegionAssigner;
@@ -57,9 +56,7 @@ use sp_core::{crypto::KeyTypeId, Get, OpaqueMetadata};
 use sp_io::hashing::blake2_256;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
-	traits::{
-		AccountIdConversion, AccountIdLookup, BlakeTwo256, Block as BlockT, Convert, IdentityLookup,
-	},
+	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, Convert},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
@@ -79,7 +76,7 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse, Everything},
+	traits::{ConstBool, ConstU32, ConstU64, ConstU8, Everything},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -90,9 +87,6 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
-use orml_currencies::BasicCurrencyAdapter;
-use orml_tokens::CurrencyAdapter;
-use pallet_asset_tx_payment::FungiblesAdapter;
 use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
 use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
@@ -110,7 +104,7 @@ use weights::{BlockExecutionWeight, ExtrinsicBaseWeight, RocksDbWeight};
 use xcm::latest::prelude::BodyId;
 
 use regionx_runtime_common::primitives::{
-	AccountId, Address, Amount, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
+	AccountId, Address, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
@@ -639,48 +633,48 @@ impl pallet_market::Config for Runtime {
 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
 }
 
-// parameter_types! {
-// 	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
-// 	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
-// }
+parameter_types! {
+	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
+	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
+}
 
-// pub struct OrderToAccountId;
-// impl Convert<OrderId, AccountId> for OrderToAccountId {
-// 	fn convert(order: OrderId) -> AccountId {
-// 		("order", order).using_encoded(blake2_256).into()
-// 	}
-// }
+pub struct OrderToAccountId;
+impl Convert<OrderId, AccountId> for OrderToAccountId {
+	fn convert(order: OrderId) -> AccountId {
+		("order", order).using_encoded(blake2_256).into()
+	}
+}
 
-// impl pallet_orders::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type Currency = Balance;
-// 	type OrderCreationCost = OrderCreationCost;
-// 	type MinimumContribution = MinimumContribution;
-// 	type OrderCreationFeeHandler = OrderCreationFeeHandler;
-// 	type OrderToAccountId = OrderToAccountId;
-// 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
-// 	type TimeslicePeriod = ConstU32<80>;
-// 	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
-// }
+impl pallet_orders::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type OrderCreationCost = OrderCreationCost;
+	type MinimumContribution = MinimumContribution;
+	type OrderCreationFeeHandler = OrderCreationFeeHandler;
+	type OrderToAccountId = OrderToAccountId;
+	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
+	type TimeslicePeriod = ConstU32<80>;
+	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
+}
 
-// parameter_types! {
-// 	pub const FeeBuffer: Balance = MILLI_KSM / 10;
-// 	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
-// }
+parameter_types! {
+	pub const FeeBuffer: Balance = MILLI_KSM / 10;
+	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
+}
 
-// impl pallet_processor::Config for Runtime {
-// 	type RuntimeEvent = RuntimeEvent;
-// 	type Currency = Balance;
-// 	type Balance = Balance;
-// 	type Orders = Orders;
-// 	type OrderToAccountId = OrderToAccountId;
-// 	type Regions = Regions;
-// 	type AssignmentCallEncoder = AssignmentCallEncoder;
-// 	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
-// 	type CoretimeChain = CoretimeChainLocation;
-// 	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
-// 	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
-// }
+impl pallet_processor::Config for Runtime {
+	type RuntimeEvent = RuntimeEvent;
+	type Currency = Balances;
+	type Balance = Balance;
+	type Orders = Orders;
+	type OrderToAccountId = OrderToAccountId;
+	type Regions = Regions;
+	type AssignmentCallEncoder = AssignmentCallEncoder;
+	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
+	type CoretimeChain = CoretimeChainLocation;
+	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
+	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
+}
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
@@ -729,8 +723,8 @@ construct_runtime!(
 		// Main stage:
 		Regions: pallet_regions = 90,
 		Market: pallet_market = 91,
-		// Orders: pallet_orders = 92,
-		// Processor: pallet_processor = 93,
+		Orders: pallet_orders = 92,
+		Processor: pallet_processor = 93,
 	}
 );
 
@@ -754,9 +748,9 @@ mod benches {
 		[pallet_regions, Regions]
 		[pallet_market, Market]
 		[pallet_message_queue, MessageQueue]
-		// [pallet_orders, Orders]
+		[pallet_orders, Orders]
 		[pallet_preimage, Preimage]
-		// [pallet_processor, Processor]
+		[pallet_processor, Processor]
 		[pallet_scheduler, Scheduler]
 	);
 }

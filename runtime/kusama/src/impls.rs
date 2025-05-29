@@ -13,26 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{
-	AccountId, Authorship, Balance, Balances, PalletCurrency, PotId, Runtime, RuntimeCall,
-};
+use crate::{AccountId, Balance, Balances, PalletCurrency, PotId, RuntimeCall};
 use codec::{Decode, Encode, MaxEncodedLen};
-use frame_support::traits::{
-	fungibles, tokens::ConversionToAssetBalance, Defensive, ExistenceRequirement, Imbalance,
-	InstanceFilter, OnUnbalanced,
-};
+use frame_support::traits::{Imbalance, InstanceFilter, OnUnbalanced};
 use order_primitives::ParaId;
-use orml_asset_registry::DefaultAssetMetadata;
-use orml_traits::{asset_registry::AssetProcessor, GetByKey};
-use pallet_asset_tx_payment::HandleCredit;
 use pallet_broker::{Finality, RegionId};
 use pallet_processor::assigner::AssignmentCallEncoder as AssignmentCallEncoderT;
-use scale_info::TypeInfo;
-use sp_runtime::{
-	traits::{AccountIdConversion, CheckedDiv},
-	ArithmeticError, DispatchError, DispatchResult, FixedPointNumber, FixedU128, RuntimeDebug,
-	TokenError,
-};
+use sp_runtime::{traits::AccountIdConversion, DispatchResult, RuntimeDebug};
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
@@ -91,7 +78,7 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 		if let Some(fees) = fees_then_tips.next() {
 			// 60% of the fees go to the treasury, and the rest goes to the collators along with the
 			// tips.
-			let (treasury, mut collators) = fees.ration(60, 40);
+			let (_treasury, mut collators) = fees.ration(60, 40);
 
 			if let Some(tips) = fees_then_tips.next() {
 				tips.merge_into(&mut collators);
@@ -105,7 +92,7 @@ impl OnUnbalanced<NegativeImbalance> for DealWithFees {
 
 pub struct OrderCreationFeeHandler;
 impl pallet_orders::FeeHandler<AccountId, Balance> for OrderCreationFeeHandler {
-	fn handle(who: &AccountId, fee: Balance) -> DispatchResult {
+	fn handle(_who: &AccountId, _fee: Balance) -> DispatchResult {
 		// We send the order creation fee to the treasury:
 		// TODO:
 		// <Runtime as pallet_orders::Config>::Currency::transfer(
