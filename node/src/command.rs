@@ -127,7 +127,7 @@ macro_rules! construct_async_run {
             chain if is_paseo(chain) => {
 				runner.async_run(|$config| {
 					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&$config);
-					let $components = new_partial::<paseo_runtime::RuntimeApi, _>(&$config, executor)?;
+					let $components = new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&$config, executor)?;
 					let task_manager = $components.task_manager;
 					{ $( $code )* }.map(|v| (v, task_manager))
 				})
@@ -205,7 +205,7 @@ pub fn run() -> Result<()> {
 				match config.chain_spec.id() {
            			chain if is_paseo(chain) => {
 						let partials =
-						new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+						new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
 					},
            			chain if is_cocos(chain) => {
@@ -242,7 +242,7 @@ pub fn run() -> Result<()> {
 					match config.chain_spec.id() {
             			chain if is_paseo(chain) => {
 							let partials =
-								new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+								new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
 						},
             			chain if is_cocos(chain) => {
@@ -268,7 +268,7 @@ pub fn run() -> Result<()> {
 					match config.chain_spec.id() {
             			chain if is_paseo(chain) => {
 							let partials =
-								new_partial::<paseo_runtime::RuntimeApi, _>(&config, executor)?;
+								new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
 							let storage = partials.backend.expose_storage();
 							cmd.run(config, partials.client.clone(), db, storage)

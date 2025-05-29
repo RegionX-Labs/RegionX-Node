@@ -1,6 +1,6 @@
 [package]
 # RegionX Paseo runtime
-name = "paseo-runtime"
+name = "regionx-paseo-runtime"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true

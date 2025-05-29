@@ -1,6 +1,6 @@
 [package]
 # RegionX Kusama runtime
-name = "kusama-runtime"
+name = "regionx-kusama-runtime"
 version = "0.1.0"
 authors.workspace = true
 edition.workspace = true
