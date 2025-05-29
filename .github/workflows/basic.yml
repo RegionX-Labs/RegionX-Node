@@ -57,4 +57,6 @@ jobs:
       run: cargo clippy --release -- -D warnings
   
     - name: Check Code
-      run: cargo check
+      run: |
+        cargo clean
+        cargo check
