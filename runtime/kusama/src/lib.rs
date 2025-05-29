@@ -519,7 +519,7 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 
 parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
-	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
 }
 
 impl pallet_regions::Config for Runtime {

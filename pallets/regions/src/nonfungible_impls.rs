@@ -48,7 +48,7 @@ impl<T: Config> Inspect<T::AccountId> for Pallet<T> {
 
 impl<T: Config> Transfer<T::AccountId> for Pallet<T> {
 	fn transfer(item: &Self::ItemId, dest: &T::AccountId) -> DispatchResult {
-		Self::do_transfer((*item).into(), None, dest.clone()).map_err(Into::into)
+		Self::do_transfer((*item).into(), None, dest.clone())
 	}
 }
 
