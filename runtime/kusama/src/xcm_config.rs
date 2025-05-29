@@ -32,10 +32,10 @@ use xcm::latest::prelude::*;
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
-	FrameTransactionalProcessor, IsConcrete, NativeAsset, ParentIsPreset, RelayChainAsNative,
-	SiblingParachainAsNative, SiblingParachainConvertsVia, SignedAccountId32AsNative,
-	SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId,
-	UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, ParentIsPreset,
+	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::XcmExecutor;
 
@@ -77,17 +77,20 @@ parameter_types! {
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
-// /// Means for transacting assets on this chain.
-// pub type FungiblesAssetTransactor = MultiCurrencyAdapter<
-// 	Currencies,
-// 	UnknownTokens,
-// 	IsNativeConcrete<AssetId, AssetIdConverter>,
-// 	AccountId,
-// 	LocationToAccountId,
-// 	AssetId,
-// 	AssetIdConverter,
-// 	DepositToAlternative<Alternative, Currencies, AssetId, AccountId, Balance>,
-// >;
+/// Means for transacting the native currency on this chain.
+pub type FungibleTransactor = FungibleAdapter<
+	// Use this currency:
+	Balances,
+	// Use this currency when it is a fungible asset matching the given location or name:
+	IsConcrete<RelayLocation>,
+	// Do a simple punn to convert an `AccountId32` `Location` into a native chain
+	// `AccountId`:
+	LocationToAccountId,
+	// Our chain's `AccountId` type (we can't get away without mentioning it explicitly):
+	AccountId,
+	// We don't track any teleports of `Balances`.
+	(),
+>;
 
 pub type RegionTransactor = NonFungibleAdapter<
 	// Use this non-fungible implementation:
@@ -103,7 +106,7 @@ pub type RegionTransactor = NonFungibleAdapter<
 >;
 
 // pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
-pub type AssetTransactors = RegionTransactor;
+pub type AssetTransactors = (RegionTransactor, FungibleTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
