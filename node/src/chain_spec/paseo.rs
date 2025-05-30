@@ -18,7 +18,7 @@ use crate::chain_spec::{
 };
 use cumulus_primitives_core::ParaId;
 use orml_asset_registry::AssetMetadata;
-use paseo_runtime::{REGX, REGX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
+use regionx_paseo_runtime::{REGX, REGX_EXISTENTIAL_DEPOSIT, ROC_EXISTENTIAL_DEPOSIT};
 use regionx_runtime_common::{
 	assets::{AssetsStringLimit, RELAY_CHAIN_ASSET_ID},
 	primitives::{AccountId, AuraId, Balance},
@@ -33,11 +33,11 @@ const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 /// Generate the session keys from individual elements.
 ///
 /// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn session_keys(keys: AuraId) -> paseo_runtime::SessionKeys {
-	paseo_runtime::SessionKeys { aura: keys }
+pub fn session_keys(keys: AuraId) -> regionx_paseo_runtime::SessionKeys {
+	regionx_paseo_runtime::SessionKeys { aura: keys }
 }
 
-pub fn paseo_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisConfig> {
+pub fn paseo_config(id: u32) -> ChainSpec<regionx_paseo_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "REGX".into());
@@ -45,7 +45,7 @@ pub fn paseo_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisConfig> {
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
-		paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		regionx_paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions { relay_chain: "paseo".into(), para_id: id },
 	)
 	.with_name("RegionX (Paseo)")
@@ -57,7 +57,7 @@ pub fn paseo_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisConfig> {
 	.build()
 }
 
-pub fn development_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisConfig> {
+pub fn development_config(id: u32) -> ChainSpec<regionx_paseo_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "REGX".into());
@@ -65,7 +65,7 @@ pub fn development_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisCon
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
-		paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		regionx_paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "paseo-local".into(),
 			// You MUST set this to the correct network!
@@ -109,7 +109,7 @@ pub fn development_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisCon
 	.build()
 }
 
-pub fn local_testnet_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisConfig> {
+pub fn local_testnet_config(id: u32) -> ChainSpec<regionx_paseo_runtime::RuntimeGenesisConfig> {
 	// Give your base currency a unit name and decimal places
 	let mut properties = sc_chain_spec::Properties::new();
 	properties.insert("tokenSymbol".into(), "REGX".into());
@@ -117,7 +117,7 @@ pub fn local_testnet_config(id: u32) -> ChainSpec<paseo_runtime::RuntimeGenesisC
 	properties.insert("ss58Format".into(), 42.into());
 
 	ChainSpec::builder(
-		paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		regionx_paseo_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
 		Extensions {
 			relay_chain: "paseo-local".into(),
 			// You MUST set this to the correct network!

@@ -161,7 +161,8 @@ nonfungible-primitives = { path = "./primitives/nonfungible", default-features =
 order-primitives = { path = "./primitives/order", default-features = false }
 regionx-runtime-common = { path = "./runtime/common", default-features = false }
 cocos-runtime = { path = "./runtime/cocos", default-features = false }
-paseo-runtime = { path = "./runtime/paseo", default-features = false }
+regionx-paseo-runtime = { path = "./runtime/paseo", default-features = false }
+regionx-kusama-runtime = { path = "./runtime/kusama", default-features = false }
 pallet-market = { path = "./pallets/market", default-features = false }
 pallet-orders = { path = "./pallets/orders", default-features = false }
 pallet-processor = { path = "./pallets/processor", default-features = false }

@@ -477,7 +477,7 @@ pub async fn start_parachain_node(
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
 		chain if is_paseo(chain) =>
-			start_node_impl::<paseo_runtime::RuntimeApi>(
+			start_node_impl::<regionx_paseo_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
 				collator_options,
