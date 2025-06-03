@@ -29,8 +29,8 @@ serde_json = "1.0.117"
 # wasm
 frame-benchmarking = { version = "39.0.0", default-features = false }
 frame-executive = { version = "39.1.1", default-features = false }
-frame-support = { version = "=39.1.0", default-features = false }
-frame-system = { version = "=39.1.0", default-features = false }
+frame-support = { version = "39.1.0", default-features = false }
+frame-system = { version = "39.1.0", default-features = false }
 frame-system-benchmarking = { version = "39.0.0", default-features = false }
 frame-system-rpc-runtime-api = { version = "35.0.0", default-features = false }
 frame-try-runtime = { version = "0.45.0", default-features = false }
@@ -60,9 +60,9 @@ pallet-utility = { version = "39.1.0", default-features = false }
 pallet-whitelist = { version = "38.1.0", default-features = false }
 sp-api = { version = "35.0.0", default-features = false }
 # sp-api-proc-macro = { version = "22.0.1", default-features = false }
-sp-blockchain = { version = "38.0.0", default-features = false }
+sp-blockchain = { version = "38.0.0", default-features = false } #
 sp-block-builder = { version = "35.0.0", default-features = false }
-sp-externalities = { version = "=0.30.0", default-features = false }
+# sp-externalities = { version = "0.30.0", default-features = false }
 sp-io = { version = "39.0.0", default-features = false }
 sp-trie = { version = "38.0.0", default-features = false }
 sp-consensus-aura = { version = "0.41.0", default-features = false }
@@ -85,24 +85,24 @@ xcm-executor = { version = "18.0.2", default-features = false, package = "stagin
 cumulus-primitives-aura = { version = "0.16.0", default-features = false }
 cumulus-pallet-session-benchmarking = { version = "20.0.0", default-features = false }
 cumulus-pallet-aura-ext = { version = "0.18.0", default-features = false }
-cumulus-pallet-dmp-queue = { version = "0.20.0", default-features = false }
+# cumulus-pallet-dmp-queue = { version = "0.20.0", default-features = false }
 cumulus-pallet-parachain-system = { version = "0.18.1", default-features = false }
 cumulus-pallet-xcm = { version = "0.18.0", default-features = false }
 cumulus-pallet-xcmp-queue = { version = "0.18.2", default-features = false }
 cumulus-primitives-core = { version = "0.17.0", default-features = false }
-cumulus-primitives-timestamp = { version = "0.19.0", default-features = false }
+# cumulus-primitives-timestamp = { version = "0.19.0", default-features = false }
 cumulus-primitives-utility = { version = "0.18.1", default-features = false }
 pallet-collator-selection = { version = "20.1.0", default-features = false }
 parachain-info = { version = "0.18.0", default-features = false, package = "staging-parachain-info" }
 parachains-common = { version = "19.0.0", default-features = false }
-sp-timestamp = { version = "26.0.0", default-features = false }
+sp-timestamp = { version = "26.0.0", default-features = false } #
 sp-keystore = { version = "0.34.0", default-features = false }
-sp-mmr-primitives = { version = "36.1.0", default-features = false }
-sp-storage = { version = "19.0.0", default-features = false }
-pallet-beefy-mmr = { version = "40.1.0", default-features = false }
+sp-mmr-primitives = { version = "36.1.0", default-features = false } #
+# sp-storage = { version = "19.0.0", default-features = false }
+# pallet-beefy-mmr = { version = "40.1.0", default-features = false }
 
 # client
-frame-benchmarking-cli = "46.2.0"
+frame-benchmarking = { version = "39.0.0", default-features = false }
 sc-basic-authorship = "0.48.0"
 sc-chain-spec = "42.0.0"
 sc-cli = "0.50.1"
