@@ -26,7 +26,7 @@ pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::traits::Convert;
-use xcm::opaque::lts::MultiLocation;
+use xcm::opaque::latest::Location;
 
 #[cfg(test)]
 mod mock;
@@ -102,7 +102,7 @@ pub mod pallet {
 		type WeightToFee: WeightToFee<Balance = Self::Balance>;
 
 		/// The Coretime chain from which we read region state.
-		type CoretimeChain: Get<MultiLocation>;
+		type CoretimeChain: Get<Location>;
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;

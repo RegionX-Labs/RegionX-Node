@@ -21,8 +21,8 @@ use pallet_broker::RegionId;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
 use sp_runtime::{traits::Get, DispatchError, DispatchResult, SaturatedConversion, Saturating};
-use xcm::latest::prelude::*;
 use xcm_executor::traits::ConvertLocation;
+use xcm::opaque::latest::prelude::*;
 
 /// Type which encodes the region assignment call.
 pub trait AssignmentCallEncoder {
@@ -64,27 +64,26 @@ where
 		let fee = T::WeightToFee::weight_to_fee(&call_weight)
 			.saturating_add(FeeBuffer::get().saturated_into());
 
-		let _sovereign_account = SovereignAccountOf::convert_location(&MultiLocation::new(
-			1,
-			X1(Parachain(OwnParaId::get())),
-		))
+		let _sovereign_account = SovereignAccountOf::convert_location(&Location::new(1, [
+			Parachain(OwnParaId::get()),
+		]))
 		.ok_or(DispatchError::Other("Couldn't get the sovereign account"))?;
 
 		let message = Xcm(vec![
 			WithdrawAsset(
-				MultiAsset { id: Concrete(MultiLocation::parent()), fun: Fungible(fee.into()) }
+				Asset { id: AssetId(Location::parent()), fun: Fungible(fee.into()) }
 					.into(),
 			),
 			BuyExecution {
-				fees: MultiAsset {
-					id: Concrete(MultiLocation::parent()),
+				fees: Asset {
+					id: AssetId(Location::parent()),
 					fun: Fungible(fee.into()),
 				},
 				weight_limit: Unlimited,
 			},
 			Transact {
 				origin_kind: OriginKind::SovereignAccount,
-				require_weight_at_most: call_weight,
+				fallback_max_weight: Some(call_weight),
 				call: assignment_call.into(),
 			},
 			RefundSurplus,
