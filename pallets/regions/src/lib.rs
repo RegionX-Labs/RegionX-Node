@@ -15,7 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::{alloc::collections::BTreeMap, Decode};
+use codec::Decode;
 use core::{cmp::max, marker::PhantomData};
 use frame_support::{pallet_prelude::Weight, traits::nonfungible::Mutate as NftMutate, PalletId};
 use ismp::{
@@ -24,7 +24,7 @@ use ismp::{
 	error::Error as IsmpError,
 	host::StateMachine,
 	module::IsmpModule,
-	router::{PostRequest, Request, Response, Timeout},
+	router::{PostRequest, Request, Response, StorageValue, Timeout},
 };
 use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
@@ -434,11 +434,14 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 					// The last 16 bytes represent the region id.
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
 
-					let region_id = RegionId::decode(&mut region_id_encoded)
-						.map_err(|_| IsmpError::Custom(IsmpCustomError::KeyDecodeFailed.to_string()))?;
+					let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
+						IsmpError::Custom(IsmpCustomError::KeyDecodeFailed.to_string())
+					})?;
 
-					let record = RegionRecordOf::<T>::decode(&mut value.as_slice())
-						.map_err(|_| IsmpError::Custom(IsmpCustomError::ResponseDecodeFailed.to_string()))?;
+					let record =
+						RegionRecordOf::<T>::decode(&mut value.as_slice()).map_err(|_| {
+							IsmpError::Custom(IsmpCustomError::ResponseDecodeFailed.to_string())
+						})?;
 
 					crate::Pallet::<T>::set_record(region_id, record)
 						.map_err(|e| IsmpError::Custom(format!("{:?}", e)))?;
@@ -453,23 +456,27 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 	fn on_timeout(&self, timeout: Timeout) -> Result<(), anyhow::Error> {
 		match timeout {
-			Timeout::Request(Request::Get(get)) => get.keys.iter().try_for_each(|key| -> Result<(), anyhow::Error> {
-				// The last 16 bytes represent the region id.
-				let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
+			Timeout::Request(Request::Get(get)) =>
+				get.keys.iter().try_for_each(|key| -> Result<(), anyhow::Error> {
+					// The last 16 bytes represent the region id.
+					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
 
-				let region_id = RegionId::decode(&mut region_id_encoded)
-					.map_err(|_| IsmpError::Custom(IsmpCustomError::KeyDecodeFailed.to_string()))?;
+					let region_id = RegionId::decode(&mut region_id_encoded).map_err(|_| {
+						IsmpError::Custom(IsmpCustomError::KeyDecodeFailed.to_string())
+					})?;
 
-				let Some(mut region) = Regions::<T>::get(region_id) else {
-					return Err(IsmpError::Custom(IsmpCustomError::RegionNotFound.to_string()).into());
-				};
+					let Some(mut region) = Regions::<T>::get(region_id) else {
+						return Err(
+							IsmpError::Custom(IsmpCustomError::RegionNotFound.to_string()).into()
+						);
+					};
 
-				region.record = Record::Unavailable;
-				Regions::<T>::insert(region_id, region);
+					region.record = Record::Unavailable;
+					Regions::<T>::insert(region_id, region);
 
-				crate::Pallet::<T>::deposit_event(Event::RequestTimedOut { region_id });
-				Ok(())
-			}),
+					crate::Pallet::<T>::deposit_event(Event::RequestTimedOut { region_id });
+					Ok(())
+				}),
 			Timeout::Request(Request::Post(_)) => Ok(()),
 			Timeout::Response(_) => Ok(()),
 		}
@@ -513,17 +520,16 @@ impl<T: crate::Config> RegionFactory<T::AccountId, RegionRecordOf<T>> for Pallet
 }
 
 mod utils {
-	use super::{BTreeMap, IsmpCustomError, IsmpError};
+	use super::{IsmpCustomError, IsmpError, StorageValue};
 	#[cfg(not(feature = "std"))]
 	use scale_info::prelude::vec::Vec;
 
-	pub fn read_value(
-		values: &BTreeMap<Vec<u8>, Option<Vec<u8>>>,
-		key: &Vec<u8>,
-	) -> Result<Vec<u8>, IsmpError> {
+	pub fn read_value(values: &Vec<StorageValue>, key: &Vec<u8>) -> Result<Vec<u8>, IsmpError> {
 		let result = values
-			.get(key)
+			.into_iter()
+			.find(|v| v.key == *key)
 			.ok_or(IsmpCustomError::ValueNotFound)?
+			.value
 			.clone()
 			.ok_or(IsmpCustomError::EmptyValue)?;
 
