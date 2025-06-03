@@ -41,10 +41,8 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 		"cocos" => Box::new(chain_spec::cocos::cocos_config(4479)),
 		"cocos-dev" => Box::new(chain_spec::cocos::development_config(2000)),
 		"cocos-local" => Box::new(chain_spec::cocos::local_testnet_config(2000)),
-		path =>
-			Box::new(chain_spec::ChainSpec::<cocos_runtime::RuntimeGenesisConfig>::from_json_file(
-				std::path::PathBuf::from(path),
-			)?),
+		// TODO: add kusama spec
+		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
 
@@ -140,6 +138,7 @@ macro_rules! construct_async_run {
 					{ $( $code )* }.map(|v| (v, task_manager))
 				})
 			},
+			// TODO: add kusama runtime
 			chain => panic!("Unknown chain with id: {}", chain),
 		}
 	}}
@@ -201,18 +200,20 @@ pub fn run() -> Result<()> {
 		Some(Subcommand::ExportGenesisHead(cmd)) => {
 			let runner = cli.create_runner(cmd)?;
 			runner.sync_run(|config| {
-				let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
+				let executor =
+					sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 				match config.chain_spec.id() {
-           			chain if is_paseo(chain) => {
+					chain if is_paseo(chain) => {
 						let partials =
-						new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
+							new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
 					},
-           			chain if is_cocos(chain) => {
+					chain if is_cocos(chain) => {
 						let partials =
-						new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
+							new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
 					},
+					// TODO: kusama
 					chain => panic!("Unknown chain with id: {}", chain),
 				}
 			})
@@ -237,49 +238,53 @@ pub fn run() -> Result<()> {
 							.into())
 					},
 				BenchmarkCmd::Block(cmd) => runner.sync_run(|config| {
-					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
+					let executor =
+						sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if is_paseo(chain) => {
-							let partials =
-								new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
+						chain if is_paseo(chain) => {
+							let partials = new_partial::<regionx_paseo_runtime::RuntimeApi, _>(
+								&config, executor,
+							)?;
 							cmd.run(partials.client)
 						},
-            			chain if is_cocos(chain) => {
+						chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
 						},
+						// TODO: add kusama
 						chain => panic!("Unknown chain with id: {}", chain),
 					}
 				}),
 				#[cfg(not(feature = "runtime-benchmarks"))]
-				BenchmarkCmd::Storage(_) =>
-					Err(sc_cli::Error::Input(
-						"Compile with --features=runtime-benchmarks \
+				BenchmarkCmd::Storage(_) => Err(sc_cli::Error::Input(
+					"Compile with --features=runtime-benchmarks \
 						to enable storage benchmarks."
-							.into(),
-					)
-					),
+						.into(),
+				)),
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					let executor = sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
+					let executor =
+						sc_service::new_wasm_executor::<sp_io::SubstrateHostFunctions>(&config);
 
 					match config.chain_spec.id() {
-            			chain if is_paseo(chain) => {
-							let partials =
-								new_partial::<regionx_paseo_runtime::RuntimeApi, _>(&config, executor)?;
+						chain if is_paseo(chain) => {
+							let partials = new_partial::<regionx_paseo_runtime::RuntimeApi, _>(
+								&config, executor,
+							)?;
 							let db = partials.backend.expose_db();
 							let storage = partials.backend.expose_storage();
 							cmd.run(config, partials.client.clone(), db, storage)
 						},
-            			chain if is_cocos(chain) => {
+						chain if is_cocos(chain) => {
 							let partials =
 								new_partial::<cocos_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
 							let storage = partials.backend.expose_storage();
 							cmd.run(config, partials.client.clone(), db, storage)
 						},
+						// TODO: add kusama
 						chain => panic!("Unknown chain with id: {}", chain),
 					}
 				}),
@@ -291,7 +296,6 @@ pub fn run() -> Result<()> {
 				_ => Err("Benchmarking sub-command unsupported".into()),
 			}
 		},
-		Some(Subcommand::TryRuntime) => Err("The `try-runtime` subcommand has been migrated to a standalone CLI (https://github.com/paritytech/try-runtime-cli). It is no longer being maintained here and will be removed entirely some time after January 2024. Please remove this subcommand from your runtime and use the standalone CLI.".into()),
 		None => {
 			let runner = cli.create_runner(&cli.run.normalize())?;
 			let collator_options = cli.run.collator_options();
@@ -392,15 +396,9 @@ impl CliConfiguration<Self> for RelayChainCli {
 		self.base.base.prometheus_config(default_listen_port, chain_spec)
 	}
 
-	fn init<F>(
-		&self,
-		_support_url: &String,
-		_impl_version: &String,
-		_logger_hook: F,
-		_config: &sc_service::Configuration,
-	) -> Result<()>
+	fn init<F>(&self, _support_url: &String, _impl_version: &String, _logger_hook: F) -> Result<()>
 	where
-		F: FnOnce(&mut sc_cli::LoggerBuilder, &sc_service::Configuration),
+		F: FnOnce(&mut sc_cli::LoggerBuilder),
 	{
 		unreachable!("PolkadotCli is never initialized; qed");
 	}
