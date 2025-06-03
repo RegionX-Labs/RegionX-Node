@@ -14,7 +14,8 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
-use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
+use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
+use frame_system::config_preludes::TestDefaultConfig;
 use ismp::{consensus::StateMachineId, host::StateMachine};
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
@@ -39,6 +40,8 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+// Configure FRAME pallets to include in runtime.
+#[derive_impl(TestDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
 	type BlockWeights = ();
@@ -74,13 +77,13 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxLocks = ();
-	type MaxHolds = ();
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {

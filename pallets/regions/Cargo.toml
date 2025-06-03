@@ -18,6 +18,7 @@ scale-info = {  workspace = true,  default-features = false, features = ["derive
 ismp = { workspace = true, default-features = false }
 ismp-parachain = { workspace = true, default-features = false }
 pallet-ismp = { workspace = true, default-features = false }
+anyhow = { workspace = true, default-features = false }
 
 # Substrate
 frame-benchmarking = { workspace = true, default-features = false, optional = true }

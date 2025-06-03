@@ -24,7 +24,7 @@ use ismp::{
 	error::Error as IsmpError,
 	host::StateMachine,
 	module::IsmpModule,
-	router::{Post, Request, Response, Timeout},
+	router::{PostRequest, Request, Response, Timeout},
 };
 use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
@@ -336,6 +336,7 @@ pub mod pallet {
 				keys: vec![key],
 				height: coretime_chain_height,
 				timeout: T::Timeout::get(),
+				context: vec![],
 			};
 
 			let dispatcher = T::IsmpDispatcher::default();
@@ -387,11 +388,11 @@ pub mod pallet {
 			};
 
 			let Some(region) = Regions::<T>::get(region_id) else {
-				return InvalidTransaction::Custom(REGION_NOT_FOUND).into()
+				return InvalidTransaction::Custom(REGION_NOT_FOUND).into();
 			};
 
 			if !region.record.is_unavailable() {
-				return InvalidTransaction::Custom(REGION_NOT_UNAVAILABLE).into()
+				return InvalidTransaction::Custom(REGION_NOT_UNAVAILABLE).into();
 			}
 
 			ValidTransaction::with_tag_prefix("RecordRequest")
@@ -419,7 +420,7 @@ impl<T: Config> Default for IsmpModuleCallback<T> {
 }
 
 impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
-	fn on_accept(&self, _request: Post) -> Result<(), IsmpError> {
+	fn on_accept(&self, _request: PostRequest) -> Result<(), anyhow::Error> {
 		Err(IsmpCustomError::NotSupported.into())
 	}
 

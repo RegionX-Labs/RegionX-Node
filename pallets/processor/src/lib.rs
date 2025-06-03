@@ -26,7 +26,7 @@ pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
 use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::traits::Convert;
-use xcm::opaque::lts::MultiLocation;
+use xcm::opaque::v3::MultiLocation;
 
 #[cfg(test)]
 mod mock;

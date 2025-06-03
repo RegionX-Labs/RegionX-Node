@@ -13,10 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use anyhow::Error;
 use ismp::{
 	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
-	error::Error,
-	router::{Get as IsmpGet, PostResponse, Request},
+	router::{GetRequest, PostResponse, Request},
 };
 use ismp_testsuite::mocks::Host;
 use sp_core::{Get, H256};
@@ -51,7 +51,7 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 		fee: FeeMetadata<Self::Account, Self::Balance>,
 	) -> Result<H256, Error> {
 		let request = match request {
-			DispatchRequest::Get(get) => Request::Get(IsmpGet {
+			DispatchRequest::Get(get) => Request::Get(GetRequest {
 				source: T::CoretimeChain::get(),
 				dest: get.dest,
 				nonce: 0,
@@ -59,6 +59,7 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 				keys: get.keys.clone(),
 				height: get.height,
 				timeout_timestamp: T::Timeout::get(),
+				context: vec![],
 			}),
 			_ => unimplemented!(),
 		};

@@ -15,7 +15,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 use codec::{Decode, Encode, MaxEncodedLen};
 pub use cumulus_primitives_core::ParaId;
-use frame_support::pallet_prelude::DispatchResult;
+use frame_support::pallet_prelude::{DecodeWithMemTracking, DispatchResult};
 use pallet_broker::{PartsOf57600, Timeslice};
 use scale_info::TypeInfo;
 
@@ -23,7 +23,9 @@ use scale_info::TypeInfo;
 pub type OrderId = u32;
 
 /// The information we store about a Coretime order.
-#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, DecodeWithMemTracking,
+)]
 pub struct Order<AccountId> {
 	/// The `AccountId` that created the order.
 	///
@@ -36,7 +38,9 @@ pub struct Order<AccountId> {
 }
 
 /// The region requirements of an order.
-#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen, DecodeWithMemTracking,
+)]
 pub struct Requirements {
 	/// The timeslice at which the Region begins.
 	pub begin: Timeslice,

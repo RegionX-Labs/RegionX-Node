@@ -20,8 +20,19 @@ use order_primitives::ParaId;
 use pallet_broker::RegionId;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
+use sp_runtime::Weight;
 use sp_runtime::{traits::Get, DispatchError, DispatchResult, SaturatedConversion, Saturating};
-use xcm::latest::prelude::*;
+use xcm::opaque::{
+	v3::{AssetId::Concrete, Fungibility::Fungible, MultiAsset, MultiLocation},
+	v5::{
+		prelude::{BuyExecution, RefundSurplus, Transact, WithdrawAsset},
+		Junction::Parachain,
+		Junctions::{Here, X1},
+		Location, OriginKind,
+		WeightLimit::Unlimited,
+		Xcm,
+	},
+};
 use xcm_executor::traits::ConvertLocation;
 
 /// Type which encodes the region assignment call.
@@ -64,9 +75,9 @@ where
 		let fee = T::WeightToFee::weight_to_fee(&call_weight)
 			.saturating_add(FeeBuffer::get().saturated_into());
 
-		let _sovereign_account = SovereignAccountOf::convert_location(&MultiLocation::new(
+		let _sovereign_account = SovereignAccountOf::convert_location(&Location::new(
 			1,
-			X1(Parachain(OwnParaId::get())),
+			X1([Parachain(OwnParaId::get())].into()),
 		))
 		.ok_or(DispatchError::Other("Couldn't get the sovereign account"))?;
 
