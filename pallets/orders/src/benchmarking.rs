@@ -96,9 +96,9 @@ mod benchmarks {
 
 		<T as crate::Config>::Currency::make_free_balance_be(
 			&creator.clone(),
-			(<T as crate::Config>::OrderCreationCost::get() +
-				<T as crate::Config>::MinimumContribution::get()) *
-				2u32.into(),
+			(<T as crate::Config>::OrderCreationCost::get()
+				+ <T as crate::Config>::MinimumContribution::get())
+				* 2u32.into(),
 		);
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),
@@ -134,9 +134,9 @@ mod benchmarks {
 
 		<T as crate::Config>::Currency::make_free_balance_be(
 			&creator.clone(),
-			(<T as crate::Config>::OrderCreationCost::get() +
-				<T as crate::Config>::MinimumContribution::get()) *
-				2u32.into(),
+			(<T as crate::Config>::OrderCreationCost::get()
+				+ <T as crate::Config>::MinimumContribution::get())
+				* 2u32.into(),
 		);
 		crate::Pallet::<T>::create_order(
 			RawOrigin::Signed(creator.clone()).into(),

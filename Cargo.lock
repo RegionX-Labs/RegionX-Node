@@ -10283,6 +10283,7 @@ dependencies = [
 name = "pallet-orders"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "cumulus-primitives-core",
  "frame-benchmarking",
  "frame-support 40.1.0",
