@@ -14,6 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true }
 
 [dependencies]
+anyhow = { workspace = true }
 codec = { workspace = true }
 log = { workspace = true }
 scale-info = { workspace = true }
@@ -48,6 +49,7 @@ pallet-balances = { workspace = true }
 pallet-broker = { workspace = true, optional = true }
 pallet-message-queue = { workspace = true }
 pallet-mmr-tree = { workspace = true }
+pallet-mmr-runtime-api = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-preimage = { workspace = true }
@@ -135,6 +137,7 @@ std = [
 	"pallet-market/std",
 	"pallet-message-queue/std",
 	"pallet-mmr-tree/std",
+	"pallet-mmr-runtime-api/std",
 	"pallet-multisig/std",
 	"pallet-orders/std",
 	"pallet-proxy/std",

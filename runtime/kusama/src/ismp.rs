@@ -17,14 +17,15 @@
 use crate::alloc::string::ToString;
 use crate::{
 	AccountId, Balance, Balances, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent,
-	Timestamp,
+	Timestamp, Mmr
 };
 use frame_support::{pallet_prelude::Get, parameter_types};
 use frame_system::EnsureRoot;
 use ismp::{error::Error, host::StateMachine, module::IsmpModule, router::IsmpRouter};
-use ismp_parachain::ParachainConsensusClient;
+use ::ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
 use sp_std::prelude::*;
+use crate::weights::ismp_parachain;
 
 pub struct HostStateMachine;
 
@@ -39,10 +40,10 @@ parameter_types! {
 	pub const Coprocessor: Option<StateMachine> = None;
 }
 
-impl ismp_parachain::Config for Runtime {
+impl ::ismp_parachain::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type IsmpHost = Ismp;
-	type WeightInfo = weights::ismp_parachain::WeightInfo<Runtime>;
+	type WeightInfo = ismp_parachain::WeightInfo<Runtime>;
 }
 
 pub struct WeightProvider;
@@ -68,7 +69,6 @@ impl pallet_ismp::Config for Runtime {
 	type ConsensusClients = (ParachainConsensusClient<Runtime, IsmpParachain>,);
 	type OffchainDB = Mmr;
 	type FeeHandler = pallet_ismp::fee_handler::WeightFeeHandler<()>;
-	type WeightInfo = ();
 }
 
 #[derive(Default)]
