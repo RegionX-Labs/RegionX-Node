@@ -30,7 +30,6 @@ use ismp::{
 use nonfungible_primitives::LockableNonFungible;
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use region_primitives::RegionInspect;
-use std::collections::BTreeMap;
 
 // pallet hash + storage item hash
 const REGION_PREFIX_KEY: &str = "4dcb50595177a3177648411a42aca0f53dc63b0b76ffd6f80704a090da6f8719";
@@ -526,27 +525,31 @@ fn region_inspect_works() {
 	});
 }
 
-// #[test]
-// fn utils_read_value_works() {
-// 	new_test_ext().execute_with(|| {
-// 		let mut values: BTreeMap<Vec<u8>, Option<Vec<u8>>> = BTreeMap::new();
-// 		values.insert("key1".as_bytes().to_vec(), Some("value1".as_bytes().to_vec()));
-// 		values.insert("key2".as_bytes().to_vec(), None);
+#[test]
+fn utils_read_value_works() {
+	new_test_ext().execute_with(|| {
+		let values = vec![
+			StorageValue {
+				key: "key1".as_bytes().to_vec(),
+				value: Some("value1".as_bytes().to_vec()),
+			},
+			StorageValue { key: "key2".as_bytes().to_vec(), value: None },
+		];
 
-// 		assert_eq!(
-// 			utils::read_value(&values, &"key1".as_bytes().to_vec()),
-// 			Ok("value1".as_bytes().to_vec())
-// 		);
-// 		assert_eq!(
-// 			utils::read_value(&values, &"key42".as_bytes().to_vec()),
-// 			Err(IsmpCustomError::ValueNotFound.into())
-// 		);
-// 		assert_eq!(
-// 			utils::read_value(&values, &"key2".as_bytes().to_vec()),
-// 			Err(IsmpCustomError::EmptyValue.into())
-// 		);
-// 	});
-// }
+		assert_eq!(
+			utils::read_value(&values, &"key1".as_bytes().to_vec()),
+			Ok("value1".as_bytes().to_vec())
+		);
+		assert_eq!(
+			utils::read_value(&values, &"key42".as_bytes().to_vec()),
+			Err(IsmpCustomError::ValueNotFound.into())
+		);
+		assert_eq!(
+			utils::read_value(&values, &"key2".as_bytes().to_vec()),
+			Err(IsmpCustomError::EmptyValue.into())
+		);
+	});
+}
 
 #[test]
 fn drop_region_works() {
