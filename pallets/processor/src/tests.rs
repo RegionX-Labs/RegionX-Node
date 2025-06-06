@@ -59,7 +59,10 @@ fn fulfill_order_works() {
 		// Fulfill order fails with a region that doesn't meet the requirements:
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::from_chunk(0, 10) };
 		assert_ok!(Regions::mint_into(&region_id.into(), &region_owner));
-		assert_ok!(Regions::set_record(region_id, RegionRecord { end: 8, owner: Some(1), paid: None }));
+		assert_ok!(Regions::set_record(
+			region_id,
+			RegionRecord { end: 8, owner: Some(1), paid: None }
+		));
 		assert_noop!(
 			Processor::fulfill_order(RuntimeOrigin::signed(region_owner), 0, region_id),
 			Error::<Test>::RegionCoreOccupancyInsufficient
@@ -68,7 +71,10 @@ fn fulfill_order_works() {
 		// Create a region which meets the requirements:
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
 		assert_ok!(Regions::mint_into(&region_id.into(), &region_owner));
-		assert_ok!(Regions::set_record(region_id, RegionRecord { end: 8, owner: Some(1), paid: None }));
+		assert_ok!(Regions::set_record(
+			region_id,
+			RegionRecord { end: 8, owner: Some(1), paid: None }
+		));
 
 		// Fails if the region is locked:
 		Regions::lock(&region_id.into(), None).unwrap();
@@ -128,7 +134,10 @@ fn cannot_fulfill_expired_order() {
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
 		assert_ok!(Regions::mint_into(&region_id.into(), &region_owner));
-		assert_ok!(Regions::set_record(region_id, RegionRecord { end: 0, owner: Some(1), paid: None }));
+		assert_ok!(Regions::set_record(
+			region_id,
+			RegionRecord { end: 0, owner: Some(1), paid: None }
+		));
 
 		RelayBlockNumber::set(10 * 80);
 		assert_noop!(

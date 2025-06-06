@@ -220,7 +220,7 @@ impl pallet_orders::Config for Test {
 
 parameter_types! {
 	// The location of the Coretime parachain.
-	pub const CoretimeChain: Location = Location::new(1, [Parachain(1005)]);
+	pub CoretimeChain: Location = Location::new(1, [Parachain(1005)]);
 }
 
 #[derive(Encode, Decode)]

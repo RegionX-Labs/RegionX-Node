@@ -231,7 +231,7 @@ pub mod pallet {
 				RegionAssignments::<T>::insert(region_id, order.para_id);
 
 				Self::deposit_event(Event::AssignmentFailed(err));
-				return Ok(())
+				return Ok(());
 			}
 
 			// We will burn the region since it has been assigned with `Final` finality.
