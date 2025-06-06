@@ -13,11 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use frame_support::{pallet_prelude::*, parameter_types, traits::Everything};
+use anyhow;
+use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
+use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
 use ismp::{
 	consensus::StateMachineId,
 	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
-	error::Error,
 	host::StateMachine,
 	router::PostResponse,
 };
@@ -48,11 +49,9 @@ parameter_types! {
 	pub const SS58Prefix: u8 = 42;
 }
 
+#[derive_impl(TestDefaultConfig as DefaultConfig)]
 impl frame_system::Config for Test {
 	type BaseCallFilter = Everything;
-	type BlockWeights = ();
-	type BlockLength = ();
-	type DbWeight = ();
 	type RuntimeOrigin = RuntimeOrigin;
 	type RuntimeCall = RuntimeCall;
 	type Nonce = u64;
@@ -64,14 +63,9 @@ impl frame_system::Config for Test {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeTask = RuntimeTask;
 	type BlockHashCount = BlockHashCount;
-	type Version = ();
 	type PalletInfo = PalletInfo;
 	type AccountData = pallet_balances::AccountData<u64>;
-	type OnNewAccount = ();
-	type OnKilledAccount = ();
-	type SystemWeightInfo = ();
 	type SS58Prefix = SS58Prefix;
-	type OnSetCode = ();
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
 }
 
@@ -83,13 +77,13 @@ impl pallet_balances::Config for Test {
 	type AccountStore = System;
 	type WeightInfo = ();
 	type MaxLocks = ();
-	type MaxHolds = ();
 	type MaxReserves = ConstU32<50>;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ();
+	type DoneSlashHandler = ();
 }
 
 pub struct MockStateMachineHeightProvider;
@@ -114,7 +108,7 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 		&self,
 		_request: DispatchRequest,
 		_fee: FeeMetadata<Self::Account, Self::Balance>,
-	) -> Result<H256, Error> {
+	) -> Result<H256, anyhow::Error> {
 		Ok(Default::default())
 	}
 
@@ -122,7 +116,7 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 		&self,
 		_response: PostResponse,
 		_fee: FeeMetadata<Self::Account, Self::Balance>,
-	) -> Result<H256, Error> {
+	) -> Result<H256, anyhow::Error> {
 		Ok(Default::default())
 	}
 }
@@ -171,6 +165,7 @@ pub fn new_test_ext() -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
 	pallet_balances::GenesisConfig::<Test> {
 		balances: vec![(1, 10_000_000), (2, 10_000_000), (3, 10_000_000)],
+		dev_accounts: None,
 	}
 	.assimilate_storage(&mut t)
 	.unwrap();

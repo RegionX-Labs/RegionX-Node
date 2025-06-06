@@ -15,7 +15,6 @@
 use anyhow;
 use ismp::{
 	dispatcher::{DispatchRequest, FeeMetadata, IsmpDispatcher},
-	error::Error,
 	router::{GetRequest as IsmpGet, PostResponse, Request},
 };
 use ismp_testsuite::mocks::Host;

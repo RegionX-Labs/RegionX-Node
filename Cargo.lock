@@ -9984,6 +9984,7 @@ dependencies = [
 name = "pallet-market"
 version = "0.1.0"
 dependencies = [
+ "anyhow",
  "frame-benchmarking",
  "frame-support 40.1.0",
  "frame-system",
