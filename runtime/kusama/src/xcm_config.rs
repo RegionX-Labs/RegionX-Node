@@ -14,13 +14,13 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use super::{
-	AccountId, AllPalletsWithSystem, Balances, NonFungibleAdapter, ParachainInfo, ParachainSystem,
+	AccountId, AllPalletsWithSystem, Balances, CollatorSelection, ParachainInfo, ParachainSystem,
 	PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
 	XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ConstU32, Everything, Nothing},
+	traits::{ConstU32, Contains, Disabled, Everything, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
@@ -28,39 +28,40 @@ use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
 use sp_runtime::traits::AccountIdConversion;
-use xcm::latest::prelude::*;
+use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
-	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, ParentIsPreset,
-	RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, NonFungibleAdapter,
+	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
 use xcm_executor::XcmExecutor;
 
 parameter_types! {
-	pub const RelayLocation: MultiLocation = MultiLocation::parent();
-	pub const BrokerPalletLocation: MultiLocation = MultiLocation {
-		parents: 1,
-		interior: X2(Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50))
-	};
+	pub const RelayLocation: Location = Location::parent();
+	pub const BrokerPalletLocation: Location = (
+		Parent,
+		Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50)
+	).into();
 	pub const RelayNetwork: Option<NetworkId> = None;
-	pub const CoretimeChainLocation: MultiLocation = MultiLocation {
-		parents: 1,
-		interior: X1(Parachain(CORETIME_CHAIN_PARA_ID))
-	};
-	pub AssetsFromCoretimeChain: (MultiAssetFilter, MultiLocation) = (
+	pub const CoretimeChainLocation: Location = (
+		Parent,
+		Parachain(CORETIME_CHAIN_PARA_ID)
+	).into();
+	pub AssetsFromCoretimeChain: (AssetFilter, Location) = (
 		Wild(All), // We can trust system parachains.
 		CoretimeChainLocation::get()
 	);
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
-	pub UniversalLocation: InteriorMultiLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub UniversalLocation: InteriorLocation = Parachain(ParachainInfo::parachain_id().into()).into();
+	pub StakingPot: AccountId = CollatorSelection::account_id();
 }
 
 pub type TrustedReserves = (NativeAsset, xcm_builder::Case<AssetsFromCoretimeChain>);
 
-/// Type for specifying how a `MultiLocation` can be converted into an `AccountId`. This is used
+/// Type for specifying how a `Location` can be converted into an `AccountId`. This is used
 /// when determining ownership of accounts for asset transacting and when attempting to use XCM
 /// `Transact` in order to determine the dispatch Origin.
 pub type LocationToAccountId = (
@@ -73,7 +74,7 @@ pub type LocationToAccountId = (
 );
 
 parameter_types! {
-	// The account which receives multi-currency tokens from failed attempts to deposit them
+	// The account which receives currency tokens from failed attempts to deposit them
 	pub Alternative: AccountId = PalletId(*b"xcm/alte").into_account_truncating();
 }
 
@@ -136,11 +137,18 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-match_types! {
-	pub type ParentOrParentsExecutivePlurality: impl Contains<MultiLocation> = {
-		MultiLocation { parents: 1, interior: Here } |
-		MultiLocation { parents: 1, interior: X1(Plurality { id: BodyId::Executive, .. }) }
-	};
+pub struct ParentOrParentsExecutivePlurality;
+impl Contains<Location> for ParentOrParentsExecutivePlurality {
+	fn contains(location: &Location) -> bool {
+		match location {
+			Location { parents: 1, interior: Here } => true,
+			Location { parents: 1, interior: X1(arc) }
+				if arc.len() == 1 &&
+					matches!(arc.as_ref(), [Plurality { id: BodyId::Executive, .. }]) =>
+				true,
+			_ => false,
+		}
+	}
 }
 
 pub type Barrier = TrailingSetTopicAsId<
@@ -165,6 +173,7 @@ pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
 	type XcmSender = XcmRouter;
+	type XcmRecorder = PolkadotXcm;
 	// How to withdraw and deposit an asset.
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
@@ -190,6 +199,10 @@ impl xcm_executor::Config for XcmConfig {
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
+	type XcmEventEmitter = PolkadotXcm;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -232,6 +245,8 @@ impl pallet_xcm::Config for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
+	// Aliasing is disabled: xcm_executor::Config::Aliasers only allows some privileged locations.
+	type AuthorizedAliasConsideration = Disabled;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {

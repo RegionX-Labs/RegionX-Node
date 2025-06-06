@@ -14,6 +14,7 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true }
 
 [dependencies]
+anyhow = { workspace = true }
 codec = { workspace = true }
 log = { workspace = true }
 scale-info = { workspace = true }
@@ -47,6 +48,8 @@ pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-broker = { workspace = true, optional = true }
 pallet-message-queue = { workspace = true }
+pallet-mmr-tree = { workspace = true }
+pallet-mmr-runtime-api = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-preimage = { workspace = true }
@@ -133,6 +136,8 @@ std = [
 	"regionx-runtime-common/std",
 	"pallet-market/std",
 	"pallet-message-queue/std",
+	"pallet-mmr-tree/std",
+	"pallet-mmr-runtime-api/std",
 	"pallet-multisig/std",
 	"pallet-orders/std",
 	"pallet-proxy/std",
@@ -186,6 +191,7 @@ runtime-benchmarks = [
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-market/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
+	"pallet-mmr-tree/runtime-benchmarks",
   	"pallet-multisig/runtime-benchmarks",
 	"pallet-orders/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
@@ -223,6 +229,7 @@ try-runtime = [
 	"pallet-collator-selection/try-runtime",
 	"pallet-market/try-runtime",
 	"pallet-message-queue/try-runtime",
+	"pallet-mmr-tree/try-runtime",
   	"pallet-multisig/try-runtime",
 	"pallet-orders/try-runtime",
 	"pallet-proxy/try-runtime",
@@ -244,4 +251,4 @@ try-runtime = [
 # Reducing waiting times for governance or other
 fast-runtime = []
 
-experimental = ["pallet-aura/experimental"]
+# experimental = ["pallet-aura/experimental"]

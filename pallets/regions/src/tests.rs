@@ -23,16 +23,33 @@ use frame_support::{
 	traits::nonfungible::{Inspect, Mutate, Transfer as NonFungibleTransfer},
 };
 use ismp::{
+	error::Error as IsmpError,
 	module::IsmpModule,
-	router::{GetResponse, Post, PostResponse, Request, Response, Timeout},
+	router::{GetResponse, PostRequest, PostResponse, Request, Response, StorageValue, Timeout},
 };
 use nonfungible_primitives::LockableNonFungible;
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use region_primitives::RegionInspect;
-use std::collections::BTreeMap;
 
 // pallet hash + storage item hash
 const REGION_PREFIX_KEY: &str = "4dcb50595177a3177648411a42aca0f53dc63b0b76ffd6f80704a090da6f8719";
+
+macro_rules! assert_ismp_error {
+	($expr:expr, $expected_err:expr) => {
+		let result = $expr;
+		assert!(
+			result.is_err_and(|err| {
+				if let Some(IsmpError::Custom(e)) = err.downcast_ref::<IsmpError>() {
+					e.to_string() == $expected_err.to_string()
+				} else {
+					false
+				}
+			}),
+			"Expected error: {}, but got different error",
+			$expected_err.to_string()
+		);
+	};
+}
 
 #[test]
 fn nonfungibles_implementation_works() {
@@ -67,7 +84,7 @@ fn nonfungibles_implementation_works() {
 fn set_record_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 112830, core: 81, mask: CoreMask::complete() };
-		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: Some(1), paid: None };
 
 		// The region with the given `region_id` does not exist.
 		assert_noop!(Regions::set_record(region_id, record.clone()), Error::<Test>::UnknownRegion);
@@ -197,11 +214,15 @@ fn on_response_works() {
 
 		assert_eq!(request.who, 2);
 
-		let mock_record: RegionRecordOf<Test> = RegionRecord { end: 113000, owner: 1, paid: None };
+		let mock_record: RegionRecordOf<Test> =
+			RegionRecord { end: 113000, owner: Some(1), paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),
-			values: BTreeMap::from([(get.keys[0].clone(), Some(mock_record.encode()))]),
+			values: vec![StorageValue {
+				key: get.keys[0].clone(),
+				value: Some(mock_record.encode()),
+			}],
 		});
 
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
@@ -215,25 +236,22 @@ fn on_response_works() {
 		// Fails when invalid region id is passed as response:
 		let mut invalid_get_req = get.clone();
 		invalid_get_req.keys[0] = vec![0x23; 15];
-		assert_noop!(
-			module.on_response(Response::Get(GetResponse {
-				get: invalid_get_req.clone(),
-				values: BTreeMap::from([(
-					invalid_get_req.keys[0].clone(),
-					Some(mock_record.clone().encode())
-				)]),
-			})),
-			IsmpCustomError::KeyDecodeFailed
-		);
+		let resp = Response::Get(GetResponse {
+			get: invalid_get_req.clone(),
+			values: vec![StorageValue {
+				key: invalid_get_req.keys[0].clone(),
+				value: Some(mock_record.encode()),
+			}],
+		});
+
+		assert_ismp_error!(module.on_response(resp), IsmpCustomError::KeyDecodeFailed);
 
 		// Fails when invalid region record is passed as response:
-		assert_noop!(
-			module.on_response(Response::Get(GetResponse {
-				get: get.clone(),
-				values: BTreeMap::from([(get.keys[0].clone(), Some(vec![0x42; 20]))]),
-			})),
-			IsmpCustomError::ResponseDecodeFailed
-		);
+		let resp = Response::Get(GetResponse {
+			get: get.clone(),
+			values: vec![StorageValue { key: get.keys[0].clone(), value: Some(vec![0x42; 20]) }],
+		});
+		assert_ismp_error!(module.on_response(resp), IsmpCustomError::ResponseDecodeFailed);
 	});
 }
 
@@ -243,20 +261,20 @@ fn on_response_only_handles_get() {
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
 
 		let mock_response = Response::Post(PostResponse {
-			post: Post {
+			post: PostRequest {
 				source: <Test as crate::Config>::CoretimeChain::get(),
 				dest: <Test as crate::Config>::CoretimeChain::get(),
 				nonce: Default::default(),
 				from: Default::default(),
 				to: Default::default(),
 				timeout_timestamp: Default::default(),
-				data: Default::default(),
+				body: Default::default(),
 			},
 			response: Default::default(),
 			timeout_timestamp: Default::default(),
 		});
 
-		assert_noop!(module.on_response(mock_response), IsmpCustomError::NotSupported);
+		assert_ismp_error!(module.on_response(mock_response), IsmpCustomError::NotSupported);
 	});
 }
 
@@ -287,7 +305,7 @@ fn on_timeout_works() {
 		// failed to decode region_id
 		let mut invalid_get_req = get.clone();
 		invalid_get_req.keys = vec![vec![0u8; 15]];
-		assert_noop!(
+		assert_ismp_error!(
 			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
 			IsmpCustomError::KeyDecodeFailed
 		);
@@ -295,19 +313,20 @@ fn on_timeout_works() {
 		// invalid id: region not found
 		let non_existing_region = RegionId { begin: 42, core: 72, mask: CoreMask::complete() };
 		invalid_get_req.keys = vec![non_existing_region.encode()];
-		assert_noop!(
+
+		assert_ismp_error!(
 			module.on_timeout(Timeout::Request(Request::Get(invalid_get_req.clone()))),
 			IsmpCustomError::RegionNotFound
 		);
 
-		let post = Post {
+		let post = PostRequest {
 			source: <Test as crate::Config>::CoretimeChain::get(),
 			dest: <Test as crate::Config>::CoretimeChain::get(),
 			nonce: Default::default(),
 			from: Default::default(),
 			to: Default::default(),
 			timeout_timestamp: Default::default(),
-			data: Default::default(),
+			body: Default::default(),
 		};
 		assert_ok!(module.on_timeout(Timeout::Request(Request::Post(post.clone()))));
 		System::assert_last_event(Event::RequestTimedOut { region_id }.into());
@@ -323,17 +342,18 @@ fn on_timeout_works() {
 #[test]
 fn on_accept_works() {
 	new_test_ext().execute_with(|| {
-		let post = Post {
+		let post = PostRequest {
 			source: <Test as crate::Config>::CoretimeChain::get(),
 			dest: <Test as crate::Config>::CoretimeChain::get(),
 			nonce: 0,
 			from: Default::default(),
 			to: Default::default(),
 			timeout_timestamp: 0,
-			data: Default::default(),
+			body: Default::default(),
 		};
 		let module: IsmpModuleCallback<Test> = IsmpModuleCallback::default();
-		assert_noop!(module.on_accept(post), IsmpCustomError::NotSupported);
+
+		assert_ismp_error!(module.on_accept(post), IsmpCustomError::NotSupported);
 	});
 }
 
@@ -353,7 +373,7 @@ fn nonfungible_owner_works() {
 fn nonfungible_attribute_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
-		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: Some(1), paid: None };
 
 		assert_ok!(Regions::mint_into(&region_id.into(), &1));
 		assert_ok!(Regions::set_record(region_id, record.clone()));
@@ -498,7 +518,7 @@ fn region_inspect_works() {
 		// the record is still not available so it will return `None`.
 		assert!(Regions::record(&region_id.into()).is_none());
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: Some(1), paid: None };
 		assert_ok!(Regions::set_record(region_id, record.clone()));
 
 		assert_eq!(Regions::record(&region_id.into()), Some(record));
@@ -508,9 +528,13 @@ fn region_inspect_works() {
 #[test]
 fn utils_read_value_works() {
 	new_test_ext().execute_with(|| {
-		let mut values: BTreeMap<Vec<u8>, Option<Vec<u8>>> = BTreeMap::new();
-		values.insert("key1".as_bytes().to_vec(), Some("value1".as_bytes().to_vec()));
-		values.insert("key2".as_bytes().to_vec(), None);
+		let values = vec![
+			StorageValue {
+				key: "key1".as_bytes().to_vec(),
+				value: Some("value1".as_bytes().to_vec()),
+			},
+			StorageValue { key: "key2".as_bytes().to_vec(), value: None },
+		];
 
 		assert_eq!(
 			utils::read_value(&values, &"key1".as_bytes().to_vec()),
@@ -531,7 +555,7 @@ fn utils_read_value_works() {
 fn drop_region_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 1, core: 81, mask: CoreMask::complete() };
-		let record: RegionRecordOf<Test> = RegionRecord { end: 10, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 10, owner: Some(1), paid: None };
 		let who = 1u32.into();
 
 		assert_noop!(
