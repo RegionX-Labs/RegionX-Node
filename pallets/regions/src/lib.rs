@@ -388,11 +388,11 @@ pub mod pallet {
 			};
 
 			let Some(region) = Regions::<T>::get(region_id) else {
-				return InvalidTransaction::Custom(REGION_NOT_FOUND).into()
+				return InvalidTransaction::Custom(REGION_NOT_FOUND).into();
 			};
 
 			if !region.record.is_unavailable() {
-				return InvalidTransaction::Custom(REGION_NOT_UNAVAILABLE).into()
+				return InvalidTransaction::Custom(REGION_NOT_UNAVAILABLE).into();
 			}
 
 			ValidTransaction::with_tag_prefix("RecordRequest")
@@ -456,7 +456,7 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 	fn on_timeout(&self, timeout: Timeout) -> Result<(), anyhow::Error> {
 		match timeout {
-			Timeout::Request(Request::Get(get)) =>
+			Timeout::Request(Request::Get(get)) => {
 				get.keys.iter().try_for_each(|key| -> Result<(), anyhow::Error> {
 					// The last 16 bytes represent the region id.
 					let mut region_id_encoded = &key[max(0, key.len() as isize - 16) as usize..];
@@ -476,7 +476,8 @@ impl<T: Config> IsmpModule for IsmpModuleCallback<T> {
 
 					crate::Pallet::<T>::deposit_event(Event::RequestTimedOut { region_id });
 					Ok(())
-				}),
+				})
+			},
 			Timeout::Request(Request::Post(_)) => Ok(()),
 			Timeout::Response(_) => Ok(()),
 		}
@@ -526,7 +527,7 @@ mod utils {
 
 	pub fn read_value(values: &Vec<StorageValue>, key: &Vec<u8>) -> Result<Vec<u8>, IsmpError> {
 		let result = values
-			.into_iter()
+			.iter()
 			.find(|v| v.key == *key)
 			.ok_or(IsmpCustomError::ValueNotFound)?
 			.value
