@@ -15,7 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use codec::Decode;
+use codec::{alloc::string::ToString, Decode};
 use core::{cmp::max, marker::PhantomData};
 use frame_support::{pallet_prelude::Weight, traits::nonfungible::Mutate as NftMutate, PalletId};
 use ismp::{

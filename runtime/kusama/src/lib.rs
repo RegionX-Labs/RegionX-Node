@@ -23,10 +23,6 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
 
-// TODO remove:
-mod adapter;
-use adapter::NonFungibleAdapter;
-
 mod weights;
 pub mod xcm_config;
 
@@ -66,17 +62,17 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
+use crate::xcm_config::StakingPot;
 use ::ismp::{
-	consensus::{ConsensusClientId, StateMachineId},
+	consensus::{ConsensusClientId, StateMachineHeight, StateMachineId},
 	host::StateMachine,
 	router::{Request, Response},
 };
 use frame_support::{
-	construct_runtime,
+	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
-	genesis_builder_helper::{build_config, create_default_config},
 	parameter_types,
-	traits::{ConstBool, ConstU32, ConstU64, ConstU8, Everything},
+	traits::{tokens::imbalance::ResolveTo, ConstBool, ConstU32, ConstU64, ConstU8, Everything},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -87,7 +83,7 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
-use pallet_ismp::mmr::{Leaf, Proof, ProofKeys};
+use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
 use sp_core::H256;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
@@ -180,7 +176,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// This determines the average expected block time that we are targeting.
@@ -274,6 +270,7 @@ parameter_types! {
 
 // Configure FRAME pallets to include in runtime.
 
+#[derive_impl(frame_system::config_preludes::ParaChainDefaultConfig as frame_system::DefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -329,7 +326,7 @@ impl pallet_timestamp::Config for Runtime {
 	type Moment = u64;
 	type OnTimestampSet = Aura;
 	type MinimumPeriod = ConstU64<{ SLOT_DURATION / 2 }>;
-	type WeightInfo = weights::pallet_timestamp::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 impl pallet_authorship::Config for Runtime {
@@ -345,7 +342,6 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
-	type MaxHolds = ConstU32<50>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -353,13 +349,14 @@ impl pallet_balances::Config for Runtime {
 	type DustRemoval = ();
 	type ExistentialDeposit = ExistentialDeposit;
 	type AccountStore = System;
-	type WeightInfo = weights::pallet_balances::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type MaxReserves = MaxReserves;
 	type ReserveIdentifier = [u8; 8];
 	type RuntimeHoldReason = RuntimeHoldReason;
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -369,17 +366,19 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees>;
+	type OnChargeTransaction =
+		pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<StakingPot, Balances>>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+	type WeightInfo = ();
 }
 
 impl pallet_sudo::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
-	type WeightInfo = weights::pallet_sudo::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -405,14 +404,16 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
-	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 impl parachain_info::Config for Runtime {}
 
 parameter_types! {
 	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
+	pub MessageQueueIdleServiceWeight: Weight = Perbill::from_percent(20) * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -435,6 +436,7 @@ impl pallet_message_queue::Config for Runtime {
 	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
 	type MaxStale = sp_core::ConstU32<8>;
 	type ServiceWeight = MessageQueueServiceWeight;
+	type IdleMaxServiceWeight = MessageQueueIdleServiceWeight;
 }
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
@@ -446,9 +448,13 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	// Enqueue XCMP messages from siblings for later processing.
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
 	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
+	type MaxActiveOutboundChannels = ConstU32<128>;
+	// Most on-chain HRMP channels are configured to use 102400 bytes of max message size, so we
+	// need to set the page size larger than that until we reduce the channel size on-chain.
+	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
-	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type PriceForSiblingDelivery = NoPriceForMessageDelivery<ParaId>;
 }
 
@@ -468,7 +474,8 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but let's be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type WeightInfo = weights::pallet_session::WeightInfo<Runtime>;
+	type DisablingStrategy = ();
+	type WeightInfo = ();
 }
 
 impl pallet_aura::Config for Runtime {
@@ -476,6 +483,7 @@ impl pallet_aura::Config for Runtime {
 	type DisabledValidators = ();
 	type MaxAuthorities = ConstU32<100_000>;
 	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
 parameter_types! {
@@ -500,7 +508,7 @@ impl pallet_collator_selection::Config for Runtime {
 	type ValidatorId = <Self as frame_system::Config>::AccountId;
 	type ValidatorIdOf = pallet_collator_selection::IdentityCollator;
 	type ValidatorRegistration = Session;
-	type WeightInfo = weights::pallet_collator_selection::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 pub struct StateMachineHeightProvider;
@@ -532,14 +540,14 @@ impl pallet_regions::Config for Runtime {
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
 	type UnsignedPriority = RegionsUnsignedPriority;
-	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 impl pallet_utility::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type RuntimeCall = RuntimeCall;
 	type PalletsOrigin = OriginCaller;
-	type WeightInfo = weights::pallet_utility::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -557,7 +565,8 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type WeightInfo = weights::pallet_multisig::WeightInfo<Runtime>;
+	type BlockNumberProvider = System;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -580,9 +589,10 @@ impl pallet_proxy::Config for Runtime {
 	type ProxyDepositBase = ProxyDepositBase;
 	type ProxyDepositFactor = ProxyDepositFactor;
 	type MaxProxies = MaxProxies;
-	type WeightInfo = weights::pallet_proxy::WeightInfo<Runtime>;
+	type WeightInfo = ();
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
+	type BlockNumberProvider = System;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
@@ -619,6 +629,7 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<10>;
+	type BlockNumberProvider = System;
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
@@ -630,7 +641,7 @@ impl pallet_market::Config for Runtime {
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
-	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -654,7 +665,7 @@ impl pallet_orders::Config for Runtime {
 	type OrderToAccountId = OrderToAccountId;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
-	type WeightInfo = weights::pallet_orders::WeightInfo<Runtime>;
+	type WeightInfo = ();
 }
 
 parameter_types! {
@@ -672,8 +683,15 @@ impl pallet_processor::Config for Runtime {
 	type AssignmentCallEncoder = AssignmentCallEncoder;
 	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
 	type CoretimeChain = CoretimeChainLocation;
-	type WeightToFee = parachains_common::rococo::fee::WeightToFee;
-	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
+	type WeightToFee = WeightToFee; // TODO: Kusama WeightToFee
+	type WeightInfo = ();
+}
+
+impl pallet_mmr_tree::Config for Runtime {
+	const INDEXING_PREFIX: &'static [u8] = INDEXING_PREFIX;
+	type Hashing = Keccak256;
+	type Leaf = Leaf;
+	type ForkIdentifierProvider = Ismp;
 }
 
 // Create the runtime by composing the FRAME pallets that were previously configured.
@@ -717,8 +735,9 @@ construct_runtime!(
 		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Ismp: pallet_ismp = 80,
-		IsmpParachain: ismp_parachain = 81,
+		Mmr: pallet_mmr_tree = 80,
+		Ismp: pallet_ismp = 81,
+		IsmpParachain: ismp_parachain = 82,
 
 		// Main stage:
 		Regions: pallet_regions = 90,
@@ -783,7 +802,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block)
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}
@@ -912,19 +931,12 @@ impl_runtime_apis! {
 			<Runtime as pallet_ismp::Config>::HostStateMachine::get()
 		}
 
-		fn challenge_period(consensus_state_id: [u8; 4]) -> Option<u64> {
-			Ismp::challenge_period(consensus_state_id)
-		}
-
-		/// Generate a proof for the provided leaf indices
-		fn generate_proof(
-			keys: ProofKeys
-		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), sp_mmr_primitives::Error> {
-			Ismp::generate_proof(keys)
+		fn challenge_period(id: StateMachineId) -> Option<u64> {
+			Ismp::challenge_period(id)
 		}
 
 		/// Fetch all ISMP events and their extrinsic metadata
-		fn block_events_with_metadata() -> Vec<(::ismp::events::Event, u32)> {
+		fn block_events_with_metadata() -> Vec<(::ismp::events::Event, Option<u32>)> {
 			Ismp::block_events_with_metadata()
 		}
 
@@ -939,8 +951,8 @@ impl_runtime_apis! {
 		}
 
 		/// Return the timestamp this client was last updated in seconds
-		fn consensus_update_time(id: ConsensusClientId) -> Option<u64> {
-			Ismp::consensus_update_time(id)
+		fn state_machine_update_time(height: StateMachineHeight) -> Option<u64> {
+			Ismp::state_machine_update_time(height)
 		}
 
 		/// Return the latest height of the state machine
@@ -1035,16 +1047,6 @@ impl_runtime_apis! {
 
 			if batches.is_empty() { return Err("Benchmark not found for this pallet.".into()) }
 			Ok(batches)
-		}
-	}
-
-	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn create_default_config() -> Vec<u8> {
-			create_default_config::<RuntimeGenesisConfig>()
-		}
-
-		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-			build_config::<RuntimeGenesisConfig>(config)
 		}
 	}
 }

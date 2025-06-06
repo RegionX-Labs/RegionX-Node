@@ -2184,6 +2184,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ckb-merkle-mountain-range"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56ccb671c5921be8a84686e6212ca184cb1d7c51cadcdbfcbd1cc3f042f5dfb8"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "clang-sys"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2287,7 +2296,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-conviction-voting",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pallet-ismp-runtime-api",
  "pallet-market",
  "pallet-membership",
@@ -6361,7 +6370,7 @@ dependencies = [
  "hex-literal",
  "ismp 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "log",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-scale-codec",
  "polkadot-sdk 2503.0.1",
  "primitive-types 0.13.1",
@@ -8243,6 +8252,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "mmr-primitives"
+version = "1.15.2"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#a127fe79727f4ca88637c218e3b4351c3502ffca"
+dependencies = [
+ "ckb-merkle-mountain-range",
+ "ismp 1.1.0 (git+https://github.com/polytope-labs/hyperbridge.git?branch=main)",
+ "pallet-ismp 2503.0.0 (git+https://github.com/polytope-labs/hyperbridge.git?branch=main)",
+ "parity-scale-codec",
+ "polkadot-sdk 2503.0.1",
+ "scale-info",
+ "serde",
+]
+
+[[package]]
 name = "mmr-rpc"
 version = "40.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8431,12 +8454,6 @@ name = "multimap"
 version = "0.8.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e5ce46fe64a9d73be07dcbe690a38ce1b293be448fd8ce1e6c1b8062c9f72c6a"
-
-[[package]]
-name = "multimap"
-version = "0.10.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
 
 [[package]]
 name = "multistream-select"
@@ -9032,6 +9049,7 @@ version = "39.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "40de2c5637468acb44cd2e3a738dab72024af506f48f20ac561149b64930676c"
 dependencies = [
+ "array-bytes 6.2.3",
  "frame-benchmarking",
  "frame-support 40.1.0",
  "frame-system",
@@ -9577,6 +9595,7 @@ dependencies = [
  "parity-scale-codec",
  "paste",
  "rand 0.8.5",
+ "rand_pcg",
  "scale-info",
  "serde",
  "smallvec",
@@ -9931,6 +9950,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-ismp"
+version = "2503.0.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#a127fe79727f4ca88637c218e3b4351c3502ffca"
+dependencies = [
+ "anyhow",
+ "fortuples",
+ "ismp 1.1.0 (git+https://github.com/polytope-labs/hyperbridge.git?branch=main)",
+ "log",
+ "parity-scale-codec",
+ "polkadot-sdk 2503.0.1",
+ "scale-info",
+ "serde",
+ "sp-io 40.0.1",
+]
+
+[[package]]
 name = "pallet-ismp-rpc"
 version = "2503.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9942,7 +9977,7 @@ dependencies = [
  "hex-literal",
  "ismp 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "jsonrpsee 0.24.9",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pallet-ismp-runtime-api",
  "parity-scale-codec",
  "polkadot-sdk 2503.0.1",
@@ -9959,7 +9994,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "71e859414c61afb3735bdb2b6e64f3d1162b3a0e6912276501501b36d9ade055"
 dependencies = [
  "ismp 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-scale-codec",
  "polkadot-sdk 2503.0.1",
  "primitive-types 0.13.1",
@@ -10106,6 +10141,21 @@ dependencies = [
  "polkadot-sdk-frame",
  "scale-info",
  "sp-mmr-primitives",
+]
+
+[[package]]
+name = "pallet-mmr-tree"
+version = "0.1.1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?branch=main#a127fe79727f4ca88637c218e3b4351c3502ffca"
+dependencies = [
+ "ckb-merkle-mountain-range",
+ "log",
+ "mmr-primitives",
+ "pallet-ismp 2503.0.0 (git+https://github.com/polytope-labs/hyperbridge.git?branch=main)",
+ "parity-scale-codec",
+ "polkadot-sdk 2503.0.1",
+ "scale-info",
+ "serde",
 ]
 
 [[package]]
@@ -10463,7 +10513,7 @@ dependencies = [
  "nonfungible-primitives",
  "pallet-balances",
  "pallet-broker",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-scale-codec",
  "region-primitives",
  "scale-info",
@@ -10519,6 +10569,7 @@ dependencies = [
  "polkavm 0.21.0",
  "polkavm-common 0.21.0",
  "rand 0.8.5",
+ "rand_pcg",
  "ripemd",
  "rlp 0.6.1",
  "scale-info",
@@ -10958,6 +11009,7 @@ version = "39.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "11709e119276336b3bcdb939be1ffd97234deea58d0a865c5b51d904625a8b29"
 dependencies = [
+ "array-bytes 6.2.3",
  "frame-benchmarking",
  "frame-support 40.1.0",
  "frame-system",
@@ -11236,7 +11288,7 @@ checksum = "4e69bf016dc406eff7d53a7d3f7cf1c2e72c82b9088aac1118591e36dd2cd3e9"
 dependencies = [
  "bitcoin_hashes 0.13.0",
  "rand 0.8.5",
- "rand_core 0.6.4",
+ "rand_core 0.5.1",
  "serde",
  "unicode-normalization",
 ]
@@ -12297,6 +12349,7 @@ dependencies = [
  "cumulus-primitives-core",
  "cumulus-relay-chain-interface",
  "docify",
+ "frame-benchmarking",
  "frame-benchmarking-cli",
  "frame-support 40.1.0",
  "frame-system-rpc-runtime-api",
@@ -12620,6 +12673,7 @@ dependencies = [
  "cumulus-relay-chain-interface",
  "cumulus-test-relay-sproof-builder",
  "frame-benchmarking",
+ "frame-benchmarking-cli",
  "frame-benchmarking-pallet-pov",
  "frame-election-provider-support",
  "frame-executive",
@@ -12740,6 +12794,7 @@ dependencies = [
  "parachains-runtimes-test-utils",
  "polkadot-cli",
  "polkadot-core-primitives",
+ "polkadot-node-metrics",
  "polkadot-omni-node-lib",
  "polkadot-parachain-primitives",
  "polkadot-primitives",
@@ -12749,8 +12804,10 @@ dependencies = [
  "polkadot-sdk-frame",
  "polkadot-service",
  "sc-client-api 39.0.0",
+ "sc-client-db 0.46.0",
  "sc-executor 0.42.0",
  "sc-rpc 44.0.0",
+ "sc-service 0.50.0",
  "slot-range-helper",
  "sp-api 36.0.1",
  "sp-api-proc-macro 22.0.1",
@@ -12797,6 +12854,7 @@ dependencies = [
  "sp-version 39.0.0",
  "sp-wasm-interface",
  "sp-weights",
+ "staging-node-inspect",
  "staging-parachain-info",
  "staging-xcm",
  "staging-xcm-builder",
@@ -13608,7 +13666,7 @@ dependencies = [
  "itertools 0.10.5",
  "lazy_static",
  "log",
- "multimap 0.8.3",
+ "multimap",
  "petgraph 0.6.5",
  "prettyplease 0.1.25",
  "prost 0.11.9",
@@ -13628,7 +13686,7 @@ dependencies = [
  "heck 0.5.0",
  "itertools 0.13.0",
  "log",
- "multimap 0.10.1",
+ "multimap",
  "once_cell",
  "petgraph 0.7.1",
  "prettyplease 0.2.32",
@@ -14196,10 +14254,11 @@ dependencies = [
  "pallet-balances",
  "pallet-broker",
  "pallet-collator-selection",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pallet-ismp-runtime-api",
  "pallet-market",
  "pallet-message-queue",
+ "pallet-mmr-tree",
  "pallet-multisig",
  "pallet-orders",
  "pallet-preimage",
@@ -14353,7 +14412,7 @@ dependencies = [
  "pallet-collator-selection",
  "pallet-collective",
  "pallet-conviction-voting",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "pallet-ismp-runtime-api",
  "pallet-market",
  "pallet-membership",
@@ -19617,6 +19676,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "staging-node-inspect"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "29885ef38ef8be24f84de15755cdafb088a3d3f101ddf227732b32d153d51fb3"
+dependencies = [
+ "clap",
+ "parity-scale-codec",
+ "sc-cli 0.51.0",
+ "sc-client-api 39.0.0",
+ "sc-service 0.50.0",
+ "sp-blockchain 39.0.0",
+ "sp-core 36.1.0",
+ "sp-io 40.0.1",
+ "sp-runtime 41.1.0",
+ "sp-statement-store 20.1.0",
+ "thiserror 1.0.69",
+]
+
+[[package]]
 name = "staging-parachain-info"
 version = "0.20.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -19883,7 +19961,7 @@ checksum = "61e08956b72367d7622dfa3444bfc291f260b9febcd2bdef4a4e2b266de6993a"
 dependencies = [
  "hash-db",
  "ismp 1.1.0 (registry+https://github.com/rust-lang/crates.io-index)",
- "pallet-ismp",
+ "pallet-ismp 2503.0.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "parity-scale-codec",
  "polkadot-sdk 2503.0.1",
  "primitive-types 0.13.1",
