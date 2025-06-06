@@ -257,8 +257,7 @@ fn on_response_only_handles_get() {
 				from: Default::default(),
 				to: Default::default(),
 				timeout_timestamp: Default::default(),
-				data: Default::default(),
-				context: Default::default(),
+				body: Default::default(),
 			},
 			response: Default::default(),
 			timeout_timestamp: Default::default(),
@@ -308,14 +307,14 @@ fn on_timeout_works() {
 			IsmpCustomError::RegionNotFound
 		);
 
-		let post = Post {
+		let post = PostRequest {
 			source: <Test as crate::Config>::CoretimeChain::get(),
 			dest: <Test as crate::Config>::CoretimeChain::get(),
 			nonce: Default::default(),
 			from: Default::default(),
 			to: Default::default(),
 			timeout_timestamp: Default::default(),
-			data: Default::default(),
+			body: Default::default(),
 		};
 		assert_ok!(module.on_timeout(Timeout::Request(Request::Post(post.clone()))));
 		System::assert_last_event(Event::RequestTimedOut { region_id }.into());
@@ -361,7 +360,7 @@ fn nonfungible_owner_works() {
 fn nonfungible_attribute_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 112830, core: 72, mask: CoreMask::complete() };
-		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: Some(1), paid: None };
 
 		assert_ok!(Regions::mint_into(&region_id.into(), &1));
 		assert_ok!(Regions::set_record(region_id, record.clone()));
@@ -506,7 +505,7 @@ fn region_inspect_works() {
 		// the record is still not available so it will return `None`.
 		assert!(Regions::record(&region_id.into()).is_none());
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 123600, owner: Some(1), paid: None };
 		assert_ok!(Regions::set_record(region_id, record.clone()));
 
 		assert_eq!(Regions::record(&region_id.into()), Some(record));
@@ -539,7 +538,7 @@ fn utils_read_value_works() {
 fn drop_region_works() {
 	new_test_ext().execute_with(|| {
 		let region_id = RegionId { begin: 1, core: 81, mask: CoreMask::complete() };
-		let record: RegionRecordOf<Test> = RegionRecord { end: 10, owner: 1, paid: None };
+		let record: RegionRecordOf<Test> = RegionRecord { end: 10, owner: Some(1), paid: None };
 		let who = 1u32.into();
 
 		assert_noop!(
