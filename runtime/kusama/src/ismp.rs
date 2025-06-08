@@ -21,7 +21,7 @@ use ::ismp_parachain::ParachainConsensusClient;
 use frame_support::{pallet_prelude::Get, parameter_types};
 use frame_system::EnsureRoot;
 use ismp::{error::Error, host::StateMachine, module::IsmpModule, router::IsmpRouter};
-use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
+use pallet_ismp::ModuleId;
 use sp_std::prelude::*;
 
 pub struct HostStateMachine;
@@ -41,17 +41,6 @@ impl ::ismp_parachain::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type IsmpHost = Ismp;
 	type WeightInfo = ismp_parachain::WeightInfo<Runtime>;
-}
-
-pub struct WeightProvider;
-impl pallet_ismp::weights::WeightProvider for WeightProvider {
-	fn module_callback(id: ModuleId) -> Option<Box<dyn IsmpModuleWeight>> {
-		match id {
-			pallet_regions::PALLET_ID =>
-				Some(Box::<pallet_regions::IsmpRegionsModuleWeight<Runtime>>::default()),
-			_ => None,
-		}
-	}
 }
 
 impl pallet_ismp::Config for Runtime {

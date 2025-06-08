@@ -525,7 +525,7 @@ mod utils {
 	#[cfg(not(feature = "std"))]
 	use scale_info::prelude::vec::Vec;
 
-	pub fn read_value(values: &Vec<StorageValue>, key: &Vec<u8>) -> Result<Vec<u8>, IsmpError> {
+	pub fn read_value(values: &[StorageValue], key: &Vec<u8>) -> Result<Vec<u8>, IsmpError> {
 		let result = values
 			.iter()
 			.find(|v| v.key == *key)
