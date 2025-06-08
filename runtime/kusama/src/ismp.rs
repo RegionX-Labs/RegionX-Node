@@ -16,16 +16,15 @@
 #[cfg(not(feature = "std"))]
 use crate::alloc::string::ToString;
 use crate::{
-	AccountId, Balance, Balances, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent,
-	Timestamp, Mmr
+	weights::ismp_parachain, AccountId, Balance, Balances, Ismp, IsmpParachain, Mmr, ParachainInfo,
+	Runtime, RuntimeEvent, Timestamp,
 };
+use ::ismp_parachain::ParachainConsensusClient;
 use frame_support::{pallet_prelude::Get, parameter_types};
 use frame_system::EnsureRoot;
 use ismp::{error::Error, host::StateMachine, module::IsmpModule, router::IsmpRouter};
-use ::ismp_parachain::ParachainConsensusClient;
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
 use sp_std::prelude::*;
-use crate::weights::ismp_parachain;
 
 pub struct HostStateMachine;
 

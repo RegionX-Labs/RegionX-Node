@@ -32,14 +32,14 @@ mod ismp;
 use impls::*;
 
 use crate::xcm_config::{CoretimeChainLocation, LocationToAccountId};
+use alloc::borrow::Cow;
 use codec::Encode;
 use cumulus_pallet_parachain_system::{
 	RelayChainState, RelayNumberMonotonicallyIncreases, RelaychainDataProvider,
 };
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::{
-	fungible::HoldConsideration, Currency as PalletCurrency, EqualPrivilegeOnly,
-	LinearStoragePrice, TransformOrigin,
+	fungible::HoldConsideration, EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
 };
 use order_primitives::OrderId;
 use pallet_processor::assigner::XcmRegionAssigner;
@@ -51,7 +51,7 @@ use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, Get, OpaqueMetadata};
 use sp_io::hashing::blake2_256;
 use sp_runtime::{
-	create_runtime_str, generic, impl_opaque_keys,
+	generic, impl_opaque_keys,
 	traits::{AccountIdLookup, BlakeTwo256, Block as BlockT, Convert},
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
@@ -79,13 +79,13 @@ use frame_support::{
 	},
 	PalletId,
 };
-use sp_mmr_primitives::INDEXING_PREFIX;
 use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
 use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
 use sp_core::H256;
+use sp_mmr_primitives::INDEXING_PREFIX;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
 
@@ -171,8 +171,8 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: create_runtime_str!("regionx-kusama-parachain"),
-	impl_name: create_runtime_str!("regionx-kusama-parachain"),
+	spec_name: Cow::Borrowed("regionx-kusama-parachain"),
+	impl_name: Cow::Borrowed("regionx-kusama-parachain"),
 	authoring_version: 1,
 	spec_version: 1_000_000,
 	impl_version: 0,

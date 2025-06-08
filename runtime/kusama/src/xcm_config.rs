@@ -19,7 +19,7 @@ use super::{
 	XcmpQueue, CORETIME_CHAIN_PARA_ID,
 };
 use frame_support::{
-	match_types, parameter_types,
+	parameter_types,
 	traits::{ConstU32, Contains, Everything, Nothing},
 	PalletId,
 };

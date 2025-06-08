@@ -13,13 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{AccountId, Balance, Balances, PalletCurrency, PotId, RuntimeCall};
+use crate::{AccountId, Balance, RuntimeCall};
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
-use frame_support::traits::{Imbalance, InstanceFilter, OnUnbalanced};
+use frame_support::traits::InstanceFilter;
 use order_primitives::ParaId;
 use pallet_broker::{Finality, RegionId};
 use pallet_processor::assigner::AssignmentCallEncoder as AssignmentCallEncoderT;
-use sp_runtime::{traits::AccountIdConversion, DispatchResult, RuntimeDebug};
+use sp_runtime::{DispatchResult, RuntimeDebug};
 
 /// The type used to represent the kinds of proxying allowed.
 #[derive(
