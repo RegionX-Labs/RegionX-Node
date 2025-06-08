@@ -26,6 +26,7 @@ extern crate alloc;
 mod weights;
 pub mod xcm_config;
 
+mod genesis_config;
 mod impls;
 mod ismp;
 
@@ -71,6 +72,7 @@ use ::ismp::{
 use frame_support::{
 	construct_runtime, derive_impl,
 	dispatch::DispatchClass,
+	genesis_builder_helper::{build_state, get_preset},
 	parameter_types,
 	traits::{tokens::imbalance::ResolveTo, ConstBool, ConstU32, ConstU64, ConstU8, Everything},
 	weights::{
@@ -918,20 +920,19 @@ impl_runtime_apis! {
 		}
 	}
 
-	// impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-	// 	fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
-	// 		build_state::<RuntimeGenesisConfig>(config)
-	// 	}
+	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_state::<RuntimeGenesisConfig>(config)
+		}
 
-	// 	fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
-	// 		get_preset::<RuntimeGenesisConfig>(id, crate::genesis_config::get_preset)
-	// 	}
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			get_preset::<RuntimeGenesisConfig>(id, &genesis_config::get_preset)
+		}
 
-	// 	fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
-	// 		crate::genesis_config::preset_names()
-	// 	}
-	// }
-
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			genesis_config::preset_names()
+		}
+	}
 
 	impl pallet_mmr_runtime_api::MmrRuntimeApi<Block, <Block as BlockT>::Hash, BlockNumber, Leaf> for Runtime {
 		/// Return Block number where pallet-mmr was added to the runtime

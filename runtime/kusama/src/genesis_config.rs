@@ -14,59 +14,77 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	SessionKeys, RuntimeGenesisConfig, BalancesConfig, ParachainInfoConfig, SessionConfig, PolkadotXcmConfig,SudoConfig
+	AccountId, AuraId, BalancesConfig, CollatorSelectionConfig, ParachainInfoConfig, SessionConfig,
+	SessionKeys, SudoConfig, KSM,
 };
+use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
-use sc_service::ChainType;
-use sp_core::{sr25519, Encode};
-use xcm::opaque::lts::MultiLocation;
+use sp_genesis_builder::PresetId;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;
 
-/// Generate the session keys from individual elements.
-///
-/// The input must be a tuple of individual keys (a single arg for now since we have just one key).
-pub fn session_keys(keys: AuraId) -> SessionKeys {
-	SessionKeys { aura: keys }
-}
-
-pub fn development_config(id: u32) -> ChainSpec<RuntimeGenesisConfig> {
-    let genesis = RuntimeGenesisConfig {
-		balances: BalancesConfig {
+pub fn regionx_kusama_genesis(
+	invulnerables: Vec<(AccountId, AuraId)>,
+	endowed_accounts: Vec<AccountId>,
+	id: ParaId,
+) -> serde_json::Value {
+	serde_json::json!({
+		"balances": BalancesConfig {
 			balances: endowed_accounts
 				.iter()
 				.cloned()
-				.map(|k| (k, 1u128 << 60))
-				.collect::<Vec<_>>(),
+				.map(|k| (k, 10 * KSM))
+				.collect(),
+		},
+		"parachainInfo": ParachainInfoConfig {
+			parachain_id: id,
 			..Default::default()
 		},
-		parachain_info: ParachainInfoConfig { parachain_id: id, ..Default::default() },
-		collator_selection: CollatorSelectionConfig {
-			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect::<Vec<_>>(),
-			candidacy_bond: EXISTENTIAL_DEPOSIT * 16,
+		"collatorSelection": CollatorSelectionConfig {
+			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
+			candidacy_bond: KSM * 5,
 			..Default::default()
 		},
-		session: SessionConfig {
+		"session": SessionConfig {
 			keys: invulnerables
 				.into_iter()
 				.map(|(acc, aura)| {
 					(
-						acc.clone(),                 // account id
-						acc,                         // validator id
-						template_session_keys(aura), // session keys
+						acc.clone(),          // account id
+						acc,                  // validator id
+						SessionKeys { aura }, // session keys
 					)
 				})
-				.collect::<Vec<_>>(),
+				.collect(),
 			..Default::default()
 		},
-		polkadot_xcm: PolkadotXcmConfig {
-			safe_xcm_version: Some(SAFE_XCM_VERSION),
-			..Default::default()
+		"polkadotXcm": {
+			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
-		sudo: SudoConfig { key: Some(root) },
-		..Default::default()
-	};
+		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
+		// of this. `aura: Default::default()`
+	})
+}
 
-	json::to_value(genesis).expect("Could not build genesis config.")
+/// Provides the names of the predefined genesis configs for this runtime.
+pub fn preset_names() -> Vec<PresetId> {
+	vec![PresetId::from(sp_genesis_builder::DEV_RUNTIME_PRESET)]
+}
+
+fn regionx_kusama_local_genesis(para_id: ParaId) -> serde_json::Value {
+	regionx_kusama_genesis(vec![], vec![], para_id) // TODO empty vecs
+}
+
+/// Provides the JSON representation of predefined genesis config for given `id`.
+pub fn get_preset(id: &PresetId) -> Option<Vec<u8>> {
+	let patch = match id.as_ref() {
+		sp_genesis_builder::DEV_RUNTIME_PRESET => regionx_kusama_local_genesis(2000.into()),
+		_ => return None,
+	};
+	Some(
+		serde_json::to_string(&patch)
+			.expect("serialization to json is expected to work. qed.")
+			.into_bytes(),
+	)
 }
