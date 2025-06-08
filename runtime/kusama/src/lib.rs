@@ -476,7 +476,6 @@ impl pallet_session::Config for Runtime {
 	// Essentially just Aura, but let's be pedantic.
 	type SessionHandler = <SessionKeys as sp_runtime::traits::OpaqueKeys>::KeyTypeIdProviders;
 	type Keys = SessionKeys;
-	type DisablingStrategy = ();
 	type WeightInfo = ();
 }
 
@@ -567,7 +566,6 @@ impl pallet_multisig::Config for Runtime {
 	type DepositBase = DepositBase;
 	type DepositFactor = DepositFactor;
 	type MaxSignatories = MaxSignatories;
-	type BlockNumberProvider = System;
 	type WeightInfo = ();
 }
 
@@ -594,7 +592,6 @@ impl pallet_proxy::Config for Runtime {
 	type WeightInfo = ();
 	type MaxPending = MaxPending;
 	type CallHasher = BlakeTwo256;
-	type BlockNumberProvider = System;
 	type AnnouncementDepositBase = AnnouncementDepositBase;
 	type AnnouncementDepositFactor = AnnouncementDepositFactor;
 }
@@ -631,7 +628,6 @@ impl pallet_scheduler::Config for Runtime {
 	type MaximumWeight = MaximumSchedulerWeight;
 	type ScheduleOrigin = EnsureRoot<AccountId>;
 	type MaxScheduledPerBlock = ConstU32<10>;
-	type BlockNumberProvider = System;
 	type WeightInfo = ();
 	type OriginPrivilegeCmp = EqualPrivilegeOnly;
 	type Preimages = Preimage;
@@ -783,7 +779,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities().into_inner()
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 

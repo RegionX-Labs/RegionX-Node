@@ -20,7 +20,7 @@ use super::{
 };
 use frame_support::{
 	match_types, parameter_types,
-	traits::{ConstU32, Contains, Disabled, Everything, Nothing},
+	traits::{ConstU32, Contains, Everything, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
@@ -41,15 +41,15 @@ use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
-	pub const BrokerPalletLocation: Location = (
-		Parent,
-		Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50)
-	).into();
+	pub BrokerPalletLocation: Location = Location::new(
+		1,
+		[Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50)]
+	);
 	pub const RelayNetwork: Option<NetworkId> = None;
-	pub const CoretimeChainLocation: Location = (
-		Parent,
-		Parachain(CORETIME_CHAIN_PARA_ID)
-	).into();
+	pub CoretimeChainLocation: Location = Location::new(
+		1,
+		[Parachain(CORETIME_CHAIN_PARA_ID)]
+	);
 	pub AssetsFromCoretimeChain: (AssetFilter, Location) = (
 		Wild(All), // We can trust system parachains.
 		CoretimeChainLocation::get()
@@ -202,7 +202,6 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpNewChannelOpenRequestHandler = ();
 	type HrmpChannelAcceptedHandler = ();
 	type HrmpChannelClosingHandler = ();
-	type XcmEventEmitter = PolkadotXcm;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
@@ -245,8 +244,6 @@ impl pallet_xcm::Config for Runtime {
 	type AdminOrigin = EnsureRoot<AccountId>;
 	type MaxRemoteLockConsumers = ConstU32<0>;
 	type RemoteLockConsumerIdentifier = ();
-	// Aliasing is disabled: xcm_executor::Config::Aliasers only allows some privileged locations.
-	type AuthorizedAliasConsideration = Disabled;
 }
 
 impl cumulus_pallet_xcm::Config for Runtime {
