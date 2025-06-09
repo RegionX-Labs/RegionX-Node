@@ -126,7 +126,7 @@ impl crate::Config for Test {
 // Build genesis storage according to the mock runtime.
 pub fn new_test_ext(endowed_accounts: Vec<(AccountId, u64)>) -> sp_io::TestExternalities {
 	let mut t = frame_system::GenesisConfig::<Test>::default().build_storage().unwrap();
-	pallet_balances::GenesisConfig::<Test> { balances: endowed_accounts, dev_accounts: None }
+	pallet_balances::GenesisConfig::<Test> { balances: endowed_accounts }
 		.assimilate_storage(&mut t)
 		.unwrap();
 	let mut ext = sp_io::TestExternalities::new(t);
