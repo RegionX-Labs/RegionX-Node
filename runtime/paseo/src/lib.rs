@@ -45,6 +45,7 @@ use cumulus_pallet_parachain_system::{
 };
 use cumulus_primitives_core::{AggregateMessageOrigin, ParaId};
 use frame_support::traits::{
+	derive_impl,
 	fungible::HoldConsideration,
 	tokens::{PayFromAccount, UnityAssetBalanceConversion},
 	Currency as PalletCurrency, EqualPrivilegeOnly, LinearStoragePrice, TransformOrigin,
@@ -90,8 +91,9 @@ use frame_support::{
 	PalletId,
 };
 use frame_system::{
+	config_preludes::ParaChainDefaultConfig,
 	limits::{BlockLength, BlockWeights},
-	EnsureRoot,
+	DefaultConfig, EnsureRoot,
 };
 use orml_currencies::BasicCurrencyAdapter;
 use orml_tokens::CurrencyAdapter;
@@ -191,6 +193,7 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
+	// TODO: update spec_name and impl_name
 	spec_name: create_runtime_str!("regionx-parachain"),
 	impl_name: create_runtime_str!("regionx-parachain"),
 	authoring_version: 1,
@@ -198,7 +201,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
-	state_version: 1,
+	system_version: 1,
 };
 
 /// This determines the average expected block time that we are targeting.
@@ -297,7 +300,7 @@ parameter_types! {
 }
 
 // Configure FRAME pallets to include in runtime.
-
+#[derive_impl(ParaChainDefaultConfig as DefaultConfig)]
 impl frame_system::Config for Runtime {
 	/// The identifier used to distinguish between accounts.
 	type AccountId = AccountId;
@@ -346,6 +349,12 @@ impl frame_system::Config for Runtime {
 	/// The action to take on a Runtime Upgrade
 	type OnSetCode = cumulus_pallet_parachain_system::ParachainSetCode<Self>;
 	type MaxConsumers = frame_support::traits::ConstU32<16>;
+	type ExtensionsWeightInfo = weights::frame_system_extensions::WeightInfo<Runtime>;
+	type SingleBlockMigrations = ();
+	type MultiBlockMigrator = ();
+	type PreInherents = ();
+	type PostInherents = ();
+	type PostTransactions = ();
 }
 
 impl pallet_timestamp::Config for Runtime {
@@ -369,7 +378,6 @@ parameter_types! {
 
 impl pallet_balances::Config for Runtime {
 	type MaxLocks = MaxLocks;
-	type MaxHolds = ConstU32<1>;
 	/// The type for recording an account's balance.
 	type Balance = Balance;
 	/// The ubiquitous event type.
@@ -384,6 +392,8 @@ impl pallet_balances::Config for Runtime {
 	type RuntimeFreezeReason = RuntimeFreezeReason;
 	type FreezeIdentifier = ();
 	type MaxFreezes = ConstU32<0>;
+	// TODO:
+	type DoneSlashHandler = ();
 }
 
 parameter_types! {
@@ -440,11 +450,13 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
+	// TODO: replace with pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<StakingPot, Balances>>;
 	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
 	type OperationalFeeMultiplier = ConstU8<5>;
+	type WeightInfo = weights::pallet_transaction_payment::WeightInfo<Self>;
 }
 
 impl pallet_asset_rate::Config for Runtime {
@@ -467,6 +479,8 @@ impl pallet_asset_tx_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Fungibles = Tokens;
 	type OnChargeAssetTransaction = FungiblesAdapter<TokenToNativeConverter, TokensToBlockAuthor>;
+	// TODO:
+	type WeightInfo = ();
 }
 
 impl pallet_sudo::Config for Runtime {
@@ -494,12 +508,14 @@ impl cumulus_pallet_parachain_system::Config for Runtime {
 	type SelfParaId = parachain_info::Pallet<Runtime>;
 	type OutboundXcmpMessageSource = XcmpQueue;
 	type DmpQueue = frame_support::traits::EnqueueWithOrigin<MessageQueue, RelayOrigin>;
+	type OutboundXcmpMessageSource = XcmpQueue;
 	type ReservedDmpWeight = ReservedDmpWeight;
 	type XcmpMessageHandler = XcmpQueue;
 	type ReservedXcmpWeight = ReservedXcmpWeight;
 	type CheckAssociatedRelayNumber = RelayNumberMonotonicallyIncreases;
 	type WeightInfo = weights::cumulus_pallet_parachain_system::WeightInfo<Runtime>;
 	type ConsensusHook = ConsensusHook;
+	type SelectCore = cumulus_pallet_parachain_system::DefaultCoreSelector<Runtime>;
 }
 
 impl parachain_info::Config for Runtime {}
@@ -528,6 +544,7 @@ impl pallet_message_queue::Config for Runtime {
 	type HeapSize = sp_core::ConstU32<{ 64 * 1024 }>;
 	type MaxStale = sp_core::ConstU32<8>;
 	type ServiceWeight = MessageQueueServiceWeight;
+	type IdleMaxServiceWeight = MessageQueueIdleServiceWeight;
 }
 
 impl cumulus_pallet_aura_ext::Config for Runtime {}
@@ -538,7 +555,11 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 	type VersionWrapper = ();
 	// Enqueue XCMP messages from siblings for later processing.
 	type XcmpQueue = TransformOrigin<MessageQueue, AggregateMessageOrigin, ParaId, ParaIdToSibling>;
+	type MaxActiveOutboundChannels = ConstU32<128>;
 	type MaxInboundSuspended = sp_core::ConstU32<1_000>;
+	// Most on-chain HRMP channels are configured to use 102400 bytes of max message size, so we
+	// need to set the page size larger than that until we reduce the channel size on-chain.
+	type MaxPageSize = ConstU32<{ 103 * 1024 }>;
 	type ControllerOrigin = EnsureRoot<AccountId>;
 	type ControllerOriginConverter = XcmOriginToTransactDispatchOrigin;
 	type WeightInfo = weights::cumulus_pallet_xcmp_queue::WeightInfo<Runtime>;
@@ -569,6 +590,7 @@ impl pallet_aura::Config for Runtime {
 	type DisabledValidators = ();
 	type MaxAuthorities = ConstU32<100_000>;
 	type AllowMultipleBlocksPerSlot = ConstBool<false>;
+	type SlotDuration = ConstU64<SLOT_DURATION>;
 }
 
 parameter_types! {
@@ -732,18 +754,13 @@ parameter_types! {
 impl pallet_treasury::Config for Runtime {
 	type PalletId = TreasuryPalletId;
 	type Currency = Balances;
-	type ApproveOrigin = Spender;
 	type RejectOrigin = Spender;
 	type RuntimeEvent = RuntimeEvent;
-	type OnSlash = Treasury;
-	type ProposalBond = ProposalBond;
-	type ProposalBondMinimum = ProposalBondMinimum;
-	type ProposalBondMaximum = ProposalBondMaximum;
 	type SpendPeriod = SpendPeriod;
 	type Burn = Burn;
 	type BurnDestination = ();
 	type MaxApprovals = MaxApprovals;
-	type WeightInfo = ();
+	type WeightInfo = weights::pallet_treasury::WeightInfo<Runtime>;
 	type SpendFunds = ();
 	type SpendOrigin = Spender;
 	type AssetKind = ();
@@ -754,6 +771,7 @@ impl pallet_treasury::Config for Runtime {
 	type PayoutPeriod = PayoutPeriod;
 	#[cfg(feature = "runtime-benchmarks")]
 	type BenchmarkHelper = ();
+	type BlockNumberProvider = System;
 }
 
 impl pallet_market::Config for Runtime {
@@ -1064,6 +1082,34 @@ impl_runtime_apis! {
 		}
 	}
 
+	impl pallet_mmr_runtime_api::MmrRuntimeApi<Block, <Block as BlockT>::Hash, BlockNumber, Leaf> for Runtime {
+		/// Return Block number where pallet-mmr was added to the runtime
+		fn pallet_genesis() -> Result<Option<BlockNumber>, sp_mmr_primitives::Error> {
+			Ok(Mmr::initial_height())
+		}
+
+		/// Return the number of MMR leaves.
+		fn mmr_leaf_count() -> Result<LeafIndex, sp_mmr_primitives::Error> {
+			Ok(Mmr::leaf_count())
+		}
+
+		/// Return the on-chain MMR root hash.
+		fn mmr_root() -> Result<Hash, sp_mmr_primitives::Error> {
+			Ok(Mmr::mmr_root_hash())
+		}
+
+		fn fork_identifier() -> Result<Hash, sp_mmr_primitives::Error> {
+			Ok(Ismp::child_trie_root())
+		}
+
+		/// Generate a proof for the provided leaf indices
+		fn generate_proof(
+			keys: ProofKeys
+		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), sp_mmr_primitives::Error> {
+			Mmr::generate_proof(keys)
+		}
+	}
+
 	impl pallet_ismp_runtime_api::IsmpRuntimeApi<Block, <Block as BlockT>::Hash> for Runtime {
 		fn host_state_machine() -> StateMachine {
 			<Runtime as pallet_ismp::Config>::HostStateMachine::get()
@@ -1071,13 +1117,6 @@ impl_runtime_apis! {
 
 		fn challenge_period(consensus_state_id: [u8; 4]) -> Option<u64> {
 			Ismp::challenge_period(consensus_state_id)
-		}
-
-		/// Generate a proof for the provided leaf indices
-		fn generate_proof(
-			keys: ProofKeys
-		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), sp_mmr_primitives::Error> {
-			Ismp::generate_proof(keys)
 		}
 
 		/// Fetch all ISMP events and their extrinsic metadata
@@ -1096,7 +1135,7 @@ impl_runtime_apis! {
 		}
 
 		/// Return the timestamp this client was last updated in seconds
-		fn consensus_update_time(id: ConsensusClientId) -> Option<u64> {
+		fn state_machine_update_time(id: ConsensusClientId) -> Option<u64> {
 			Ismp::consensus_update_time(id)
 		}
 
@@ -1196,12 +1235,16 @@ impl_runtime_apis! {
 	}
 
 	impl sp_genesis_builder::GenesisBuilder<Block> for Runtime {
-		fn create_default_config() -> Vec<u8> {
-			create_default_config::<RuntimeGenesisConfig>()
+		fn build_state(config: Vec<u8>) -> sp_genesis_builder::Result {
+			build_state::<RuntimeGenesisConfig>(config)
 		}
 
-		fn build_config(config: Vec<u8>) -> sp_genesis_builder::Result {
-			build_config::<RuntimeGenesisConfig>(config)
+		fn get_preset(id: &Option<sp_genesis_builder::PresetId>) -> Option<Vec<u8>> {
+			get_preset::<RuntimeGenesisConfig>(id, &genesis_config::get_preset)
+		}
+
+		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
+			genesis_config::preset_names()
 		}
 	}
 }
