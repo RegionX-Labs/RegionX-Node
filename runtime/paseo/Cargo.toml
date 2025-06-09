@@ -33,6 +33,7 @@ pallet-ismp = { workspace = true, features = ["unsigned"] }
 ismp-parachain = { workspace = true }
 pallet-ismp-runtime-api = { workspace = true }
 ismp-parachain-runtime-api = { workspace = true }
+pallet-mmr-tree = { workspace = true }
 
 # Orml
 orml-asset-registry = { workspace = true }

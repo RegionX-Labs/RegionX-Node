@@ -23,13 +23,10 @@ include!(concat!(env!("OUT_DIR"), "/wasm_binary.rs"));
 
 extern crate alloc;
 
-// TODO remove:
-mod adapter;
-use adapter::NonFungibleAdapter;
-
 mod weights;
 pub mod xcm_config;
 
+pub mod genesis_config;
 mod governance;
 use governance::{pallet_custom_origins, EnsureTwoThirdTechnicalCommittee, Spender};
 
@@ -59,6 +56,7 @@ use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, Get, OpaqueMetadata};
 use sp_io::hashing::blake2_256;
+use sp_mmr_primitives::INDEXING_PREFIX;
 use sp_runtime::{
 	create_runtime_str, generic, impl_opaque_keys,
 	traits::{
@@ -450,8 +448,8 @@ parameter_types! {
 
 impl pallet_transaction_payment::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	// TODO: replace with pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<StakingPot, Balances>>;
-	type OnChargeTransaction = pallet_transaction_payment::CurrencyAdapter<Balances, DealWithFees>;
+	type OnChargeTransaction =
+		pallet_transaction_payment::FungibleAdapter<Balances, ResolveTo<StakingPot, Balances>>;
 	type WeightToFee = WeightToFee;
 	type LengthToFee = ConstantMultiplier<Balance, TransactionByteFee>;
 	type FeeMultiplierUpdate = SlowAdjustingFeeUpdate<Self>;
@@ -522,6 +520,7 @@ impl parachain_info::Config for Runtime {}
 
 parameter_types! {
 	pub MessageQueueServiceWeight: Weight = Perbill::from_percent(35) * RuntimeBlockWeights::get().max_block;
+	pub MessageQueueIdleServiceWeight: Weight = Perbill::from_percent(20) * RuntimeBlockWeights::get().max_block;
 }
 
 impl pallet_message_queue::Config for Runtime {
@@ -826,6 +825,13 @@ impl pallet_processor::Config for Runtime {
 	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
 }
 
+impl pallet_mmr_tree::Config for Runtime {
+	const INDEXING_PREFIX: &'static [u8] = INDEXING_PREFIX;
+	type Hashing = Keccak256;
+	type Leaf = Leaf;
+	type ForkIdentifierProvider = Ismp;
+}
+
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -883,8 +889,9 @@ construct_runtime!(
 		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Ismp: pallet_ismp = 80,
-		IsmpParachain: ismp_parachain = 81,
+		Mmr: pallet_mmr_tree = 80,
+		Ismp: pallet_ismp = 81,
+		IsmpParachain: ismp_parachain = 82,
 
 		// Main stage:
 		Regions: pallet_regions = 90,
@@ -937,7 +944,7 @@ impl_runtime_apis! {
 		}
 
 		fn authorities() -> Vec<AuraId> {
-			Aura::authorities().into_inner()
+			pallet_aura::Authorities::<Runtime>::get().into_inner()
 		}
 	}
 
@@ -958,7 +965,7 @@ impl_runtime_apis! {
 			Executive::execute_block(block)
 		}
 
-		fn initialize_block(header: &<Block as BlockT>::Header) {
+		fn initialize_block(header: &<Block as BlockT>::Header) -> sp_runtime::ExtrinsicInclusionMode {
 			Executive::initialize_block(header)
 		}
 	}
@@ -1125,6 +1132,11 @@ impl_runtime_apis! {
 		}
 
 		/// Fetch all ISMP events
+		fn block_events_with_metadata() -> Vec<(::ismp::events::Event, Option<u32>)> {
+			Ismp::block_events_with_metadata()
+		}
+
+		/// Fetch all ISMP events
 		fn block_events() -> Vec<::ismp::events::Event> {
 			Ismp::block_events()
 		}
@@ -1135,8 +1147,8 @@ impl_runtime_apis! {
 		}
 
 		/// Return the timestamp this client was last updated in seconds
-		fn state_machine_update_time(id: ConsensusClientId) -> Option<u64> {
-			Ismp::consensus_update_time(id)
+		fn state_machine_update_time(height: StateMachineHeight) -> Option<u64> {
+			Ismp::state_machine_update_time(height)
 		}
 
 		/// Return the latest height of the state machine

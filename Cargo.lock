@@ -15328,6 +15328,7 @@ dependencies = [
  "pallet-market",
  "pallet-membership",
  "pallet-message-queue 42.0.0",
+ "pallet-mmr-tree",
  "pallet-multisig",
  "pallet-orders",
  "pallet-preimage",

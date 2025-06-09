@@ -38,6 +38,7 @@ pub mod cumulus_pallet_xcmp_queue;
 pub mod extrinsic_weights;
 pub mod frame_system;
 pub mod frame_system_extensions;
+pub mod ismp_parachain;
 pub mod pallet_balances;
 pub mod pallet_collator_selection;
 pub mod pallet_conviction_voting_delegated_conviction_voting;

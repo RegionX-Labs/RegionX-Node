@@ -43,15 +43,15 @@ use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: MultiLocation = MultiLocation::parent();
-	pub const BrokerPalletLocation: MultiLocation = MultiLocation {
-		parents: 1,
-		interior: X2(Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50))
-	};
+	pub BrokerPalletLocation: Location = Location::new(
+		1,
+		[Parachain(CORETIME_CHAIN_PARA_ID), PalletInstance(50)]
+	);
 	pub const RelayNetwork: Option<NetworkId> = None;
-	pub const CoretimeChainLocation: MultiLocation = MultiLocation {
-		parents: 1,
-		interior: X1(Parachain(CORETIME_CHAIN_PARA_ID))
-	};
+	pub CoretimeChainLocation: Location = Location::new(
+		1,
+		[Parachain(CORETIME_CHAIN_PARA_ID)]
+	);
 	pub AssetsFromCoretimeChain: (MultiAssetFilter, MultiLocation) = (
 		Wild(All), // We can trust system parachains.
 		CoretimeChainLocation::get()
@@ -219,6 +219,10 @@ impl xcm_executor::Config for XcmConfig {
 	type SafeCallFilter = Everything;
 	type Aliasers = Nothing;
 	type TransactionalProcessor = FrameTransactionalProcessor;
+	type HrmpNewChannelOpenRequestHandler = ();
+	type HrmpChannelAcceptedHandler = ();
+	type HrmpChannelClosingHandler = ();
+	type XcmRecorder = PolkadotXcm;
 }
 
 /// No local origins on this chain are allowed to dispatch XCM sends/executions.
