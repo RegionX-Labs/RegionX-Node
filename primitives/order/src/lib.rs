@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 #![cfg_attr(not(feature = "std"), no_std)]
-use codec::{Decode, Encode, MaxEncodedLen};
+use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 pub use cumulus_primitives_core::ParaId;
 use frame_support::pallet_prelude::DispatchResult;
 use pallet_broker::{PartsOf57600, Timeslice};
@@ -36,7 +36,9 @@ pub struct Order<AccountId> {
 }
 
 /// The region requirements of an order.
-#[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
+#[derive(
+	Encode, Decode, DecodeWithMemTracking, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen,
+)]
 pub struct Requirements {
 	/// The timeslice at which the Region begins.
 	pub begin: Timeslice,

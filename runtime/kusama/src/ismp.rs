@@ -13,17 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-#[cfg(not(feature = "std"))]
-use crate::alloc::string::ToString;
 use crate::{
-	AccountId, Balance, Balances, Ismp, IsmpParachain, ParachainInfo, Runtime, RuntimeEvent,
-	Timestamp,
+	weights::ismp_parachain, AccountId, Balance, Balances, Ismp, IsmpParachain, Mmr, ParachainInfo,
+	Runtime, RuntimeEvent, Timestamp,
 };
+use ::ismp_parachain::ParachainConsensusClient;
 use frame_support::{pallet_prelude::Get, parameter_types};
 use frame_system::EnsureRoot;
 use ismp::{error::Error, host::StateMachine, module::IsmpModule, router::IsmpRouter};
-use ismp_parachain::ParachainConsensusClient;
-use pallet_ismp::{weights::IsmpModuleWeight, ModuleId, NoOpMmrTree};
+use pallet_ismp::ModuleId;
 use sp_std::prelude::*;
 
 pub struct HostStateMachine;
@@ -39,20 +37,10 @@ parameter_types! {
 	pub const Coprocessor: Option<StateMachine> = None;
 }
 
-impl ismp_parachain::Config for Runtime {
+impl ::ismp_parachain::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type IsmpHost = Ismp;
-}
-
-pub struct WeightProvider;
-impl pallet_ismp::weights::WeightProvider for WeightProvider {
-	fn module_callback(id: ModuleId) -> Option<Box<dyn IsmpModuleWeight>> {
-		match id {
-			pallet_regions::PALLET_ID =>
-				Some(Box::<pallet_regions::IsmpRegionsModuleWeight<Runtime>>::default()),
-			_ => None,
-		}
-	}
+	type WeightInfo = ismp_parachain::WeightInfo<Runtime>;
 }
 
 impl pallet_ismp::Config for Runtime {
@@ -65,15 +53,14 @@ impl pallet_ismp::Config for Runtime {
 	type Currency = Balances;
 	type Coprocessor = Coprocessor;
 	type ConsensusClients = (ParachainConsensusClient<Runtime, IsmpParachain>,);
-
-	type Mmr = NoOpMmrTree<Self>;
-	type WeightProvider = WeightProvider;
+	type OffchainDB = Mmr;
+	type FeeHandler = pallet_ismp::fee_handler::WeightFeeHandler<()>;
 }
 
 #[derive(Default)]
 pub struct Router;
 impl IsmpRouter for Router {
-	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
+	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
 		let module = match ModuleId::from_bytes(&id) {
 			Ok(pallet_regions::PALLET_ID) =>
 				Box::<pallet_regions::IsmpModuleCallback<Runtime>>::default(),

@@ -14,10 +14,12 @@ targets = ["x86_64-unknown-linux-gnu"]
 substrate-wasm-builder = { workspace = true }
 
 [dependencies]
+anyhow = { workspace = true, default-features = false }
 codec = { workspace = true }
 log = { workspace = true }
 scale-info = { workspace = true }
 smallvec = { workspace = true }
+serde_json = { features = ["alloc"], workspace = true }
 
 # Local
 regionx-runtime-common = { workspace = true, default-features = false }
@@ -47,6 +49,8 @@ pallet-authorship = { workspace = true }
 pallet-balances = { workspace = true }
 pallet-broker = { workspace = true, optional = true }
 pallet-message-queue = { workspace = true }
+pallet-mmr-tree = { workspace = true }
+pallet-mmr-runtime-api = { workspace = true }
 pallet-multisig = { workspace = true }
 pallet-proxy = { workspace = true }
 pallet-preimage = { workspace = true }
@@ -98,6 +102,7 @@ parachain-info = { workspace = true }
 [features]
 default = ["std"]
 std = [
+	"anyhow/std",
 	"codec/std",
 	"cumulus-pallet-aura-ext/std",
 	"cumulus-pallet-dmp-queue/std",
@@ -130,9 +135,10 @@ std = [
 	"pallet-collator-selection/std",
 	"pallet-processor/std",
 	"pallet-regions/std",
-	"regionx-runtime-common/std",
 	"pallet-market/std",
 	"pallet-message-queue/std",
+	"pallet-mmr-tree/std",
+	"pallet-mmr-runtime-api/std",
 	"pallet-multisig/std",
 	"pallet-orders/std",
 	"pallet-proxy/std",
@@ -165,6 +171,7 @@ std = [
 	"sp-transaction-pool/std",
 	"sp-version/std",
 	"sp-mmr-primitives/std",
+	"serde_json/std",
 	"xcm-builder/std",
 	"xcm-executor/std",
 	"xcm/std",
@@ -186,6 +193,7 @@ runtime-benchmarks = [
 	"pallet-collator-selection/runtime-benchmarks",
 	"pallet-market/runtime-benchmarks",
 	"pallet-message-queue/runtime-benchmarks",
+	"pallet-mmr-tree/runtime-benchmarks",
   	"pallet-multisig/runtime-benchmarks",
 	"pallet-orders/runtime-benchmarks",
 	"pallet-proxy/runtime-benchmarks",
@@ -223,6 +231,7 @@ try-runtime = [
 	"pallet-collator-selection/try-runtime",
 	"pallet-market/try-runtime",
 	"pallet-message-queue/try-runtime",
+	"pallet-mmr-tree/try-runtime",
   	"pallet-multisig/try-runtime",
 	"pallet-orders/try-runtime",
 	"pallet-proxy/try-runtime",
@@ -244,4 +253,4 @@ try-runtime = [
 # Reducing waiting times for governance or other
 fast-runtime = []
 
-experimental = ["pallet-aura/experimental"]
+# experimental = ["pallet-aura/experimental"]

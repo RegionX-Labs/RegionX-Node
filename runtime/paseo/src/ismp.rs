@@ -42,6 +42,7 @@ parameter_types! {
 impl ismp_parachain::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type IsmpHost = Ismp;
+	type WeightInfo = ismp_parachain::WeightInfo<Runtime>;
 }
 
 pub struct WeightProvider;
@@ -65,9 +66,8 @@ impl pallet_ismp::Config for Runtime {
 	type Currency = Balances;
 	type Coprocessor = Coprocessor;
 	type ConsensusClients = (ParachainConsensusClient<Runtime, IsmpParachain>,);
-
-	type Mmr = NoOpMmrTree<Self>;
-	type WeightProvider = WeightProvider;
+	type OffchainDB = Mmr;
+	type FeeHandler = pallet_ismp::fee_handler::WeightFeeHandler<()>;
 }
 
 #[derive(Default)]
