@@ -49,9 +49,8 @@ pub struct WeightProvider;
 impl pallet_ismp::weights::WeightProvider for WeightProvider {
 	fn module_callback(id: ModuleId) -> Option<Box<dyn IsmpModuleWeight>> {
 		match id {
-			pallet_regions::PALLET_ID => {
-				Some(Box::<pallet_regions::IsmpRegionsModuleWeight<Runtime>>::default())
-			},
+			pallet_regions::PALLET_ID =>
+				Some(Box::<pallet_regions::IsmpRegionsModuleWeight<Runtime>>::default()),
 			_ => None,
 		}
 	}
@@ -76,9 +75,8 @@ pub struct Router;
 impl IsmpRouter for Router {
 	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, Error> {
 		let module = match ModuleId::from_bytes(&id) {
-			Ok(pallet_regions::PALLET_ID) => {
-				Box::<pallet_regions::IsmpModuleCallback<Runtime>>::default()
-			},
+			Ok(pallet_regions::PALLET_ID) =>
+				Box::<pallet_regions::IsmpModuleCallback<Runtime>>::default(),
 			_ => Err(Error::ModuleNotFound(id))?,
 		};
 		Ok(module)

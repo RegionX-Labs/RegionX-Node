@@ -136,8 +136,9 @@ impl InstanceFilter<RuntimeCall> for ProxyType {
 					RuntimeCall::Tokens { .. } |
 					RuntimeCall::Currencies { .. }
 			),
-			ProxyType::CancelProxy =>
-				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. })),
+			ProxyType::CancelProxy => {
+				matches!(c, RuntimeCall::Proxy(pallet_proxy::Call::reject_announcement { .. }))
+			},
 		}
 	}
 }
