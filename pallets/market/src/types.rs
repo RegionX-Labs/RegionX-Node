@@ -15,6 +15,8 @@
 use crate::BalanceOf;
 use codec::{Decode, Encode, MaxEncodedLen};
 use scale_info::TypeInfo;
+use crate::pallet_broker;
+use crate::frame_system;
 
 pub type RegionRecordOf<T> =
 	pallet_broker::RegionRecord<<T as frame_system::Config>::AccountId, BalanceOf<T>>;

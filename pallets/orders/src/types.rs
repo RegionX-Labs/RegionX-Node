@@ -12,6 +12,7 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
+use polkadot_sdk::*;
 use crate::BalanceOf;
 pub use cumulus_primitives_core::ParaId;
 use sp_runtime::DispatchResult;
