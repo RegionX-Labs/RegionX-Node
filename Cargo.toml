@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["pallets/*", "primitives/*"]
+members = ["pallets/*", "runtime/*", "primitives/*"]
 
 [workspace.package]
 name = "regionx"

@@ -31,6 +31,8 @@
 // limitations under the License.
 
 pub mod constants {
+	use polkadot_sdk::*;
+
 	use frame_support::{
 		parameter_types,
 		weights::{constants, Weight},

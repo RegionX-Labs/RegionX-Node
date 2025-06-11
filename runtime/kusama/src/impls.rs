@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
 use crate::{AccountId, Balance, RuntimeCall};
 use codec::{Decode, DecodeWithMemTracking, Encode, MaxEncodedLen};
 use frame_support::traits::InstanceFilter;

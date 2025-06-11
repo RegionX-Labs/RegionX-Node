@@ -1886,6 +1886,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "ckb-merkle-mountain-range"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56ccb671c5921be8a84686e6212ca184cb1d7c51cadcdbfcbd1cc3f042f5dfb8"
+dependencies = [
+ "cfg-if",
+]
+
+[[package]]
 name = "clang-sys"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5735,6 +5744,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "ismp-parachain-runtime-api"
+version = "2412.0.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "polkadot-sdk",
+]
+
+[[package]]
 name = "ismp-testsuite"
 version = "0.1.1"
 source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
@@ -7449,6 +7466,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "mmr-primitives"
+version = "1.15.2"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "ckb-merkle-mountain-range",
+ "ismp",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
+ "serde",
+]
+
+[[package]]
 name = "mmr-rpc"
 version = "39.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -8972,6 +9003,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-ismp-runtime-api"
+version = "2412.0.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "ismp",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "primitive-types 0.13.1",
+ "serde",
+]
+
+[[package]]
 name = "pallet-lottery"
 version = "39.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9094,6 +9138,32 @@ dependencies = [
  "sp-io",
  "sp-mmr-primitives",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-mmr-runtime-api"
+version = "0.1.1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "pallet-ismp",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "serde",
+]
+
+[[package]]
+name = "pallet-mmr-tree"
+version = "0.1.1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "ckb-merkle-mountain-range",
+ "log",
+ "mmr-primitives",
+ "pallet-ismp",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
+ "serde",
 ]
 
 [[package]]
@@ -12886,6 +12956,42 @@ dependencies = [
  "polkadot-sdk",
  "scale-info",
  "sp-core",
+]
+
+[[package]]
+name = "regionx-kusama-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "ismp",
+ "ismp-parachain",
+ "ismp-parachain-runtime-api",
+ "log",
+ "order-primitives",
+ "pallet-ismp",
+ "pallet-ismp-runtime-api",
+ "pallet-market",
+ "pallet-mmr-runtime-api",
+ "pallet-mmr-tree",
+ "pallet-orders",
+ "pallet-processor",
+ "pallet-regions",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "regionx-runtime-common",
+ "scale-info",
+ "serde_json",
+ "smallvec",
+ "substrate-wasm-builder",
+]
+
+[[package]]
+name = "regionx-runtime-common"
+version = "0.1.0"
+dependencies = [
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "scale-info",
 ]
 
 [[package]]
