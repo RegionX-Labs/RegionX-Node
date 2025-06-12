@@ -12963,6 +12963,7 @@ name = "regionx-kusama-runtime"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "cumulus-pallet-parachain-system",
  "ismp",
  "ismp-parachain",
  "ismp-parachain-runtime-api",

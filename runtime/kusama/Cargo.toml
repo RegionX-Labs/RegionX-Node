@@ -39,6 +39,8 @@ ismp-parachain-runtime-api = { workspace = true }
 pallet-mmr-tree = { workspace = true }
 pallet-mmr-runtime-api = { workspace = true }
 
+cumulus-pallet-parachain-system = { workspace = true }
+
 [dependencies.polkadot-sdk]
 workspace = true
 features = [
@@ -95,6 +97,7 @@ features = [
 	"cumulus-primitives-utility",
 	"cumulus-primitives-timestamp",
 	"pallet-collator-selection",
+	"staging-parachain-info",
 	"parachains-common",
 ]
 
@@ -103,6 +106,7 @@ default = ["std"]
 std = [
 	"anyhow/std",
 	"codec/std",
+	"cumulus-pallet-parachain-system/std",
 	"polkadot-sdk/std",
 	"pallet-ismp/std",
 	"pallet-ismp-runtime-api/std",
@@ -130,6 +134,7 @@ try-runtime = [
 	"polkadot-sdk/try-runtime",
     "polkadot-sdk/frame-try-runtime",
     "pallet-ismp/try-runtime",
+	"cumulus-pallet-parachain-system/try-runtime",
 ]
 
 # Reducing waiting times for governance or other

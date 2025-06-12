@@ -32,7 +32,11 @@ mod ismp;
 
 use impls::*;
 
-use polakdot_sdk::*;
+use polkadot_sdk::*;
+use staging_parachain_info as parachain_info;
+use staging_xcm as xcm;
+use staging_xcm_builder as xcm_builder;
+use staging_xcm_executor as xcm_executor;
 use crate::xcm_config::{CoretimeChainLocation, LocationToAccountId};
 use alloc::borrow::Cow;
 use codec::Encode;
@@ -747,6 +751,10 @@ construct_runtime!(
 		Processor: pallet_processor = 93,
 	}
 );
+
+#[cfg(feature = "runtime-benchmarks")]
+#[macro_use]
+extern crate frame_benchmarking;
 
 // TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]

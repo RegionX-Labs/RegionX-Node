@@ -14,6 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use polkadot_sdk::*;
+use staging_xcm as xcm;
+use staging_xcm_builder as xcm_builder;
+use staging_xcm_executor as xcm_executor;
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, CollatorSelection, ParachainInfo, ParachainSystem,
 	PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,
@@ -29,8 +32,8 @@ use pallet_xcm::XcmPassthrough;
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_runtime_common::impls::ToAuthor;
 use sp_runtime::traits::AccountIdConversion;
-use staging_xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
-use staging_xcm_builder::{
+use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
+use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
 	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, NonFungibleAdapter,
@@ -38,7 +41,7 @@ use staging_xcm_builder::{
 	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
 	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
 };
-use staging_xcm_executor::XcmExecutor;
+use xcm_executor::XcmExecutor;
 
 parameter_types! {
 	pub const RelayLocation: Location = Location::parent();
