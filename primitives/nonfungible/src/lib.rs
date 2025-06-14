@@ -14,6 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use polkadot_sdk::*;
 use frame_support::{pallet_prelude::DispatchResult, traits::nonfungible::Inspect};
 
 /// Nonfungible implementation which can be locked.

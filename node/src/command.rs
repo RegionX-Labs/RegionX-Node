@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
 use std::net::SocketAddr;
 
 use cumulus_primitives_core::ParaId;

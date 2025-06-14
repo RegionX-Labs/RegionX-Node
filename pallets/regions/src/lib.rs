@@ -15,6 +15,7 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
+use polkadot_sdk::*;
 use codec::{alloc::string::ToString, Decode};
 use core::{cmp::max, marker::PhantomData};
 use frame_support::{pallet_prelude::Weight, traits::nonfungible::Mutate as NftMutate, PalletId};
@@ -80,11 +81,11 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, traits::fungible::Mutate};
 	use frame_system::pallet_prelude::*;
 
-	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: polkadot_sdk::frame_system::Config {
 		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type RuntimeEvent: From<Event<Self>>
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		/// Currency implementation
 		//

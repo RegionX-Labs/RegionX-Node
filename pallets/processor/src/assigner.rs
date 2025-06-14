@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
 use crate::LOG_TARGET;
 use core::marker::PhantomData;
 use frame_support::weights::WeightToFee;
@@ -21,8 +22,8 @@ use pallet_broker::RegionId;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
 use sp_runtime::{traits::Get, DispatchError, DispatchResult, SaturatedConversion, Saturating};
-use xcm::opaque::latest::prelude::*;
-use xcm_executor::traits::ConvertLocation;
+use staging_xcm::opaque::latest::prelude::*;
+use staging_xcm_executor::traits::ConvertLocation;
 
 /// Type which encodes the region assignment call.
 pub trait AssignmentCallEncoder {

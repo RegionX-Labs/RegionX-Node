@@ -20,28 +20,32 @@ ismp = { workspace = true, default-features = false }
 ismp-parachain = { workspace = true, default-features = false }
 pallet-ismp = { workspace = true, default-features = false }
 
-# Substrate
-frame-benchmarking = { workspace = true, default-features = false, optional = true }
-frame-support = { workspace = true, default-features = false }
-frame-system = {  workspace = true, default-features = false }
-pallet-broker = { workspace = true, default-features = false }
-sp-io = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
-
 # Local
 nonfungible-primitives = { workspace = true, default-features = false }
 region-primitives = { workspace = true, default-features = false }
 
+[dependencies.polkadot-sdk]
+workspace = true
+features = [
+    "frame-support",
+    "frame-system",
+    "pallet-broker",
+    "sp-io",
+    "sp-core",
+    "sp-runtime",
+]
+
 [dev-dependencies]
 hex = "0.4.3"
 serde = { workspace = true }
-pallet-balances = { workspace = true, default-features = false }
+polkadot-sdk = { workspace = true, features = [
+    "pallet-balances",
+], default-features = true }
 ismp-testsuite = { workspace = true }
 
 [features]
 default = ["std"]
-runtime-benchmarks = ["frame-benchmarking/runtime-benchmarks"]
+runtime-benchmarks = ["polkadot-sdk/frame-benchmarking", "polkadot-sdk/runtime-benchmarks"]
 std = [
 	"log/std",
 	"codec/std",
@@ -50,14 +54,7 @@ std = [
 	"nonfungible-primitives/std",
 	"region-primitives/std",
 	"scale-info/std",
-	"sp-io/std",
-	"sp-core/std",
-	"sp-runtime/std",
-	"frame-benchmarking/std",
-	"frame-support/std",
-	"frame-system/std",
-	"pallet-balances/std",
-	"pallet-broker/std",
 	"pallet-ismp/std",
+	"polkadot-sdk/std",
 ]
-try-runtime = [ "frame-support/try-runtime" ]
+try-runtime = [ "polkadot-sdk/try-runtime" ]
