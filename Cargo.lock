@@ -5744,6 +5744,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "ismp-parachain-inherent"
+version = "2412.0.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "ismp",
+ "ismp-parachain",
+ "ismp-parachain-runtime-api",
+ "log",
+ "pallet-ismp-runtime-api",
+ "parity-scale-codec",
+ "polkadot-sdk",
+]
+
+[[package]]
 name = "ismp-parachain-runtime-api"
 version = "2412.0.0"
 source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
@@ -9003,6 +9019,27 @@ dependencies = [
 ]
 
 [[package]]
+name = "pallet-ismp-rpc"
+version = "2412.0.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "anyhow",
+ "hash-db",
+ "hex",
+ "hex-literal",
+ "ismp",
+ "jsonrpsee 0.24.9",
+ "pallet-ismp",
+ "pallet-ismp-runtime-api",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "serde",
+ "serde_json",
+ "tower",
+ "trie-db",
+]
+
+[[package]]
 name = "pallet-ismp-runtime-api"
 version = "2412.0.0"
 source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
@@ -11565,6 +11602,13 @@ dependencies = [
  "bridge-hub-common",
  "bridge-hub-test-utils",
  "bridge-runtime-common",
+ "cumulus-client-cli",
+ "cumulus-client-collator",
+ "cumulus-client-consensus-aura",
+ "cumulus-client-consensus-common",
+ "cumulus-client-consensus-proposer",
+ "cumulus-client-network",
+ "cumulus-client-service",
  "cumulus-pallet-aura-ext",
  "cumulus-pallet-dmp-queue",
  "cumulus-pallet-parachain-system",
@@ -11581,6 +11625,7 @@ dependencies = [
  "cumulus-primitives-storage-weight-reclaim",
  "cumulus-primitives-timestamp",
  "cumulus-primitives-utility",
+ "cumulus-relay-chain-interface",
  "cumulus-test-relay-sproof-builder",
  "frame-benchmarking",
  "frame-benchmarking-cli",
@@ -11682,6 +11727,7 @@ dependencies = [
  "pallet-timestamp",
  "pallet-tips",
  "pallet-transaction-payment",
+ "pallet-transaction-payment-rpc",
  "pallet-transaction-payment-rpc-runtime-api",
  "pallet-transaction-storage",
  "pallet-treasury",
@@ -11708,9 +11754,23 @@ dependencies = [
  "polkadot-runtime-parachains",
  "polkadot-sdk-frame",
  "polkadot-service",
+ "sc-basic-authorship",
+ "sc-chain-spec",
+ "sc-cli",
+ "sc-client-api",
  "sc-client-db",
+ "sc-consensus",
  "sc-executor",
+ "sc-network",
+ "sc-network-common",
+ "sc-network-sync",
+ "sc-offchain",
+ "sc-rpc",
  "sc-service",
+ "sc-sysinfo",
+ "sc-telemetry",
+ "sc-transaction-pool",
+ "sc-transaction-pool-api",
  "slot-range-helper",
  "snowbridge-beacon-primitives",
  "snowbridge-core",
@@ -11733,6 +11793,7 @@ dependencies = [
  "sp-arithmetic",
  "sp-authority-discovery",
  "sp-block-builder",
+ "sp-blockchain",
  "sp-consensus-aura",
  "sp-consensus-babe",
  "sp-consensus-beefy",
@@ -11777,6 +11838,9 @@ dependencies = [
  "staging-xcm-builder",
  "staging-xcm-executor",
  "substrate-bip39",
+ "substrate-build-script-utils",
+ "substrate-frame-rpc-system",
+ "substrate-prometheus-endpoint",
  "testnet-parachains-constants",
  "xcm-runtime-apis",
 ]
@@ -12984,6 +13048,27 @@ dependencies = [
  "serde_json",
  "smallvec",
  "substrate-wasm-builder",
+]
+
+[[package]]
+name = "regionx-node"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "futures",
+ "ismp-parachain-inherent",
+ "ismp-parachain-runtime-api",
+ "jsonrpsee 0.24.9",
+ "log",
+ "pallet-ismp-rpc",
+ "pallet-ismp-runtime-api",
+ "pallet-mmr-runtime-api",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "regionx-kusama-runtime",
+ "regionx-runtime-common",
+ "serde",
+ "serde_json",
 ]
 
 [[package]]

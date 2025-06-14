@@ -1,6 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["pallets/*", "runtime/*", "primitives/*"]
+members = ["pallets/*", "runtime/*", "primitives/*", "node"]
 
 [workspace.package]
 name = "regionx"
@@ -38,14 +38,6 @@ log = { version = "0.4.22", default-features = false }
 scale-info = { version = "2.11.6", default-features = false }
 smallvec = { version = "1.11.0", default-features = false }
 serde_json = { version = "1.0.132", default-features = false }
-
-# Orml
-orml-asset-registry = { version = "1.4.0", default-features = false }
-orml-currencies = { version = "1.4.0", default-features = false }
-orml-tokens = { version = "1.4.0", default-features = false }
-orml-traits = { version = "1.4.0", default-features = false }
-orml-unknown-tokens = { version = "1.4.0", default-features = false }
-orml-xcm-support = { version = "1.4.0", default-features = false }
 
 # Polytope Labs
 ismp = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
