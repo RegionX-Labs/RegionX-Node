@@ -13,6 +13,10 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
+use staging_xcm as xcm;
+use staging_xcm_builder as xcm_builder;
+use staging_xcm_executor as xcm_executor;
 use super::{
 	AccountId, AllPalletsWithSystem, Balances, CollatorSelection, ParachainInfo, ParachainSystem,
 	PolkadotXcm, Regions, Runtime, RuntimeCall, RuntimeEvent, RuntimeOrigin, WeightToFee,

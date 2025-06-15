@@ -15,29 +15,32 @@ log = { workspace = true }
 codec = { workspace = true, default-features = false, features = ["derive"] }
 scale-info = { workspace = true, default-features = false, features = ["derive"] }
 
-# Substrate
-frame-benchmarking = { workspace = true, default-features = false, optional = true }
-frame-support = { workspace = true, default-features = false }
-frame-system = { workspace = true, default-features = false }
-sp-io = { workspace = true, default-features = false }
-sp-core = { workspace = true, default-features = false }
-sp-runtime = { workspace = true, default-features = false }
-pallet-broker = { workspace = true, default-features = false }
-pallet-xcm = { workspace = true, default-features = false }
-
-xcm = { workspace = true, default-features = false }
-xcm-executor = { workspace = true, default-features = false }
-xcm-builder = { workspace = true, default-features = false }
-
 # Local
 nonfungible-primitives = { workspace = true, default-features = false }
 order-primitives = { workspace = true, default-features = false }
 region-primitives = { workspace = true, default-features = false }
 
+[dependencies.polkadot-sdk]
+workspace = true
+features = [
+    "frame-support",
+    "frame-system",
+    "sp-runtime",
+    "sp-io",
+    "sp-core",
+    "pallet-broker",
+    "pallet-xcm",
+    "staging-xcm",
+    "staging-xcm-builder",
+    "staging-xcm-executor",
+]
+
 [dev-dependencies]
 serde = { workspace = true }
 smallvec = { workspace = true }
-pallet-balances = { workspace = true, default-features = false }
+polkadot-sdk = { workspace = true, features = [
+    "pallet-balances",
+], default-features = true }
 
 pallet-regions = { workspace = true, default-features = false }
 pallet-orders = { workspace = true, default-features = false }
@@ -48,31 +51,19 @@ ismp-testsuite = { workspace = true }
 [features]
 default = ["std"]
 runtime-benchmarks = [
-	"frame-benchmarking/runtime-benchmarks", 
-	"xcm-builder/runtime-benchmarks",
-	"pallet-xcm/runtime-benchmarks",
+	"polkadot-sdk/frame-benchmarking", 
+	"polkadot-sdk/runtime-benchmarks",
+	# "polkadot-sdk/xcm-builder/runtime-benchmarks",
+	# "polkadot-sdk/pallet-xcm/runtime-benchmarks",
 ]
 std = [
 	"log/std",
 	"codec/std",
 	"scale-info/std",
-	"sp-io/std",
-	"sp-core/std",
-	"sp-runtime/std",
-	"frame-benchmarking/std",
-	"frame-support/std",
-	"frame-system/std",
-	"pallet-broker/std",
-	"pallet-balances/std",
-	"pallet-regions/std",
-	"pallet-orders/std",
-	"pallet-xcm/std",
     "nonfungible-primitives/std",
     "order-primitives/std",
     "region-primitives/std",
 	"ismp/std",
-	"xcm/std",
-	"xcm-executor/std",
-	"xcm-builder/std",
+	"polkadot-sdk/std",
 ]
-try-runtime = ["frame-support/try-runtime"]
+try-runtime = ["polkadot-sdk/try-runtime"]

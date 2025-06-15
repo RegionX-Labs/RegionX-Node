@@ -13,6 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
+use staging_xcm as xcm;
 use crate::{
 	AccountId, AuraId, BalancesConfig, CollatorSelectionConfig, ParachainInfoConfig, SessionConfig,
 	SessionKeys, KSM,

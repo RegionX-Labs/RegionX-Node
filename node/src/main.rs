@@ -25,6 +25,8 @@ mod command;
 mod rpc;
 mod runtime_api;
 
+use polkadot_sdk::*;
+
 fn main() -> sc_cli::Result<()> {
 	command::run()
 }
