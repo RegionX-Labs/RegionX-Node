@@ -15,6 +15,7 @@ dist = true
 clap = { workspace = true, features = ["derive"]}
 log = { workspace = true }
 codec = { workspace = true }
+color-print = { workspace = true }
 serde = { workspace = true, features = ["derive"]}
 jsonrpsee = { workspace = true, features = ["server"]  }
 futures = { workspace = true }
@@ -66,6 +67,7 @@ features = [
     "sp-runtime",
     "sp-session",
     "sp-timestamp",
+    "sc-tracing",
     "sp-transaction-pool",
     "substrate-frame-rpc-system",
     "substrate-prometheus-endpoint",

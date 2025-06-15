@@ -11769,6 +11769,7 @@ dependencies = [
  "sc-service",
  "sc-sysinfo",
  "sc-telemetry",
+ "sc-tracing",
  "sc-transaction-pool",
  "sc-transaction-pool-api",
  "slot-range-helper",
@@ -13055,6 +13056,7 @@ name = "regionx-node"
 version = "0.1.0"
 dependencies = [
  "clap",
+ "color-print",
  "futures",
  "ismp-parachain-inherent",
  "ismp-parachain-runtime-api",
