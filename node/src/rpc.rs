@@ -27,7 +27,6 @@ use regionx_runtime_common::primitives::{opaque::Block, AccountId, Balance, Nonc
 
 use pallet_ismp_rpc::{IsmpApiServer, IsmpRpcHandler};
 use sc_client_api::{AuxStore, BlockBackend, ProofProvider};
-pub use sc_rpc::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;

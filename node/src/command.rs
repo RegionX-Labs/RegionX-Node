@@ -14,7 +14,6 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use polkadot_sdk::*;
-use std::net::SocketAddr;
 
 use cumulus_primitives_core::ParaId;
 use frame_benchmarking_cli::{BenchmarkCmd, SUBSTRATE_REFERENCE_HARDWARE};
@@ -38,7 +37,7 @@ fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// TODO: Para Id
 		"regionx-kusama-dev" => Box::new(chain_spec::regionx_kusama_development_chain_spec()),
-		_ => todo!() // TODO Path
+		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
 

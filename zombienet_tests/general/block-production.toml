@@ -3,7 +3,7 @@ timeout = 1000
 
 
 [relaychain]
-chain = "rococo-local"
+chain = "rococo-local" # TODO: Kusama local
 command = "polkadot"
 
   [[relaychain.nodes]]
@@ -16,6 +16,7 @@ command = "polkadot"
 
 [[parachains]]
 id = 2000
+chain = "regionx-kusama-dev"
 addToGenesis = false
 
   [parachains.collator]
