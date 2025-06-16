@@ -18,11 +18,12 @@ use core::marker::PhantomData;
 use frame_support::weights::WeightToFee;
 use order_primitives::ParaId;
 use pallet_broker::RegionId;
+use polkadot_sdk::*;
 #[cfg(not(feature = "std"))]
 use scale_info::prelude::{vec, vec::Vec};
 use sp_runtime::{traits::Get, DispatchError, DispatchResult, SaturatedConversion, Saturating};
-use xcm::opaque::latest::prelude::*;
-use xcm_executor::traits::ConvertLocation;
+use staging_xcm::opaque::latest::prelude::*;
+use staging_xcm_executor::traits::ConvertLocation;
 
 /// Type which encodes the region assignment call.
 pub trait AssignmentCallEncoder {

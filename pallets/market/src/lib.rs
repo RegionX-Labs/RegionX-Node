@@ -19,6 +19,7 @@ use frame_support::traits::{fungible::Inspect, tokens::Preservation};
 use nonfungible_primitives::LockableNonFungible;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
+use polkadot_sdk::*;
 use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion, Saturating};
 
@@ -53,11 +54,11 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 
-	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: polkadot_sdk::frame_system::Config {
 		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type RuntimeEvent: From<Event<Self>>
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId>;

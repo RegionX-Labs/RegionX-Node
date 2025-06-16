@@ -19,7 +19,9 @@ use crate::{
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
+use polkadot_sdk::*;
 use sp_genesis_builder::PresetId;
+use staging_xcm as xcm;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;

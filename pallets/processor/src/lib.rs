@@ -24,9 +24,10 @@ use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
+use polkadot_sdk::*;
 use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::traits::Convert;
-use xcm::opaque::latest::Location;
+use staging_xcm::opaque::latest::Location;
 
 #[cfg(test)]
 mod mock;
@@ -63,11 +64,11 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 
-	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: polkadot_sdk::frame_system::Config {
 		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type RuntimeEvent: From<Event<Self>>
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;

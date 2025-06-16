@@ -19,6 +19,7 @@ use frame_support::traits::{Currency, ExistenceRequirement};
 use order_primitives::{Order, OrderFactory, OrderId, OrderInspect, Requirements};
 pub use pallet::*;
 use pallet_broker::Timeslice;
+use polkadot_sdk::*;
 use sp_runtime::{
 	traits::{BlockNumberProvider, Convert},
 	SaturatedConversion,
@@ -56,11 +57,11 @@ pub mod pallet {
 	};
 	use frame_system::pallet_prelude::*;
 
-	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: polkadot_sdk::frame_system::Config {
 		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type RuntimeEvent: From<Event<Self>>
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId> + ReservableCurrency<Self::AccountId>;

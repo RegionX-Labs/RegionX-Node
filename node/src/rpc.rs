@@ -20,13 +20,13 @@
 
 #![warn(missing_docs)]
 
+use polkadot_sdk::*;
 use std::sync::Arc;
 
 use regionx_runtime_common::primitives::{opaque::Block, AccountId, Balance, Nonce};
 
 use pallet_ismp_rpc::{IsmpApiServer, IsmpRpcHandler};
 use sc_client_api::{AuxStore, BlockBackend, ProofProvider};
-pub use sc_rpc::DenyUnsafe;
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
 use sp_block_builder::BlockBuilder;
@@ -42,8 +42,6 @@ pub struct FullDeps<C, P, B> {
 	pub client: Arc<C>,
 	/// Transaction pool instance.
 	pub pool: Arc<P>,
-	/// Whether to deny unsafe calls
-	pub deny_unsafe: DenyUnsafe,
 	/// Backend used by the node.
 	pub backend: Arc<B>,
 }
@@ -74,9 +72,9 @@ where
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 
 	let mut module = RpcExtension::new(());
-	let FullDeps { client, pool, deny_unsafe, backend } = deps;
+	let FullDeps { client, pool, backend } = deps;
 
-	module.merge(System::new(client.clone(), pool, deny_unsafe).into_rpc())?;
+	module.merge(System::new(client.clone(), pool).into_rpc())?;
 	module.merge(TransactionPayment::new(client.clone()).into_rpc())?;
 	module.merge(IsmpRpcHandler::new(client, backend.clone())?.into_rpc())?;
 

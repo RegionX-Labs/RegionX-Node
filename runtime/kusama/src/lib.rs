@@ -47,6 +47,7 @@ use pallet_processor::assigner::XcmRegionAssigner;
 use pallet_regions::primitives::StateMachineHeightProvider as StateMachineHeightProviderT;
 use parachains_common::message_queue::{NarrowOriginToSibling, ParaIdToSibling};
 use polkadot_runtime_common::xcm_sender::NoPriceForMessageDelivery;
+use polkadot_sdk::*;
 use smallvec::smallvec;
 use sp_api::impl_runtime_apis;
 use sp_core::{crypto::KeyTypeId, Get, OpaqueMetadata};
@@ -57,6 +58,10 @@ use sp_runtime::{
 	transaction_validity::{TransactionPriority, TransactionSource, TransactionValidity},
 	ApplyExtrinsicResult,
 };
+use staging_parachain_info as parachain_info;
+use staging_xcm as xcm;
+use staging_xcm_builder as xcm_builder;
+use staging_xcm_executor as xcm_executor;
 
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -746,6 +751,10 @@ construct_runtime!(
 		Processor: pallet_processor = 93,
 	}
 );
+
+#[cfg(feature = "runtime-benchmarks")]
+#[macro_use]
+extern crate frame_benchmarking;
 
 // TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]

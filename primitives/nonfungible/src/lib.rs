@@ -15,6 +15,7 @@
 #![cfg_attr(not(feature = "std"), no_std)]
 
 use frame_support::{pallet_prelude::DispatchResult, traits::nonfungible::Inspect};
+use polkadot_sdk::*;
 
 /// Nonfungible implementation which can be locked.
 pub trait LockableNonFungible<AccountId>: Inspect<AccountId> {

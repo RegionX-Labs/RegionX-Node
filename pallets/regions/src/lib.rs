@@ -30,6 +30,7 @@ use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
+use polkadot_sdk::*;
 use primitives::StateMachineHeightProvider;
 use region_primitives::{Record, Region, RegionFactory};
 use scale_info::prelude::{format, vec, vec::Vec};
@@ -80,11 +81,11 @@ pub mod pallet {
 	use frame_support::{pallet_prelude::*, traits::fungible::Mutate};
 	use frame_system::pallet_prelude::*;
 
-	/// The module configuration trait.
 	#[pallet::config]
-	pub trait Config: frame_system::Config {
+	pub trait Config: polkadot_sdk::frame_system::Config {
 		/// The overarching event type.
-		type RuntimeEvent: From<Event<Self>> + IsType<<Self as frame_system::Config>::RuntimeEvent>;
+		type RuntimeEvent: From<Event<Self>>
+			+ IsType<<Self as polkadot_sdk::frame_system::Config>::RuntimeEvent>;
 
 		/// Currency implementation
 		//
