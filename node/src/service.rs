@@ -20,10 +20,13 @@ use polkadot_sdk::*;
 use std::{sync::Arc, time::Duration};
 
 use cumulus_client_cli::CollatorOptions;
-use regionx_runtime_common::primitives::opaque::{Block, Hash};
-use regionx_runtime_common::primitives::opaque;
+use regionx_runtime_common::primitives::{
+	opaque,
+	opaque::{Block, Hash},
+};
 
 // Cumulus Imports
+use crate::sp_runtime::traits::BlakeTwo256;
 use cumulus_client_collator::service::CollatorService;
 use cumulus_client_consensus_aura::collators::lookahead::{self as aura, Params as AuraParams};
 use cumulus_client_consensus_common::ParachainBlockImport as TParachainBlockImport;
@@ -36,10 +39,8 @@ use cumulus_primitives_core::{relay_chain::CollatorPair, ParaId};
 use cumulus_relay_chain_interface::{OverseerHandle, RelayChainInterface};
 use polkadot_primitives::ValidationCode;
 use sc_executor::RuntimeVersionOf;
-use sp_core::traits::CodeExecutor;
-use crate::sp_runtime::traits::BlakeTwo256;
 use sp_api::ConstructRuntimeApi;
-
+use sp_core::traits::CodeExecutor;
 
 // Substrate Imports
 use frame_benchmarking_cli::SUBSTRATE_REFERENCE_HARDWARE;
@@ -145,7 +146,8 @@ where
 		.build(),
 	);
 
-	let block_import = ParachainBlockImport::<Runtime, Executor>::new(client.clone(), backend.clone());
+	let block_import =
+		ParachainBlockImport::<Runtime, Executor>::new(client.clone(), backend.clone());
 
 	let import_queue = build_import_queue(
 		client.clone(),
@@ -179,19 +181,18 @@ async fn start_node_impl<Runtime>(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager>
 where
-	Runtime:
-		ConstructRuntimeApi<opaque::Block, FullClient<Runtime>> + Send + Sync + 'static,
+	Runtime: ConstructRuntimeApi<opaque::Block, FullClient<Runtime>> + Send + Sync + 'static,
 	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
 	sc_client_api::StateBackendFor<FullBackend, opaque::Block>:
 		sc_client_api::StateBackend<BlakeTwo256>,
 {
 	let parachain_config = prepare_node_config(parachain_config);
-	let executor =
-		sc_service::new_wasm_executor::<HostFunctions>(&parachain_config.executor);
+	let executor = sc_service::new_wasm_executor::<HostFunctions>(&parachain_config.executor);
 
 	let params = new_partial::<Runtime, _>(&parachain_config, executor)?;
 	let (block_import, mut telemetry, telemetry_worker_handle) = params.other;
-	let net_config = sc_network::config::FullNetworkConfiguration::<
+	let net_config =
+		sc_network::config::FullNetworkConfiguration::<
 			_,
 			_,
 			sc_network::NetworkWorker<opaque::Block, opaque::Hash>,
@@ -407,7 +408,7 @@ fn start_consensus<Runtime>(
 	task_manager: &TaskManager,
 	relay_chain_interface: Arc<dyn RelayChainInterface>,
 	transaction_pool: Arc<
-		sc_transaction_pool::TransactionPoolHandle<opaque::Block, FullClient<Runtime>>
+		sc_transaction_pool::TransactionPoolHandle<opaque::Block, FullClient<Runtime>>,
 	>,
 	keystore: KeystorePtr,
 	relay_chain_slot_duration: Duration,
@@ -479,10 +480,9 @@ where
 		authoring_duration: Duration::from_millis(500),
 	};
 
-	let fut =
-		aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(
-			params,
-		);
+	let fut = aura::run::<Block, sp_consensus_aura::sr25519::AuthorityPair, _, _, _, _, _, _, _, _>(
+		params,
+	);
 	task_manager.spawn_essential_handle().spawn("aura", None, fut);
 
 	Ok(())

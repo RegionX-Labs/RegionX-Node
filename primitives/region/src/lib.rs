@@ -14,10 +14,10 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use polkadot_sdk::*;
 use codec::{Decode, Encode, MaxEncodedLen};
 use frame_support::{pallet_prelude::DispatchResult, Parameter};
 use pallet_broker::{RegionId, RegionRecord};
+use polkadot_sdk::*;
 use scale_info::TypeInfo;
 use sp_core::H256;
 

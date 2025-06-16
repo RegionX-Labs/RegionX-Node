@@ -13,15 +13,15 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
-use staging_xcm as xcm;
 use crate::{
 	AccountId, AuraId, BalancesConfig, CollatorSelectionConfig, ParachainInfoConfig, SessionConfig,
 	SessionKeys, KSM,
 };
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
+use polkadot_sdk::*;
 use sp_genesis_builder::PresetId;
+use staging_xcm as xcm;
 
 /// The default XCM version to set in genesis config.
 const SAFE_XCM_VERSION: u32 = xcm::prelude::XCM_VERSION;

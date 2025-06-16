@@ -15,7 +15,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use polkadot_sdk::*;
 use codec::{alloc::string::ToString, Decode};
 use core::{cmp::max, marker::PhantomData};
 use frame_support::{pallet_prelude::Weight, traits::nonfungible::Mutate as NftMutate, PalletId};
@@ -31,6 +30,7 @@ use ismp_parachain::PARACHAIN_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
+use polkadot_sdk::*;
 use primitives::StateMachineHeightProvider;
 use region_primitives::{Record, Region, RegionFactory};
 use scale_info::prelude::{format, vec, vec::Vec};

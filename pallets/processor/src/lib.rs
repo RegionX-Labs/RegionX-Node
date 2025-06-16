@@ -15,7 +15,6 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use polkadot_sdk::*;
 use crate::assigner::{AssignmentCallEncoder, RegionAssigner};
 use frame_support::{
 	traits::{nonfungible::Transfer, Currency, ExistenceRequirement},
@@ -25,6 +24,7 @@ use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{OrderFactory, OrderId, OrderInspect, ParaId, Requirements};
 pub use pallet::*;
 use pallet_broker::{RegionId, RegionRecord};
+use polkadot_sdk::*;
 use region_primitives::{RegionFactory, RegionInspect};
 use sp_runtime::traits::Convert;
 use staging_xcm::opaque::latest::Location;
