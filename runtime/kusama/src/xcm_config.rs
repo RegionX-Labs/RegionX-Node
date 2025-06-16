@@ -20,13 +20,15 @@ use super::{
 };
 use frame_support::{
 	parameter_types,
-	traits::{ConstU32, Contains, Everything, Nothing},
+	traits::{tokens::imbalance::ResolveTo, ConstU32, Contains, Equals, Everything, Nothing},
 	PalletId,
 };
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
+use parachains_common::xcm_config::{
+	AllSiblingSystemParachains, ConcreteAssetFromSystem, RelayOrOtherSystemParachains,
+};
 use polkadot_parachain_primitives::primitives::Sibling;
-use polkadot_runtime_common::impls::ToAuthor;
 use polkadot_sdk::*;
 use sp_runtime::traits::AccountIdConversion;
 use staging_xcm as xcm;
@@ -34,16 +36,23 @@ use staging_xcm_builder as xcm_builder;
 use staging_xcm_executor as xcm_executor;
 use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
 use xcm_builder::{
-	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
+	AccountId32Aliases,
+	AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
 	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, NonFungibleAdapter,
-	ParentIsPreset, RelayChainAsNative, SiblingParachainAsNative, SiblingParachainConvertsVia,
-	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
-	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount, SiblingParachainAsNative,
+	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
+	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
+	WithComputedOrigin, WithUniqueTopic, XcmFeeManagerFromComponents,
 };
-use xcm_executor::XcmExecutor;
+use xcm_executor::{traits::ConvertLocation, XcmExecutor};
+
+// Pallet Id on Kusama.
+pub const TREASURY_PALLET_INDEX: u8 = 18;
+pub const TREASURY_PALLET_ID: PalletId = PalletId(*b"py/trsry");
 
 parameter_types! {
+	pub const RootLocation: Location = Location::here();
 	pub const RelayLocation: Location = Location::parent();
 	pub BrokerPalletLocation: Location = Location::new(
 		1,
@@ -58,6 +67,7 @@ parameter_types! {
 		Wild(All), // We can trust system parachains.
 		CoretimeChainLocation::get()
 	);
+	pub const GovernanceLocation: Location = Location::parent();
 	pub RelayChainOrigin: RuntimeOrigin = cumulus_pallet_xcm::Origin::Relay.into();
 	pub UniversalLocation: InteriorLocation = Parachain(ParachainInfo::parachain_id().into()).into();
 	pub StakingPot: AccountId = CollatorSelection::account_id();
@@ -173,6 +183,24 @@ pub type Barrier = TrailingSetTopicAsId<
 	>,
 >;
 
+parameter_types! {
+	pub RelayTreasuryLocation: Location = (Parent, PalletInstance(TREASURY_PALLET_INDEX)).into();
+	pub TreasuryAccount: AccountId = TREASURY_PALLET_ID.into_account_truncating();
+	// Test [`crate::tests::treasury_pallet_account_not_none`] ensures that the result of location
+	// conversion is not `None`.
+	pub RelayTreasuryPalletAccount: AccountId =
+		LocationToAccountId::convert_location(&RelayTreasuryLocation::get())
+			.unwrap_or(TreasuryAccount::get());
+}
+
+/// Locations that will not be charged fees in the executor, neither for execution nor delivery.
+/// We only waive fees for system functions, which these locations represent.
+pub type WaivedLocations = (
+	Equals<RootLocation>,
+	RelayOrOtherSystemParachains<AllSiblingSystemParachains, Runtime>,
+	Equals<RelayTreasuryLocation>,
+);
+
 pub struct XcmConfig;
 impl xcm_executor::Config for XcmConfig {
 	type RuntimeCall = RuntimeCall;
@@ -182,12 +210,17 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = TrustedReserves;
-	type IsTeleporter = (); // Teleporting is disabled.
+	type IsTeleporter = ConcreteAssetFromSystem<RelayLocation>;
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
-	type Trader =
-		UsingComponents<WeightToFee, RelayLocation, AccountId, Balances, ToAuthor<Runtime>>;
+	type Trader = UsingComponents<
+		WeightToFee,
+		RelayLocation,
+		AccountId,
+		Balances,
+		ResolveTo<StakingPot, Balances>,
+	>;
 	type ResponseHandler = PolkadotXcm;
 	type AssetTrap = PolkadotXcm;
 	type AssetClaims = PolkadotXcm;
@@ -196,7 +229,10 @@ impl xcm_executor::Config for XcmConfig {
 	type MaxAssetsIntoHolding = MaxAssetsIntoHolding;
 	type AssetLocker = ();
 	type AssetExchanger = ();
-	type FeeManager = ();
+	type FeeManager = XcmFeeManagerFromComponents<
+		WaivedLocations,
+		SendXcmFeeToAccount<Self::AssetTransactor, RelayTreasuryPalletAccount>,
+	>;
 	type MessageExporter = ();
 	type UniversalAliases = Nothing;
 	type CallDispatcher = RuntimeCall;
@@ -253,4 +289,13 @@ impl pallet_xcm::Config for Runtime {
 impl cumulus_pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type XcmExecutor = XcmExecutor<XcmConfig>;
+}
+
+#[cfg(test)]
+#[test]
+fn treasury_pallet_account_not_none() {
+	assert_eq!(
+		RelayTreasuryPalletAccount::get(),
+		LocationToAccountId::convert_location(&RelayTreasuryLocation::get()).unwrap()
+	)
 }
