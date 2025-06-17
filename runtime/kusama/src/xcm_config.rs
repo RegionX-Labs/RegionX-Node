@@ -36,8 +36,7 @@ use staging_xcm_builder as xcm_builder;
 use staging_xcm_executor as xcm_executor;
 use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
 use xcm_builder::{
-	AccountId32Aliases,
-	AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
+	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
 	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
 	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, NonFungibleAdapter,
 	ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount, SiblingParachainAsNative,
