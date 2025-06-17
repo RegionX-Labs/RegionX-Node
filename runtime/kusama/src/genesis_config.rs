@@ -20,7 +20,9 @@ use crate::{
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
 use polkadot_sdk::*;
+use sp_core::{sr25519, Pair};
 use sp_genesis_builder::PresetId;
+use sp_keyring::Sr25519Keyring;
 use staging_xcm as xcm;
 
 /// The default XCM version to set in genesis config.
@@ -78,7 +80,22 @@ pub fn preset_names() -> Vec<PresetId> {
 }
 
 fn regionx_kusama_local_genesis(para_id: ParaId) -> serde_json::Value {
-	regionx_kusama_genesis(vec![], vec![], para_id) // TODO empty vecs
+	regionx_kusama_genesis(
+		// initial collators.
+		vec![
+			(Sr25519Keyring::Alice.to_account_id(), Sr25519Keyring::Alice.public().into()),
+			(Sr25519Keyring::Bob.to_account_id(), Sr25519Keyring::Bob.public().into()),
+		],
+		vec![
+			Sr25519Keyring::Alice.public().into(),
+			Sr25519Keyring::Bob.public().into(),
+			Sr25519Keyring::Charlie.public().into(),
+			Sr25519Keyring::Dave.public().into(),
+			Sr25519Keyring::Eve.public().into(),
+			Sr25519Keyring::Ferdie.public().into(),
+		],
+		para_id,
+	)
 }
 
 /// Provides the JSON representation of predefined genesis config for given `id`.

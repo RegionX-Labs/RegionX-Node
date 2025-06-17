@@ -74,6 +74,7 @@ features = [
     "sp-offchain",
     "sp-io",
     "sp-core",
+    "sp-keyring",
     "sp-runtime",
     "sp-session",
     "sp-std",
