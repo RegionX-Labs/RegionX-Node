@@ -68,7 +68,7 @@ use sp_std::prelude::*;
 use sp_version::NativeVersion;
 use sp_version::RuntimeVersion;
 
-use crate::xcm_config::StakingPot;
+use crate::xcm_config::{GovernanceLocation, StakingPot};
 use ::ismp::{
 	consensus::{ConsensusClientId, StateMachineHeight, StateMachineId},
 	host::StateMachine,
@@ -79,7 +79,10 @@ use frame_support::{
 	dispatch::DispatchClass,
 	genesis_builder_helper::{build_state, get_preset},
 	parameter_types,
-	traits::{tokens::imbalance::ResolveTo, ConstBool, ConstU32, ConstU64, ConstU8, Everything},
+	traits::{
+		tokens::imbalance::ResolveTo, ConstBool, ConstU32, ConstU64, ConstU8, EitherOfDiverse,
+		Everything,
+	},
 	weights::{
 		constants::WEIGHT_REF_TIME_PER_SECOND, ConstantMultiplier, Weight, WeightToFeeCoefficient,
 		WeightToFeeCoefficients, WeightToFeePolynomial,
@@ -91,6 +94,7 @@ use frame_system::{
 	EnsureRoot,
 };
 use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
+use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use sp_core::H256;
 use sp_mmr_primitives::INDEXING_PREFIX;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
@@ -500,8 +504,11 @@ parameter_types! {
 	pub const StakingAdminBodyId: BodyId = BodyId::Defense;
 }
 
-/// We allow root to execute privileged collator selection operations.
-pub type CollatorSelectionUpdateOrigin = EnsureRoot<AccountId>;
+/// We allow Root and the `StakingAdmin` to execute privileged collator selection operations.
+pub type CollatorSelectionUpdateOrigin = EitherOfDiverse<
+	EnsureRoot<AccountId>,
+	EnsureXcm<IsVoiceOfBody<GovernanceLocation, StakingAdminBodyId>>,
+>;
 
 impl pallet_collator_selection::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
