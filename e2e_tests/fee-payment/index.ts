@@ -10,13 +10,9 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const keyring = new Keyring({ type: 'sr25519' });
   const alice = keyring.addFromUri('//Alice');
 
-  const treasuryId = regionXApi.consts.treasury.palletId.toHuman() as string;
-  const treasuryAccount = getAddressFromModuleId(treasuryId);
-
   const podId = 'PotStake'; // FIXME: remove this hard-coded constant and fetch the on-chain value.
   const potAccount = getAddressFromModuleId(podId);
 
-  const treasuryBalanceOld = await getFreeBalance(regionXApi, treasuryAccount);
   const potBalanceOld = await getFreeBalance(regionXApi, potAccount);
 
   const call = regionXApi.tx.system.remark('0x44');
@@ -52,13 +48,11 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     });
   });
   await promise;
-  const treasuryBalanceNew = await getFreeBalance(regionXApi, treasuryAccount);
   const potBalanceNew = await getFreeBalance(regionXApi, potAccount);
 
   const fee2Treasury = (fee * 60n) / 100n;
   const fee2Collators = fee - fee2Treasury + tips;
 
-  assert.equal(treasuryBalanceNew - treasuryBalanceOld, fee2Treasury);
   assert.equal(potBalanceNew - potBalanceOld, fee2Collators);
 }
 

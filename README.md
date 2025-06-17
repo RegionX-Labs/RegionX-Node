@@ -24,16 +24,10 @@
         ```
 
     - fee payment
-        - fee payment in native tokens
+        - fee payment in relay chain currency
 
             ```
             npm run test -- ./zombienet_tests/fee-payment/native-fee-payment.zndsl
-            ```
-
-        - fee payment in custom assets
-
-            ```
-            npm run test -- ./zombienet_tests/fee-payment/custom-fee-payment.zndsl
             ```
 
     - governance
