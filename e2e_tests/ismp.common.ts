@@ -4,7 +4,7 @@ import { submitExtrinsic, submitUnsigned } from './common';
 import { Get, IsmpRequest } from './types';
 
 async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
-  const addParaCall = regionXApi.tx.ismpParachain.addParachain([1005]);
+  const addParaCall = regionXApi.tx.ismpParachain.addParachain([{id: 1005, slotDuration: 6000}]);
   const sudoCall = regionXApi.tx.sudo.sudo(addParaCall);
   return submitExtrinsic(signer, sudoCall, {});
 }

@@ -1,7 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import {
-  RELAY_ASSET_ID,
-  setupRelayAsset,
+  getFreeBalance,
   sleep,
   submitExtrinsic,
   transferRelayAssetToPara,
@@ -25,24 +24,18 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const setXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setXcmVersion), {});
 
-  await setupRelayAsset(regionXApi, alice);
-
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(alice.address);
 
   const assertRegionXBalance = async (address: string, balance: bigint) => {
-    const { free } = (
-      await regionXApi.query.tokens.accounts(address, RELAY_ASSET_ID)
-    ).toJSON() as any;
+    const free = await getFreeBalance(regionXApi, address);
 
     console.log(`RegionX: ${BigInt(free).toString()} | Expected: ${balance}`);
     assert(balance - BigInt(free) < TOLERANCE);
   };
 
   const assertRococoBalance = async (address: string, balance: bigint) => {
-    const {
-      data: { free },
-    } = (await rococoApi.query.system.account(address)).toJSON() as any;
+    const free = await getFreeBalance(rococoApi, address);
 
     console.log(`Rococo: ${BigInt(free).toString()} | Expected: ${balance}`);
     assert(balance - BigInt(free) < TOLERANCE);

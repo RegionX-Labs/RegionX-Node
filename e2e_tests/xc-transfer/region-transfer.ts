@@ -1,7 +1,6 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
 import {
   openHrmpChannel,
-  setupRelayAsset,
   submitExtrinsic,
   transferRelayAssetToPara,
 } from '../common';
@@ -32,8 +31,6 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const txSetRelayXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetCoretimeXcmVersion), {});
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(txSetRelayXcmVersion), {});
-
-  await setupRelayAsset(regionXApi, alice);
 
   await openHrmpChannel(alice, rococoApi, 1005, 2000);
   await openHrmpChannel(alice, rococoApi, 2000, 1005);

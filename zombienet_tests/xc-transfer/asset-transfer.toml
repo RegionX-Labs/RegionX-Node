@@ -17,6 +17,7 @@ command = "polkadot"
 
 [[parachains]]
 id = 2000
+chain = "regionx-kusama-dev"
 addToGenesis = false
 
   [parachains.collator]
