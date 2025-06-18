@@ -20,7 +20,6 @@ use crate::{
 use alloc::{vec, vec::Vec};
 use cumulus_primitives_core::ParaId;
 use polkadot_sdk::*;
-use sp_core::{sr25519, Pair};
 use sp_genesis_builder::PresetId;
 use sp_keyring::Sr25519Keyring;
 use staging_xcm as xcm;
@@ -67,7 +66,8 @@ pub fn regionx_kusama_genesis(
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
 		"sudo": {
-			"key": "5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm"
+			// Alice:
+			"key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 		}
 		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
 		// of this. `aura: Default::default()`
