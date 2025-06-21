@@ -29,9 +29,7 @@ async function submitExtrinsic(
   });
 }
 
-async function submitUnsigned(
-  call: SubmittableExtrinsic<'promise'>,
-): Promise<void> {
+async function submitUnsigned(call: SubmittableExtrinsic<'promise'>): Promise<void> {
   return new Promise((resolve, reject) => {
     const unsub = call.send(({ status, isError }) => {
       console.log(`Current status is ${status}`);
@@ -87,9 +85,9 @@ async function transferRelayAssetToPara(
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
   const reserveTransfer = relayApi.tx.xcmPallet[transferKind](
-    { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
+    { V5: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
-      V3: {
+      V5: {
         parents: 0,
         interior: {
           X1: {
@@ -102,7 +100,7 @@ async function transferRelayAssetToPara(
       },
     }, //beneficiary
     {
-      V3: [
+      V5: [
         {
           id: {
             Concrete: { parents: 0, interior: 'Here' },
@@ -119,19 +117,60 @@ async function transferRelayAssetToPara(
   await submitExtrinsic(signer, reserveTransfer, {});
 }
 
-async function openHrmpChannel(
-  signer: KeyringPair,
-  relayApi: ApiPromise,
-  senderParaId: number,
-  recipientParaId: number
-) {
-  const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(
-    senderParaId, // sender
-    recipientParaId, // recipient
-    8, // Max capacity
-    102400 // Max message size
+async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, regionxApi: ApiPromise) {
+  const openHrmpCall = relayApi.tx.hrmp.establishChannelWithSystem(1005);
+  const xcmCall = regionxApi.tx.polkadotXcm.send(
+    { V5: { parents: 1, interior: 'Here' } },
+    {
+      V5: [
+        {
+          WithdrawAsset: [
+            {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: 'Here',
+                },
+              },
+              fun: {
+                Fungible: 5 * Math.pow(10, 10),
+              },
+            },
+          ],
+        },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: 'Here',
+                },
+              },
+              fun: {
+                Fungible: 5 * Math.pow(10, 10),
+              },
+            },
+            weightLimit: 'Unlimited',
+          },
+        },
+        {
+          Transact: {
+            originKind: 'Native',
+            requireWeightAtMost: {
+              refTime: 1000000000,
+              proofSize: 65536,
+            },
+            call: {
+              encoded: openHrmpCall.method.toHex(),
+            },
+          },
+        },
+      ],
+    }
   );
-  const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
+
+  const sudoCall = regionxApi.tx.sudo.sudo(xcmCall);
 
   return submitExtrinsic(signer, sudoCall, {});
 }

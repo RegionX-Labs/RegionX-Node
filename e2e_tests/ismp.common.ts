@@ -4,7 +4,7 @@ import { submitExtrinsic, submitUnsigned } from './common';
 import { Get, IsmpRequest } from './types';
 
 async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
-  const addParaCall = regionXApi.tx.ismpParachain.addParachain([{id: 1005, slotDuration: 6000}]);
+  const addParaCall = regionXApi.tx.ismpParachain.addParachain([{ id: 1005, slotDuration: 6000 }]);
   const sudoCall = regionXApi.tx.sudo.sudo(addParaCall);
   return submitExtrinsic(signer, sudoCall, {});
 }
@@ -45,10 +45,8 @@ async function makeIsmpResponse(
           proof: {
             height: {
               id: {
-                stateId: {
-                  Kusama: 1005,
-                },
-                consensusStateId: 'PARA',
+                stateId: 1005,
+                consensusStateId: 'PAS0',
               },
               height: request.get.height.toString(),
             },

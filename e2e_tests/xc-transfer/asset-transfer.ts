@@ -1,10 +1,5 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import {
-  getFreeBalance,
-  sleep,
-  submitExtrinsic,
-  transferRelayAssetToPara,
-} from '../common';
+import { getFreeBalance, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
 
 import assert from 'node:assert';
 
