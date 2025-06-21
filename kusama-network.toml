@@ -8,12 +8,10 @@ command = "polkadot"
 
   [[relaychain.nodes]]
   name = "kusama-validator01"
-  args = [ "--log=xcm=trace" ]
   validator = true
 
   [[relaychain.nodes]]
   name = "kusama-validator02"
-  args = [ "--log=xcm=trace" ]
   validator = true
 
 [[parachains]]

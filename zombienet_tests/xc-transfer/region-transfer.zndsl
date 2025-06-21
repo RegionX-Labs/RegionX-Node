@@ -2,9 +2,11 @@ Description: Native currency fee payment
 Network: ./region-transfer.toml
 Creds: config
 
-rococo-validator01: is up
-rococo-validator02: is up
+kusama-validator01: is up
+kusama-validator02: is up
 
-rococo-validator01: parachain 2000 is registered within 225 seconds
+kusama-validator01: parachain 2000 is registered within 225 seconds
 
 regionx-collator01: js-script ../../e2e_tests/build/xc-transfer/region-transfer.js return is 0 within 600 seconds
+
+sleep 200 seconds
