@@ -8,18 +8,16 @@ command = "polkadot"
 
   [[relaychain.nodes]]
   name = "kusama-validator01"
-  args = [ "--log=xcm=trace" ]
   validator = true
 
   [[relaychain.nodes]]
   name = "kusama-validator02"
-  args = [ "--log=xcm=trace" ]
   validator = true
 
 [[parachains]]
 id = 1005
-chain = "coretime-rococo-local"
-# chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "coretime-kusama-local"
+chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 addToGenesis = false
 
   [parachains.collator]
