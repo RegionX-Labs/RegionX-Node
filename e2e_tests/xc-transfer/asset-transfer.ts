@@ -1,5 +1,5 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { getFreeBalance, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
+import { getFreeBalance, sleep, submitExtrinsic, teleportAssetToPara } from '../common';
 
 import assert from 'node:assert';
 
@@ -39,7 +39,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   await assertRegionXBalance(alice.address, 0n);
   await assertRococoBalance(alice.address, 10n ** 18n);
 
-  await transferRelayAssetToPara(rococoApi, alice, 2000, alice.address, 3n * 10n ** 12n);
+  await teleportAssetToPara(rococoApi, alice, 2000, alice.address, 3n * 10n ** 12n);
   await sleep(5 * 1000);
 
   await assertRegionXBalance(alice.address, 3n * 10n ** 12n);

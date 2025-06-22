@@ -1,5 +1,5 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { openHrmpChannel, submitExtrinsic, transferRelayAssetToPara } from '../common';
+import { openHrmpChannel, submitExtrinsic, teleportAssetToPara } from '../common';
 import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
 import { ismpAddParachain } from '../ismp.common';
@@ -33,9 +33,6 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   await openHrmpChannel(alice, relayApi, regionXApi);
   await ismpAddParachain(alice, regionXApi);
-
-  await transferRelayAssetToPara(relayApi, alice, 1005, alice.address, 1000n * UNIT);
-  await transferRelayAssetToPara(relayApi, alice, 2000, alice.address, 1000n * UNIT);
 
   await configureBroker(coretimeApi, alice);
   await startSales(coretimeApi, alice);

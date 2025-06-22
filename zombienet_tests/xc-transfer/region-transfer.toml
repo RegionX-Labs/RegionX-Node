@@ -18,8 +18,8 @@ command = "polkadot"
 
 [[parachains]]
 id = 1005
-chain = "coretime-kusama-local"
-chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "coretime-rococo-local"
+# chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 addToGenesis = false
 
   [parachains.collator]

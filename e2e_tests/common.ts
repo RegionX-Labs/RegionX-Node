@@ -48,28 +48,9 @@ async function submitUnsigned(call: SubmittableExtrinsic<'promise'>): Promise<vo
   });
 }
 
-async function setupRelayAsset(api: ApiPromise, signer: KeyringPair, initialBalance = 0n) {
-  // The relay asset is registered in the genesis block.
-
-  const assetSetupCalls = [
-    api.tx.assetRate.create(RELAY_ASSET_ID, 1_000_000_000_000_000_000n), // 1 on 1
-  ];
-
-  if (initialBalance > BigInt(0)) {
-    assetSetupCalls.push(
-      api.tx.tokens.setBalance(signer.address, RELAY_ASSET_ID, initialBalance, 0)
-    );
-  }
-
-  const batchCall = api.tx.utility.batch(assetSetupCalls);
-  const sudoCall = api.tx.sudo.sudo(batchCall);
-
-  await submitExtrinsic(signer, sudoCall, {});
-}
-
 // Transfer the relay chain asset to the parachain specified by paraId.
 // Receiver address is same as the sender's.
-async function transferRelayAssetToPara(
+async function teleportAssetToPara(
   relayApi: ApiPromise,
   signer: KeyringPair,
   paraId: number,
@@ -79,15 +60,12 @@ async function transferRelayAssetToPara(
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(receiver);
 
-  // If system parachain we use teleportation, otherwise we do a reserve transfer.
-  const transferKind = paraId < 2000 ? 'limitedTeleportAssets' : 'limitedReserveTransferAssets';
-
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
-  const reserveTransfer = relayApi.tx.xcmPallet[transferKind](
-    { V5: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
+  const teleport = relayApi.tx.xcmPallet.limitedTeleportAssets(
+    { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
-      V5: {
+      V3: {
         parents: 0,
         interior: {
           X1: {
@@ -100,7 +78,7 @@ async function transferRelayAssetToPara(
       },
     }, //beneficiary
     {
-      V5: [
+      V3: [
         {
           id: {
             Concrete: { parents: 0, interior: 'Here' },
@@ -114,15 +92,15 @@ async function transferRelayAssetToPara(
     feeAssetItem,
     weightLimit
   );
-  await submitExtrinsic(signer, reserveTransfer, {});
+  await submitExtrinsic(signer, teleport, {});
 }
 
 async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, regionxApi: ApiPromise) {
   const openHrmpCall = relayApi.tx.hrmp.establishChannelWithSystem(1005);
   const xcmCall = regionxApi.tx.polkadotXcm.send(
-    { V5: { parents: 1, interior: 'Here' } },
+    { V3: { parents: 1, interior: 'Here' } },
     {
-      V5: [
+      V3: [
         {
           WithdrawAsset: [
             {
@@ -203,12 +181,11 @@ function log(message: string) {
 export {
   RELAY_ASSET_ID,
   log,
-  setupRelayAsset,
   sleep,
   openHrmpChannel,
   submitExtrinsic,
   submitUnsigned,
-  transferRelayAssetToPara,
+  teleportAssetToPara,
   getAddressFromModuleId,
   getFreeBalance,
 };
