@@ -1,0 +1,11 @@
+endpoint: ws://127.0.0.1:9955
+mock-signature-host: true
+db: ./db.sqlite
+
+import-storage:
+  System:
+    Account:
+      - - - 5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY
+        - providers: 1
+          data:
+            free: 1000000000000000
