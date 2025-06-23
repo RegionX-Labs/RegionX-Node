@@ -29,7 +29,7 @@ async function getRegionId(coretimeApi: ApiPromise): Promise<RegionId | null> {
   for (const record of events) {
     const { event } = record;
     if (event.section === 'broker' && event.method === 'Purchased') {
-      const data = event.data[1].toHuman();
+      const data = event.data[1].toJSON();
       return data;
     }
   }

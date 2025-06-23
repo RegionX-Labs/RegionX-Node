@@ -26,6 +26,7 @@ async function run() {
   const regionId = await purchaseRegion(coretimeApi, alice);
   if (!regionId) throw new Error('RegionId not found');
 
+  console.log(regionId);
   await transferRegionToRegionX(coretimeApi, regionxApi, alice, regionId);
 }
 
