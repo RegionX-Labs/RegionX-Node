@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
 use crate::{FeeHandler, OrderId};
 use frame_support::{
 	derive_impl,
@@ -22,6 +21,7 @@ use frame_support::{
 	traits::{fungible::Mutate, tokens::Preservation, Everything},
 };
 use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
+use polkadot_sdk::*;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},

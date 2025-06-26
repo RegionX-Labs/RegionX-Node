@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
 use crate::{
 	mock::{
 		assignments, new_test_ext, Balances, Orders, Processor, Regions, RelayBlockNumber,
@@ -28,6 +27,7 @@ use frame_support::{
 use nonfungible_primitives::LockableNonFungible;
 use order_primitives::{Order, ParaId, Requirements};
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
+use polkadot_sdk::*;
 
 #[test]
 fn fulfill_order_works() {

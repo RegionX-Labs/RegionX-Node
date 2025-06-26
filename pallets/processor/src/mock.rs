@@ -13,8 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
-use staging_xcm as xcm;
 use core::cell::RefCell;
 use frame_support::{
 	derive_impl,
@@ -38,12 +36,14 @@ use order_primitives::{OrderId, ParaId};
 use pallet_broker::RegionId;
 use pallet_orders::FeeHandler;
 use pallet_regions::primitives::StateMachineHeightProvider;
+use polkadot_sdk::*;
 use smallvec::smallvec;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
 	BuildStorage, DispatchResult, Perbill,
 };
+use staging_xcm as xcm;
 use std::sync::Arc;
 use xcm::opaque::latest::prelude::*;
 

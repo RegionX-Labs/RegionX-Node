@@ -13,7 +13,6 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
 use anyhow;
 use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
 use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
@@ -25,6 +24,7 @@ use ismp::{
 };
 use ismp_testsuite::mocks::Host;
 use pallet_regions::primitives::StateMachineHeightProvider;
+use polkadot_sdk::*;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},

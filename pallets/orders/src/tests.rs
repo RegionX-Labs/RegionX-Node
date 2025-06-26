@@ -13,12 +13,12 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use polkadot_sdk::*;
 use crate::{mock::*, Error, Event, Order, ParaId, Requirements};
 use frame_support::{
 	assert_noop, assert_ok,
 	traits::{Currency, Get},
 };
+use polkadot_sdk::*;
 use sp_runtime::{traits::Convert, ArithmeticError, DispatchError, TokenError};
 
 #[test]
