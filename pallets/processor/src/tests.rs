@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
 use crate::{
 	mock::{
 		assignments, new_test_ext, Balances, Orders, Processor, Regions, RelayBlockNumber,

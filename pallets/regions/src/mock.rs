@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use polkadot_sdk::*;
 use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
 use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
 use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
