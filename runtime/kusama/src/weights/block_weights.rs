@@ -46,8 +46,8 @@ pub mod constants {
 
 	#[cfg(test)]
 	mod test_weights {
-		use polkadot_sdk::*;
 		use frame_support::weights::constants;
+		use polkadot_sdk::*;
 
 		/// Checks that the weight exists and is sane.
 		// NOTE: If this test fails but you are sure that the generated values are fine,
