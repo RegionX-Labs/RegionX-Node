@@ -42,11 +42,11 @@ polkadot-sdk = { workspace = true, features = [
     "pallet-balances",
 ], default-features = true }
 
-pallet-regions = { workspace = true, default-features = false }
-pallet-orders = { workspace = true, default-features = false }
+pallet-regions = { workspace = true, default-features = true }
+pallet-orders = { workspace = true, default-features = true }
 
-ismp = { workspace = true, default-features = false }
-ismp-testsuite = { workspace = true }
+ismp = { workspace = true, default-features = true }
+ismp-testsuite = { workspace = true, default-features = true }
 
 [features]
 default = ["std"]
