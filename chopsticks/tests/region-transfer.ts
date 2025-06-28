@@ -10,6 +10,8 @@ const RELAY_ENDPOINT = "ws://127.0.0.1:8002";
 const CORETIME_ENDPOINT = "ws://127.0.0.1:8000";
 const REGIONX_ENDPOINT = "ws://127.0.0.1:8001";
 
+const REGIONX_PARA_ID = 4242;
+
 export const keyring = new Keyring({ type: "sr25519" });
 
 async function run() {
@@ -27,6 +29,7 @@ async function run() {
   if (!regionId) throw new Error('RegionId not found');
 
   console.log(regionId);
+  console.log(getEncodedRegionId(regionId, coretimeApi).toString());
   await transferRegionToRegionX(coretimeApi, regionxApi, alice, regionId);
 }
 
@@ -42,7 +45,7 @@ async function transferRegionToRegionX(
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
   const reserveTransferToRegionX = coretimeApi.tx.polkadotXcm.limitedReserveTransferAssets(
-    { V3: { parents: 1, interior: { X1: { Parachain: 2000 } } } }, //dest
+    { V3: { parents: 1, interior: { X1: { Parachain: REGIONX_PARA_ID } } } }, //dest
     {
       V3: {
         parents: 0,
