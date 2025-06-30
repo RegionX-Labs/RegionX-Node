@@ -39,7 +39,8 @@ mod benchmarks {
 		let caller: T::AccountId = whitelisted_caller();
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		let timeslice_price: BalanceOf<T> = 1_000u32.into();
@@ -64,7 +65,8 @@ mod benchmarks {
 		let caller: T::AccountId = whitelisted_caller();
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		let timeslice_price: BalanceOf<T> = 1_000u32.into();
@@ -88,7 +90,8 @@ mod benchmarks {
 		let caller: T::AccountId = whitelisted_caller();
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		crate::Pallet::<T>::list_region(
@@ -113,7 +116,8 @@ mod benchmarks {
 		let alice: T::AccountId = account("alice", 0, SEED);
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: alice.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(alice.clone()), paid: None };
 
 		<T as crate::Config>::Currency::set_balance(&alice.clone(), u32::MAX.into());
 		T::Regions::create_region(region_id, record, alice.clone())?;

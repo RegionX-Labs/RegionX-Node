@@ -54,7 +54,8 @@ mod benchmarks {
 
 		// Create a region which meets the requirements:
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		#[extrinsic_call]
@@ -71,7 +72,8 @@ mod benchmarks {
 		let para_id: ParaId = 2000.into();
 
 		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 8, owner: caller.clone(), paid: None };
+		let record: RegionRecordOf<T> =
+			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
 		crate::RegionAssignments::<T>::insert(&region_id, para_id);

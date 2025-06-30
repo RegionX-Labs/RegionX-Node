@@ -75,6 +75,25 @@ const REGION_NOT_UNAVAILABLE: u8 = 2;
 pub type RCBlockNumberOf<T> =
 	<<T as crate::Config>::RCBlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
+#[cfg(any(feature = "runtime-benchmarks", test))]
+#[macro_export]
+macro_rules! assert_ismp_error {
+	($expr:expr, $expected_err:expr) => {
+		let result = $expr;
+		assert!(
+			result.is_err_and(|err| {
+				if let Some(IsmpError::Custom(e)) = err.downcast_ref::<IsmpError>() {
+					e.to_string() == $expected_err.to_string()
+				} else {
+					false
+				}
+			}),
+			"Expected error: {}, but got different error",
+			$expected_err.to_string()
+		);
+	};
+}
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;

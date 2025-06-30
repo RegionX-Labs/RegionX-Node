@@ -60,8 +60,6 @@ use sp_runtime::{
 };
 use staging_parachain_info as parachain_info;
 use staging_xcm as xcm;
-use staging_xcm_builder as xcm_builder;
-use staging_xcm_executor as xcm_executor;
 
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -766,7 +764,7 @@ extern crate frame_benchmarking;
 // TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
-	frame_benchmarking::define_benchmarks!(
+	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_balances, Balances]
@@ -1078,7 +1076,7 @@ impl_runtime_apis! {
 
 		fn dispatch_benchmark(
 			config: frame_benchmarking::BenchmarkConfig
-		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, sp_runtime::RuntimeString> {
+		) -> Result<Vec<frame_benchmarking::BenchmarkBatch>, alloc::string::String> {
 			use frame_benchmarking::{BenchmarkError, Benchmarking, BenchmarkBatch};
 
 			use frame_system_benchmarking::Pallet as SystemBench;
