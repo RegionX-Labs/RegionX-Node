@@ -766,7 +766,7 @@ extern crate frame_benchmarking;
 // TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
-	frame_benchmarking::define_benchmarks!(
+	define_benchmarks!(
 		[frame_system, SystemBench::<Runtime>]
 		[cumulus_pallet_parachain_system, ParachainSystem]
 		[pallet_balances, Balances]

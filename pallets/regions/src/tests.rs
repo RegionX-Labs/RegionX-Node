@@ -14,8 +14,9 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage, types::RegionRecordOf, utils,
-	Error, Event, IsmpCustomError, IsmpModuleCallback, Record, Region,
+	assert_ismp_error, ismp_mock::requests, mock::*, pallet::Regions as RegionsStorage,
+	types::RegionRecordOf, utils, Error, Event, IsmpCustomError, IsmpModuleCallback, Record,
+	Region,
 };
 use frame_support::{
 	assert_noop, assert_ok,
@@ -34,23 +35,6 @@ use region_primitives::RegionInspect;
 
 // pallet hash + storage item hash
 const REGION_PREFIX_KEY: &str = "4dcb50595177a3177648411a42aca0f53dc63b0b76ffd6f80704a090da6f8719";
-
-macro_rules! assert_ismp_error {
-	($expr:expr, $expected_err:expr) => {
-		let result = $expr;
-		assert!(
-			result.is_err_and(|err| {
-				if let Some(IsmpError::Custom(e)) = err.downcast_ref::<IsmpError>() {
-					e.to_string() == $expected_err.to_string()
-				} else {
-					false
-				}
-			}),
-			"Expected error: {}, but got different error",
-			$expected_err.to_string()
-		);
-	};
-}
 
 #[test]
 fn nonfungibles_implementation_works() {

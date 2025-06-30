@@ -21,9 +21,9 @@ use super::*;
 
 use codec::Encode;
 use frame_benchmarking::v2::*;
-use frame_support::{assert_err, assert_ok, traits::nonfungible::Mutate};
+use frame_support::{assert_ok, traits::nonfungible::Mutate};
 use frame_system::RawOrigin;
-use ismp::router::{Get as IsmpGet, GetResponse};
+use ismp::router::{GetRequest, GetResponse, PostRequest};
 use pallet_broker::{CoreMask, RegionId, RegionRecord};
 use sp_core::Get;
 
@@ -76,7 +76,7 @@ mod benchmarks {
 		let owner: T::AccountId = account("alice", 0, SEED);
 
 		let region_id = RegionId { begin: 0, core: 72, mask: CoreMask::complete() };
-		let record: RegionRecordOf<T> = RegionRecord { end: 0, owner, paid: None };
+		let record: RegionRecordOf<T> = RegionRecord { end: 0, owner: Some(owner), paid: None };
 
 		assert_ok!(crate::Pallet::<T>::mint_into(&region_id.into(), &caller));
 		assert_ok!(crate::Pallet::<T>::request_region_record(RawOrigin::None.into(), region_id));
@@ -96,15 +96,15 @@ mod benchmarks {
 		#[block]
 		{
 			// We don't support ISMP post.
-			assert_err!(
-				module.on_accept(Post {
+			assert_ismp_error!(
+				module.on_accept(PostRequest {
 					source: <T as crate::Config>::CoretimeChain::get(),
 					dest: <T as crate::Config>::CoretimeChain::get(),
 					nonce: Default::default(),
 					from: Default::default(),
 					to: Default::default(),
 					timeout_timestamp: Default::default(),
-					data: Default::default(),
+					body: Default::default()
 				}),
 				IsmpCustomError::NotSupported
 			);
@@ -126,7 +126,7 @@ mod benchmarks {
 		// anything other than the key from the request.
 		let key =
 			crate::Pallet::<T>::region_storage_key(region_id).expect("Failed to get storage key");
-		let get = IsmpGet {
+		let get = GetRequest {
 			source: T::CoretimeChain::get(),
 			dest: T::CoretimeChain::get(),
 			nonce: 0,
@@ -134,13 +134,15 @@ mod benchmarks {
 			keys: vec![key.clone()],
 			height: Default::default(),
 			timeout_timestamp: 0,
+			context: Default::default(),
 		};
 
-		let mock_record: RegionRecordOf<T> = RegionRecord { end: 113000, owner, paid: None };
+		let mock_record: RegionRecordOf<T> =
+			RegionRecord { end: 113000, owner: Some(owner), paid: None };
 
 		let mock_response = Response::Get(GetResponse {
 			get: get.clone(),
-			values: BTreeMap::from([(key, Some(mock_record.encode()))]),
+			values: vec![StorageValue { key, value: Some(mock_record.encode()) }],
 		});
 
 		#[block]
@@ -166,7 +168,7 @@ mod benchmarks {
 		// anything other than the key from the request.
 		let key =
 			crate::Pallet::<T>::region_storage_key(region_id).expect("Failed to get storage key");
-		let get = IsmpGet {
+		let get = GetRequest {
 			source: T::CoretimeChain::get(),
 			dest: T::CoretimeChain::get(),
 			nonce: 0,
@@ -174,6 +176,7 @@ mod benchmarks {
 			keys: vec![key.clone()],
 			height: Default::default(),
 			timeout_timestamp: 0,
+			context: Default::default(),
 		};
 		let timeout = Timeout::Request(Request::Get(get.clone()));
 
