@@ -10,6 +10,8 @@ modules=(
     "pallet_timestamp"
     "pallet_utility"
     "pallet_sudo"
+    "pallet_scheduler"
+    "pallet_transaction_payment"
     "pallet_proxy"
     "pallet_preimage"
     "pallet_collator_selection"
