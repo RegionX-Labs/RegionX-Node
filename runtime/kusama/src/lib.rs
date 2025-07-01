@@ -716,7 +716,6 @@ construct_runtime!(
 		Preimage: pallet_preimage = 4,
 		Scheduler: pallet_scheduler = 5,
 
-
 		// Monetary stuff.
 		Balances: pallet_balances = 10,
 		TransactionPayment: pallet_transaction_payment = 11,
@@ -773,6 +772,7 @@ mod benches {
 		[pallet_proxy, Proxy]
 		[pallet_preimage, Preimage]
 		[pallet_timestamp, Timestamp]
+		[pallet_transaction_payment, TransactionPayment]
 		[pallet_utility, Utility]
 		[pallet_sudo, Sudo]
 		[pallet_scheduler, Scheduler]
@@ -785,6 +785,7 @@ mod benches {
 		[pallet_preimage, Preimage]
 		[pallet_processor, Processor]
 		[pallet_scheduler, Scheduler]
+		[ismp_parachain, IsmpParachain]
 	);
 }
 
