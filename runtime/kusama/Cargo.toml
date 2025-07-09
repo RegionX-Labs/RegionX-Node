@@ -40,13 +40,13 @@ pallet-mmr-tree = { workspace = true }
 pallet-mmr-runtime-api = { workspace = true }
 
 cumulus-pallet-parachain-system = { workspace = true }
+frame-benchmarking = { workspace = true, optional = true }
 
 [dependencies.polkadot-sdk]
 workspace = true
 features = [
     "frame-support",
     "frame-system",
-    "frame-benchmarking",
     "frame-executive",
     "frame-system-benchmarking",
     "frame-system-rpc-runtime-api",
@@ -128,9 +128,18 @@ std = [
 ]
 
 runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "polkadot-sdk/frame-system-benchmarking",
     "polkadot-sdk/runtime-benchmarks",
-    "polkadot-sdk/frame-benchmarking",
-    "polkadot-sdk/runtime-benchmarks",
+    "pallet-regions/runtime-benchmarks",
+    "pallet-market/runtime-benchmarks",
+    "pallet-orders/runtime-benchmarks",
+    "pallet-processor/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-ismp/runtime-benchmarks",
+    "ismp-parachain/runtime-benchmarks",
 ]
 
 try-runtime = [
@@ -139,6 +148,9 @@ try-runtime = [
     "pallet-ismp/try-runtime",
 	"cumulus-pallet-parachain-system/try-runtime",
 ]
+
+# This must be used when building for a runtime upgrade so metadata hash verification is possible
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
 
 # Reducing waiting times for governance or other
 fast-runtime = []

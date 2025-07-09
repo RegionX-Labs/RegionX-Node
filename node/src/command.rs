@@ -242,7 +242,7 @@ pub fn run() -> Result<()> {
 					),
 				#[cfg(feature = "runtime-benchmarks")]
 				BenchmarkCmd::Storage(cmd) => runner.sync_run(|config| {
-					let executor = sc_service::new_wasm_executor::<HostFunctions>(&config);
+					let executor = sc_service::new_wasm_executor::<HostFunctions>(&config.executor);
 
 					match config.chain_spec.id() {
             			chain if is_kusama(chain) => {
