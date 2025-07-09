@@ -60,6 +60,8 @@ use sp_runtime::{
 };
 use staging_parachain_info as parachain_info;
 use staging_xcm as xcm;
+use staging_xcm_builder as xcm_builder;
+use staging_xcm_executor as xcm_executor;
 
 use sp_std::prelude::*;
 #[cfg(feature = "std")]
@@ -212,7 +214,6 @@ pub const MILLI_KSM: Balance = 1_000_000_000;
 pub const MICRO_KSM: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	// TODO: ensure this is a sensible value.
 	items as Balance * MILLI_KSM + (bytes as Balance) * 10 * MICRO_KSM
 }
 
@@ -371,8 +372,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO: Make sure this is reasonable
-	pub const TransactionByteFee: Balance = MILLI_KSM;
+	pub const TransactionByteFee: Balance = MICRO_KSM * 10;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -470,7 +470,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 2 * HOURS;
+	pub const Period: u32 = 6 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
@@ -721,7 +721,7 @@ construct_runtime!(
 		TransactionPayment: pallet_transaction_payment = 11,
 
 		// Governance
-		Sudo: pallet_sudo = 20, // TODO: leave this only for testnets
+		Sudo: pallet_sudo = 20, // TODO: remove this later
 
 		// Collator support. The order of these 4 are important and shall not change.
 		Authorship: pallet_authorship = 40,
@@ -760,7 +760,6 @@ construct_runtime!(
 #[macro_use]
 extern crate frame_benchmarking;
 
-// TODO: Add missing modules to benchmarks.
 #[cfg(feature = "runtime-benchmarks")]
 mod benches {
 	define_benchmarks!(
