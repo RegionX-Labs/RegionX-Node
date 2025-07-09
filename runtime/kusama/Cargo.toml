@@ -135,6 +135,11 @@ runtime-benchmarks = [
     "pallet-market/runtime-benchmarks",
     "pallet-orders/runtime-benchmarks",
     "pallet-processor/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-ismp/runtime-benchmarks",
+    "ismp-parachain/runtime-benchmarks",
 ]
 
 try-runtime = [
