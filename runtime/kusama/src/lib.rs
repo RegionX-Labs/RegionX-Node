@@ -371,8 +371,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	// TODO: Make sure this is reasonable
-	pub const TransactionByteFee: Balance = MILLI_KSM;
+	pub const TransactionByteFee: Balance = MICRO_KSM * 10;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -470,7 +469,7 @@ impl cumulus_pallet_xcmp_queue::Config for Runtime {
 }
 
 parameter_types! {
-	pub const Period: u32 = 2 * HOURS;
+	pub const Period: u32 = 6 * HOURS;
 	pub const Offset: u32 = 0;
 }
 
