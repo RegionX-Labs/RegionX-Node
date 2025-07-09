@@ -46,6 +46,7 @@ pub mod constants {
 
 	#[cfg(test)]
 	mod test_weights {
+		use polkadot_sdk::*;
 		use frame_support::weights::constants;
 		use polkadot_sdk::*;
 

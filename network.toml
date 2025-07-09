@@ -1,0 +1,26 @@
+[settings]
+timeout = 1000
+
+[relaychain]
+chain = "kusama-local"
+chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+command = "polkadot"
+
+  [[relaychain.nodes]]
+  name = "kusama-validator01"
+  validator = true
+
+  [[relaychain.nodes]]
+  name = "kusama-validator02"
+  validator = true
+
+[[parachains]]
+id = 4242
+chain = "regionx-kusama-dev"
+addToGenesis = false
+
+  [parachains.collator]
+  name = "regionx-collator01"
+  command = "regionx-node"
+  ws_port = 9955
+  args = [ "--enable-offchain-indexing true --log=xcm=trace,regions=trace" ]
