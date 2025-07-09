@@ -1,5 +1,5 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { openHrmpChannel, submitExtrinsic, teleportAssetToPara } from '../common';
+import { openHrmpChannel, submitExtrinsic } from '../common';
 import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
 import { ismpAddParachain } from '../ismp.common';

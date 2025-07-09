@@ -29,21 +29,7 @@
             ```
             npm run test -- ./zombienet_tests/fee-payment/native-fee-payment.zndsl
             ```
-
-    - governance
-
-        - delegated governance(relay chain token holders)
-
-            ```
-            npm run test -- ./zombienet_tests/governance/delegated-governance.zndsl
-            ```
-
-        - native governance(RegionX token holders)
-
-            ```
-            npm run test -- ./zombienet_tests/governance/native-governance.zndsl
-            ```
-    
+ 
     - cross-chain transfer
 
         - transfer assets
