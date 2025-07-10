@@ -29,9 +29,7 @@ async function submitExtrinsic(
   });
 }
 
-async function submitUnsigned(
-  call: SubmittableExtrinsic<'promise'>,
-): Promise<void> {
+async function submitUnsigned(call: SubmittableExtrinsic<'promise'>): Promise<void> {
   return new Promise((resolve, reject) => {
     const unsub = call.send(({ status, isError }) => {
       console.log(`Current status is ${status}`);
@@ -50,28 +48,9 @@ async function submitUnsigned(
   });
 }
 
-async function setupRelayAsset(api: ApiPromise, signer: KeyringPair, initialBalance = 0n) {
-  // The relay asset is registered in the genesis block.
-
-  const assetSetupCalls = [
-    api.tx.assetRate.create(RELAY_ASSET_ID, 1_000_000_000_000_000_000n), // 1 on 1
-  ];
-
-  if (initialBalance > BigInt(0)) {
-    assetSetupCalls.push(
-      api.tx.tokens.setBalance(signer.address, RELAY_ASSET_ID, initialBalance, 0)
-    );
-  }
-
-  const batchCall = api.tx.utility.batch(assetSetupCalls);
-  const sudoCall = api.tx.sudo.sudo(batchCall);
-
-  await submitExtrinsic(signer, sudoCall, {});
-}
-
 // Transfer the relay chain asset to the parachain specified by paraId.
 // Receiver address is same as the sender's.
-async function transferRelayAssetToPara(
+async function teleportAssetToPara(
   relayApi: ApiPromise,
   signer: KeyringPair,
   paraId: number,
@@ -81,12 +60,9 @@ async function transferRelayAssetToPara(
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(receiver);
 
-  // If system parachain we use teleportation, otherwise we do a reserve transfer.
-  const transferKind = paraId < 2000 ? 'limitedTeleportAssets' : 'limitedReserveTransferAssets';
-
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
-  const reserveTransfer = relayApi.tx.xcmPallet[transferKind](
+  const teleport = relayApi.tx.xcmPallet.limitedTeleportAssets(
     { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
       V3: {
@@ -116,22 +92,63 @@ async function transferRelayAssetToPara(
     feeAssetItem,
     weightLimit
   );
-  await submitExtrinsic(signer, reserveTransfer, {});
+  await submitExtrinsic(signer, teleport, {});
 }
 
-async function openHrmpChannel(
-  signer: KeyringPair,
-  relayApi: ApiPromise,
-  senderParaId: number,
-  recipientParaId: number
-) {
-  const openHrmp = relayApi.tx.parasSudoWrapper.sudoEstablishHrmpChannel(
-    senderParaId, // sender
-    recipientParaId, // recipient
-    8, // Max capacity
-    102400 // Max message size
+async function openHrmpChannel(signer: KeyringPair, relayApi: ApiPromise, regionxApi: ApiPromise) {
+  const openHrmpCall = relayApi.tx.hrmp.establishChannelWithSystem(1005);
+  const xcmCall = regionxApi.tx.polkadotXcm.send(
+    { V3: { parents: 1, interior: 'Here' } },
+    {
+      V3: [
+        {
+          WithdrawAsset: [
+            {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: 'Here',
+                },
+              },
+              fun: {
+                Fungible: 5 * Math.pow(10, 10),
+              },
+            },
+          ],
+        },
+        {
+          BuyExecution: {
+            fees: {
+              id: {
+                Concrete: {
+                  parents: 0,
+                  interior: 'Here',
+                },
+              },
+              fun: {
+                Fungible: 5 * Math.pow(10, 10),
+              },
+            },
+            weightLimit: 'Unlimited',
+          },
+        },
+        {
+          Transact: {
+            originKind: 'Native',
+            requireWeightAtMost: {
+              refTime: 1000000000,
+              proofSize: 65536,
+            },
+            call: {
+              encoded: openHrmpCall.method.toHex(),
+            },
+          },
+        },
+      ],
+    }
   );
-  const sudoCall = relayApi.tx.sudo.sudo(openHrmp);
+
+  const sudoCall = regionxApi.tx.sudo.sudo(xcmCall);
 
   return submitExtrinsic(signer, sudoCall, {});
 }
@@ -164,12 +181,11 @@ function log(message: string) {
 export {
   RELAY_ASSET_ID,
   log,
-  setupRelayAsset,
   sleep,
   openHrmpChannel,
   submitExtrinsic,
   submitUnsigned,
-  transferRelayAssetToPara,
+  teleportAssetToPara,
   getAddressFromModuleId,
   getFreeBalance,
 };

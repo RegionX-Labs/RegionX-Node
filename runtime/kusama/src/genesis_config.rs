@@ -66,7 +66,8 @@ pub fn regionx_kusama_genesis(
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
 		"sudo": {
-			"key": "5DADsnBXr5DXiEAjdJvruf6c7ZSUR8iXUTATQqJfheGLiEVm"
+			// Alice:
+			"key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 		}
 		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
 		// of this. `aura: Default::default()`

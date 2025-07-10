@@ -4,10 +4,9 @@ import {
   log,
   openHrmpChannel,
   RELAY_ASSET_ID,
-  setupRelayAsset,
   sleep,
   submitExtrinsic,
-  transferRelayAssetToPara,
+  teleportAssetToPara,
 } from '../common';
 import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
@@ -39,18 +38,15 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(txSetRelayXcmVersion), {});
   await submitExtrinsic(alice, coretimeApi.tx.sudo.sudo(txSetCoretimeXcmVersion), {});
 
-  log('Setting up relay asset: ');
-  await setupRelayAsset(regionXApi, alice, 500n * UNIT);
-
   log('Opening HRMP: ');
-  await openHrmpChannel(alice, rococoApi, 1005, 2000);
-  await openHrmpChannel(alice, rococoApi, 2000, 1005);
+  await openHrmpChannel(alice, rococoApi, regionXApi);
+  await openHrmpChannel(alice, rococoApi, regionXApi);
   log('Adding ISMP: ');
   await ismpAddParachain(alice, regionXApi);
 
   log('Transfering rc token to RegionX:');
-  await transferRelayAssetToPara(rococoApi, alice, 1005, alice.address, 100n * UNIT);
-  await transferRelayAssetToPara(rococoApi, alice, 2000, alice.address, 100n * UNIT);
+  await teleportAssetToPara(rococoApi, alice, 1005, alice.address, 100n * UNIT);
+  await teleportAssetToPara(rococoApi, alice, 2000, alice.address, 100n * UNIT);
 
   log('Configuring coretime chain:');
   await configureBroker(coretimeApi, alice);

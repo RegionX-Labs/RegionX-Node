@@ -37,8 +37,9 @@ use staging_xcm_executor as xcm_executor;
 use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
 use xcm_builder::{
 	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	DenyReserveTransferToRelayChain, DenyThenTry, EnsureXcmOrigin, FixedWeightBounds,
-	FrameTransactionalProcessor, FungibleAdapter, IsConcrete, NativeAsset, NonFungibleAdapter,
+	DenyReserveTransferToRelayChain, DenyThenTry, DescribeAllTerminal, DescribeFamily,
+	DescribeTerminus, EnsureXcmOrigin, FixedWeightBounds, FrameTransactionalProcessor,
+	FungibleAdapter, HashedDescription, IsConcrete, NativeAsset, NonFungibleAdapter,
 	ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount, SiblingParachainAsNative,
 	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
 	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
@@ -84,6 +85,10 @@ pub type LocationToAccountId = (
 	SiblingParachainConvertsVia<Sibling, AccountId>,
 	// Straight up local `AccountId32` origins just alias directly to `AccountId`.
 	AccountId32Aliases<RelayNetwork, AccountId>,
+	// Here/local root location to `AccountId`.
+	HashedDescription<AccountId, DescribeTerminus>,
+	// Foreign locations alias into accounts according to a hash of their standard description.
+	HashedDescription<AccountId, DescribeFamily<DescribeAllTerminal>>,
 );
 
 parameter_types! {

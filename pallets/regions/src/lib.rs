@@ -26,7 +26,7 @@ use ismp::{
 	module::IsmpModule,
 	router::{PostRequest, Request, Response, StorageValue, Timeout},
 };
-use ismp_parachain::PARACHAIN_CONSENSUS_ID;
+use ismp_parachain::PASEO_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
@@ -345,7 +345,7 @@ pub mod pallet {
 			let coretime_chain_height =
 				T::StateMachineHeightProvider::latest_state_machine_height(StateMachineId {
 					state_id: T::CoretimeChain::get(),
-					consensus_state_id: PARACHAIN_CONSENSUS_ID,
+					consensus_state_id: PASEO_CONSENSUS_ID, // Is this used on Kusama?
 				})
 				.ok_or(Error::<T>::LatestHeightInaccessible)?;
 

@@ -51,6 +51,7 @@ pub mod constants {
 	mod test_db_weights {
 		use super::constants::RocksDbWeight as W;
 		use frame_support::weights::constants;
+		use polkadot_sdk::*;
 
 		/// Checks that all weights exist and have sane values.
 		// NOTE: If this test fails but you are sure that the generated values are fine,
