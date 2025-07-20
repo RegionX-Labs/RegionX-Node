@@ -81,6 +81,10 @@ pub fn is_kusama(id: &str) -> bool {
 	id.contains("kusama") || id.is_empty()
 }
 
+pub fn is_westend(id: &str) -> bool {
+	id.contains("westend")
+}
+
 /// Starts a `ServiceBuilder` for a full service.
 ///
 /// Use this macro if you don't actually need the full service, but just the builder in order to
@@ -499,6 +503,15 @@ pub async fn start_parachain_node(
 	match parachain_config.chain_spec.id() {
 		chain if is_kusama(chain) =>
 			start_node_impl::<regionx_kusama_runtime::RuntimeApi>(
+				parachain_config,
+				polkadot_config,
+				collator_options,
+				para_id,
+				hwbench,
+			)
+			.await,
+		chain if is_westend(chain) =>
+			start_node_impl::<regionx_westend_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
 				collator_options,

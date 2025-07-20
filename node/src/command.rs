@@ -30,13 +30,14 @@ use sp_runtime::traits::AccountIdConversion;
 use crate::{
 	chain_spec,
 	cli::{Cli, RelayChainCli, Subcommand},
-	service::{is_kusama, new_partial, HostFunctions},
+	service::{is_kusama, is_westend, new_partial, HostFunctions},
 };
 
 fn load_spec(id: &str) -> std::result::Result<Box<dyn ChainSpec>, String> {
 	Ok(match id {
 		// TODO: Para Id
 		"regionx-kusama-dev" => Box::new(chain_spec::regionx_kusama_development_chain_spec()),
+		"regionx-westend-dev" => Box::new(chain_spec::regionx_westend_development_chain_spec()),
 		path => Box::new(chain_spec::ChainSpec::from_json_file(std::path::PathBuf::from(path))?),
 	})
 }
@@ -125,6 +126,14 @@ macro_rules! construct_async_run {
 					{ $( $code )* }.map(|v| (v, task_manager))
 				})
 			},
+            chain if is_westend(chain) => {
+				runner.async_run(|$config| {
+					let executor = sc_service::new_wasm_executor::<HostFunctions>(&$config.executor);
+					let $components = new_partial::<regionx_westend_runtime::RuntimeApi, _>(&$config, executor)?;
+					let task_manager = $components.task_manager;
+					{ $( $code )* }.map(|v| (v, task_manager))
+				})
+			},
 			chain => panic!("Unknown chain with id: {}", chain),
 		}
 	}}
@@ -193,6 +202,11 @@ pub fn run() -> Result<()> {
 						new_partial::<regionx_kusama_runtime::RuntimeApi, _>(&config, executor)?;
 						cmd.run(partials.client)
 					},
+           			chain if is_westend(chain) => {
+						let partials =
+						new_partial::<regionx_westend_runtime::RuntimeApi, _>(&config, executor)?;
+						cmd.run(partials.client)
+					},
 					chain => panic!("Unknown chain with id: {}", chain),
 				}
 			})
@@ -229,6 +243,11 @@ pub fn run() -> Result<()> {
 								new_partial::<regionx_kusama_runtime::RuntimeApi, _>(&config, executor)?;
 							cmd.run(partials.client)
 						},
+            			chain if is_westend(chain) => {
+							let partials =
+								new_partial::<regionx_westend_runtime::RuntimeApi, _>(&config, executor)?;
+							cmd.run(partials.client)
+						},
 						chain => panic!("Unknown chain with id: {}", chain),
 					}
 				}),
@@ -248,6 +267,13 @@ pub fn run() -> Result<()> {
             			chain if is_kusama(chain) => {
 							let partials =
 								new_partial::<regionx_kusama_runtime::RuntimeApi, _>(&config, executor)?;
+							let db = partials.backend.expose_db();
+							let storage = partials.backend.expose_storage();
+							cmd.run(config, partials.client.clone(), db, storage)
+						},
+            			chain if is_westend(chain) => {
+							let partials =
+								new_partial::<regionx_westend_runtime::RuntimeApi, _>(&config, executor)?;
 							let db = partials.backend.expose_db();
 							let storage = partials.backend.expose_storage();
 							cmd.run(config, partials.client.clone(), db, storage)

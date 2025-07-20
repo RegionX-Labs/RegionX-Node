@@ -23,6 +23,7 @@ serde_json = { workspace = true }
 
 # Local
 regionx-kusama-runtime = { workspace = true }
+regionx-westend-runtime = { workspace = true }
 regionx-runtime-common = { workspace = true }
 
 # Polytope Labs
