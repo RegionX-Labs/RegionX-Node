@@ -1,5 +1,5 @@
 [package]
-# RegionX Kusama runtime
+# RegionX Westend runtime
 name = "regionx-westend-runtime"
 version = "0.1.0"
 authors.workspace = true
@@ -143,10 +143,10 @@ runtime-benchmarks = [
 ]
 
 try-runtime = [
-	"polkadot-sdk/try-runtime",
+    "polkadot-sdk/try-runtime",
     "polkadot-sdk/frame-try-runtime",
     "pallet-ismp/try-runtime",
-	"cumulus-pallet-parachain-system/try-runtime",
+    "cumulus-pallet-parachain-system/try-runtime",
 ]
 
 # This must be used when building for a runtime upgrade so metadata hash verification is possible
