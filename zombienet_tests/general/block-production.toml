@@ -1,18 +1,18 @@
 [settings]
 timeout = 1000
 
-
 [relaychain]
-chain = "westend-dev" # TODO: Kusama local
+chain = "westend-local" # TODO: Kusama local
+default_args = ["-lparachain=debug,xcm=trace"]
 command = "polkadot"
 
   [[relaychain.nodes]]
   name = "alice"
-  args = [ "--alice", "-lruntime=debug,parachain=trace" ]
+  balance = 2000000000000
 
   [[relaychain.nodes]]
   name = "bob"
-  args = [ "--bob", "-lruntime=debug,parachain=trace" ]
+  balance = 2000000000000
 
 [[parachains]]
 id = 2000
