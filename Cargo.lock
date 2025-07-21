@@ -13084,6 +13084,7 @@ dependencies = [
  "polkadot-sdk",
  "regionx-kusama-runtime",
  "regionx-runtime-common",
+ "regionx-westend-runtime",
  "serde",
  "serde_json",
 ]
@@ -13095,6 +13096,35 @@ dependencies = [
  "parity-scale-codec",
  "polkadot-sdk",
  "scale-info",
+]
+
+[[package]]
+name = "regionx-westend-runtime"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "cumulus-pallet-parachain-system",
+ "frame-benchmarking",
+ "ismp",
+ "ismp-parachain",
+ "ismp-parachain-runtime-api",
+ "log",
+ "order-primitives",
+ "pallet-ismp",
+ "pallet-ismp-runtime-api",
+ "pallet-market",
+ "pallet-mmr-runtime-api",
+ "pallet-mmr-tree",
+ "pallet-orders",
+ "pallet-processor",
+ "pallet-regions",
+ "parity-scale-codec",
+ "polkadot-sdk",
+ "regionx-runtime-common",
+ "scale-info",
+ "serde_json",
+ "smallvec",
+ "substrate-wasm-builder",
 ]
 
 [[package]]
