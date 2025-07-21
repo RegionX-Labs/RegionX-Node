@@ -48,7 +48,10 @@ use sc_client_api::Backend;
 use sc_consensus::ImportQueue;
 use sc_executor::WasmExecutor;
 use sc_network::NetworkBlock;
-use sc_service::{Configuration, PartialComponents, TFullBackend, TFullClient, TaskManager};
+use sc_service::{
+	error::Error as ServiceError, Configuration, PartialComponents, TFullBackend, TFullClient,
+	TaskManager,
+};
 use sc_telemetry::{Telemetry, TelemetryHandle, TelemetryWorker, TelemetryWorkerHandle};
 use sc_transaction_pool_api::OffchainTransactionPoolFactory;
 use sp_keystore::KeystorePtr;
@@ -101,7 +104,7 @@ pub fn new_partial<Runtime, Executor>(
 		sc_transaction_pool::TransactionPoolHandle<opaque::Block, FullClient<Runtime, Executor>>,
 		(ParachainBlockImport<Runtime, Executor>, Option<Telemetry>, Option<TelemetryWorkerHandle>),
 	>,
-	sc_service::Error,
+	ServiceError,
 >
 where
 	Runtime:
@@ -215,7 +218,7 @@ where
 		hwbench.clone(),
 	)
 	.await
-	.map_err(|e| sc_service::Error::Application(Box::new(e) as Box<_>))?;
+	.map_err(|e| ServiceError::Application(Box::new(e) as Box<_>))?;
 
 	let validator = parachain_config.role.is_authority();
 	let prometheus_registry = parachain_config.prometheus_registry().cloned();
@@ -324,7 +327,7 @@ where
 
 	let overseer_handle = relay_chain_interface
 		.overseer_handle()
-		.map_err(|e| sc_service::Error::Application(Box::new(e)))?;
+		.map_err(|e| ServiceError::Application(Box::new(e)))?;
 
 	start_relay_chain_tasks(StartRelayChainTasksParams {
 		client: client.clone(),
@@ -374,7 +377,7 @@ fn build_import_queue<Runtime, Executor>(
 	config: &Configuration,
 	telemetry: Option<TelemetryHandle>,
 	task_manager: &TaskManager,
-) -> Result<sc_consensus::DefaultImportQueue<Block>, sc_service::Error>
+) -> Result<sc_consensus::DefaultImportQueue<Block>, ServiceError>
 where
 	Runtime:
 		ConstructRuntimeApi<opaque::Block, FullClient<Runtime, Executor>> + Send + Sync + 'static,
@@ -420,7 +423,7 @@ fn start_consensus<Runtime>(
 	collator_key: CollatorPair,
 	overseer_handle: OverseerHandle,
 	announce_block: Arc<dyn Fn(Hash, Option<Vec<u8>>) + Send + Sync>,
-) -> Result<(), sc_service::Error>
+) -> Result<(), ServiceError>
 where
 	Runtime: ConstructRuntimeApi<opaque::Block, FullClient<Runtime>> + Send + Sync + 'static,
 	Runtime::RuntimeApi: crate::runtime_api::BaseHostRuntimeApis,
@@ -501,7 +504,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
-		chain if is_kusama(chain) =>
+		chain if is_kusama(chain) => {
 			start_node_impl::<regionx_kusama_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
@@ -509,8 +512,9 @@ pub async fn start_parachain_node(
 				para_id,
 				hwbench,
 			)
-			.await,
-		chain if is_westend(chain) =>
+			.await
+		},
+		chain if is_westend(chain) => {
 			start_node_impl::<regionx_westend_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
@@ -518,7 +522,8 @@ pub async fn start_parachain_node(
 				para_id,
 				hwbench,
 			)
-			.await,
+			.await
+		},
 		chain => panic!("Unknown chain with id: {}", chain),
 	}
 }
