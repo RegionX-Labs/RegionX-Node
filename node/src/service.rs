@@ -504,7 +504,7 @@ pub async fn start_parachain_node(
 	hwbench: Option<sc_sysinfo::HwBench>,
 ) -> sc_service::error::Result<TaskManager> {
 	match parachain_config.chain_spec.id() {
-		chain if is_kusama(chain) => {
+		chain if is_kusama(chain) =>
 			start_node_impl::<regionx_kusama_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
@@ -512,9 +512,8 @@ pub async fn start_parachain_node(
 				para_id,
 				hwbench,
 			)
-			.await
-		},
-		chain if is_westend(chain) => {
+			.await,
+		chain if is_westend(chain) =>
 			start_node_impl::<regionx_westend_runtime::RuntimeApi>(
 				parachain_config,
 				polkadot_config,
@@ -522,8 +521,7 @@ pub async fn start_parachain_node(
 				para_id,
 				hwbench,
 			)
-			.await
-		},
+			.await,
 		chain => panic!("Unknown chain with id: {}", chain),
 	}
 }
