@@ -46,7 +46,7 @@ pub fn regionx_kusama_genesis(
 		},
 		"collatorSelection": CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
-			candidacy_bond: KSM * 5,
+			candidacy_bond: KSM * 1,
 			..Default::default()
 		},
 		"session": SessionConfig {
@@ -66,7 +66,6 @@ pub fn regionx_kusama_genesis(
 			"safeXcmVersion": Some(SAFE_XCM_VERSION),
 		},
 		"sudo": {
-			// Alice:
 			"key": "5GrwvaEF5zXb26Fz9rcQpDWS57CtERHpNehXCPcNoHGKutQY"
 		}
 		// no need to pass anything to aura, in fact it will panic if we do. Session will take care
