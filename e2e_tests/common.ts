@@ -50,7 +50,7 @@ async function submitUnsigned(call: SubmittableExtrinsic<'promise'>): Promise<vo
 
 // Transfer the relay chain asset to the parachain specified by paraId.
 // Receiver address is same as the sender's.
-async function teleportAssetToPara(
+async function transferRelayAssetToPara(
   relayApi: ApiPromise,
   signer: KeyringPair,
   paraId: number,
@@ -62,7 +62,10 @@ async function teleportAssetToPara(
 
   const feeAssetItem = 0;
   const weightLimit = 'Unlimited';
-  const teleport = relayApi.tx.xcmPallet.limitedTeleportAssets(
+
+  const transferKind = paraId < 2000 ? 'limitedTeleportAssets' : 'limitedReserveTransferAssets';
+
+  const teleport = relayApi.tx.xcmPallet[transferKind](
     { V3: { parents: 0, interior: { X1: { Parachain: paraId } } } }, //dest
     {
       V3: {
@@ -185,7 +188,7 @@ export {
   openHrmpChannel,
   submitExtrinsic,
   submitUnsigned,
-  teleportAssetToPara,
+  transferRelayAssetToPara,
   getAddressFromModuleId,
   getFreeBalance,
 };

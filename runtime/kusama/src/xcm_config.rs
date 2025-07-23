@@ -26,7 +26,8 @@ use frame_support::{
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::{
-	AllSiblingSystemParachains, ConcreteAssetFromSystem, RelayOrOtherSystemParachains,
+	AllSiblingSystemParachains, ParentRelayOrSiblingParachains,
+	RelayOrOtherSystemParachains,
 };
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_sdk::*;
@@ -34,16 +35,17 @@ use sp_runtime::traits::AccountIdConversion;
 use staging_xcm as xcm;
 use staging_xcm_builder as xcm_builder;
 use staging_xcm_executor as xcm_executor;
-use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
+use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	DenyReserveTransferToRelayChain, DenyThenTry, DescribeAllTerminal, DescribeFamily,
-	DescribeTerminus, EnsureXcmOrigin, FixedWeightBounds, FrameTransactionalProcessor,
-	FungibleAdapter, HashedDescription, IsConcrete, NativeAsset, NonFungibleAdapter,
-	ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
-	WithComputedOrigin, WithUniqueTopic, XcmFeeManagerFromComponents,
+	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, DenyReserveTransferToRelayChain,
+	DenyThenTry, DescribeAllTerminal, DescribeFamily, DescribeTerminus, EnsureXcmOrigin,
+	FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete,
+	NativeAsset, NonFungibleAdapter, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
+	SendXcmFeeToAccount, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	XcmFeeManagerFromComponents,
 };
 use xcm_executor::{traits::ConvertLocation, XcmExecutor};
 
@@ -177,7 +179,7 @@ pub type Barrier = TrailingSetTopicAsId<
 					// allow it.
 					AllowTopLevelPaidExecutionFrom<Everything>,
 					// Parent and its exec plurality get free execution
-					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
+					AllowExplicitUnpaidExecutionFrom<ParentOrParentsPlurality>,
 					// Subscriptions for version tracking are OK.
 					AllowSubscriptionsFrom<ParentRelayOrSiblingParachains>,
 				),
@@ -215,7 +217,7 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = TrustedReserves;
-	type IsTeleporter = ConcreteAssetFromSystem<RelayLocation>;
+	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;

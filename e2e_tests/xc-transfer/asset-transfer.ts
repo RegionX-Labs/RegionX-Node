@@ -1,9 +1,9 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { getFreeBalance, sleep, submitExtrinsic, teleportAssetToPara } from '../common';
+import { getFreeBalance, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
 
 import assert from 'node:assert';
 
-const TOLERANCE = 10n ** 8n;
+const TOLERANCE = 10n ** 9n;
 
 async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
@@ -19,14 +19,12 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
 
   const setXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setXcmVersion), {});
-  await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(rococoApi.tx.balances.forceSetBalance(jason.address, 10n ** 18n)), {});
 
   const receiverKeypair = new Keyring();
   receiverKeypair.addFromAddress(jason.address);
 
   const assertRegionXBalance = async (address: string, balance: bigint) => {
     const free = await getFreeBalance(regionXApi, address);
-    console.log('Fri ' + free);
 
     console.log(`RegionX: ${BigInt(free).toString()} | Expected: ${balance}`);
     assert(balance - BigInt(free) < TOLERANCE);
@@ -40,13 +38,13 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   };
 
   await assertRegionXBalance(jason.address, 0n);
-  await assertRococoBalance(jason.address, 10n ** 18n);
+  await assertRococoBalance(jason.address, 0n);
 
-  await teleportAssetToPara(rococoApi, jason, 2000, jason.address, 3n * 10n ** 12n);
-  await sleep(5 * 1000);
+  await transferRelayAssetToPara(rococoApi, alice, 2000, jason.address, 3n * 10n ** 12n);
+  await sleep(18 * 1000);
 
   await assertRegionXBalance(jason.address, 3n * 10n ** 12n);
-  await assertRococoBalance(jason.address, 10n ** 18n - 3n * 10n ** 12n);
+  await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 
   const regionXReserveTransfer = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
     { V3: { parents: 1, interior: 'Here' } }, //dest
@@ -84,7 +82,7 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   await sleep(5 * 1000);
 
   await assertRegionXBalance(jason.address, 2n * 10n ** 12n);
-  await assertRococoBalance(jason.address, 10n ** 18n - 3n * 10n ** 12n);
+  await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 }
 
 export { run };
