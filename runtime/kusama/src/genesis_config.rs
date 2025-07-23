@@ -46,7 +46,7 @@ pub fn regionx_kusama_genesis(
 		},
 		"collatorSelection": CollatorSelectionConfig {
 			invulnerables: invulnerables.iter().cloned().map(|(acc, _)| acc).collect(),
-			candidacy_bond: KSM * 1,
+			candidacy_bond: KSM,
 			..Default::default()
 		},
 		"session": SessionConfig {
