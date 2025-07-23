@@ -1,9 +1,9 @@
 import { ApiPromise, Keyring, WsProvider } from '@polkadot/api';
-import { getFreeBalance, sleep, submitExtrinsic, teleportAssetToPara } from '../common';
+import { getFreeBalance, sleep, submitExtrinsic, transferRelayAssetToPara } from '../common';
 
 import assert from 'node:assert';
 
-const TOLERANCE = 10n ** 10n;
+const TOLERANCE = 10n ** 9n;
 
 async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName[nodeName];
@@ -15,12 +15,13 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
   // account to submit tx
   const keyring = new Keyring({ type: 'sr25519' });
   const alice = keyring.addFromUri('//Alice');
+  const jason = keyring.addFromUri('//Jason');
 
   const setXcmVersion = rococoApi.tx.xcmPallet.forceDefaultXcmVersion([3]);
   await submitExtrinsic(alice, rococoApi.tx.sudo.sudo(setXcmVersion), {});
 
   const receiverKeypair = new Keyring();
-  receiverKeypair.addFromAddress(alice.address);
+  receiverKeypair.addFromAddress(jason.address);
 
   const assertRegionXBalance = async (address: string, balance: bigint) => {
     const free = await getFreeBalance(regionXApi, address);
@@ -36,13 +37,13 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     assert(balance - BigInt(free) < TOLERANCE);
   };
 
-  await assertRegionXBalance(alice.address, 0n);
-  await assertRococoBalance(alice.address, 10n ** 18n);
+  await assertRegionXBalance(jason.address, 0n);
+  await assertRococoBalance(jason.address, 0n);
 
-  await teleportAssetToPara(rococoApi, alice, 2000, alice.address, 3n * 10n ** 12n);
-  await sleep(5 * 1000);
+  await transferRelayAssetToPara(rococoApi, alice, 2000, jason.address, 3n * 10n ** 12n);
+  await sleep(18 * 1000);
 
-  await assertRegionXBalance(alice.address, 3n * 10n ** 12n);
+  await assertRegionXBalance(jason.address, 3n * 10n ** 12n);
   await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 
   const regionXReserveTransfer = regionXApi.tx.polkadotXcm.limitedReserveTransferAssets(
@@ -76,11 +77,11 @@ async function run(nodeName: string, networkInfo: any, _jsArgs: any) {
     'Unlimited'
   );
 
-  await submitExtrinsic(alice, regionXReserveTransfer, {});
+  await submitExtrinsic(jason, regionXReserveTransfer, {});
 
   await sleep(5 * 1000);
 
-  await assertRegionXBalance(alice.address, 2n * 10n ** 12n);
+  await assertRegionXBalance(jason.address, 2n * 10n ** 12n);
   await assertRococoBalance(alice.address, 10n ** 18n - 3n * 10n ** 12n);
 }
 

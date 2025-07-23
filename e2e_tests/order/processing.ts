@@ -6,7 +6,7 @@ import {
   RELAY_ASSET_ID,
   sleep,
   submitExtrinsic,
-  teleportAssetToPara,
+  transferRelayAssetToPara,
 } from '../common';
 import { UNIT } from '../consts';
 import { configureBroker, purchaseRegion, startSales } from '../coretime.common';
@@ -45,8 +45,8 @@ async function run(_nodeName: string, networkInfo: any, _jsArgs: any) {
   await ismpAddParachain(alice, regionXApi);
 
   log('Transfering rc token to RegionX:');
-  await teleportAssetToPara(rococoApi, alice, 1005, alice.address, 100n * UNIT);
-  await teleportAssetToPara(rococoApi, alice, 2000, alice.address, 100n * UNIT);
+  await transferRelayAssetToPara(rococoApi, alice, 1005, alice.address, 100n * UNIT);
+  await transferRelayAssetToPara(rococoApi, alice, 2000, alice.address, 100n * UNIT);
 
   log('Configuring coretime chain:');
   await configureBroker(coretimeApi, alice);

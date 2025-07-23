@@ -26,7 +26,7 @@ use frame_support::{
 use frame_system::EnsureRoot;
 use pallet_xcm::XcmPassthrough;
 use parachains_common::xcm_config::{
-	AllSiblingSystemParachains, ConcreteAssetFromSystem, RelayOrOtherSystemParachains,
+	AllSiblingSystemParachains, ParentRelayOrSiblingParachains, RelayOrOtherSystemParachains,
 };
 use polkadot_parachain_primitives::primitives::Sibling;
 use polkadot_sdk::*;
@@ -34,16 +34,17 @@ use sp_runtime::traits::AccountIdConversion;
 use staging_xcm as xcm;
 use staging_xcm_builder as xcm_builder;
 use staging_xcm_executor as xcm_executor;
-use xcm::{latest::prelude::*, opaque::latest::Junctions::X1};
+use xcm::latest::prelude::*;
 use xcm_builder::{
-	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowTopLevelPaidExecutionFrom,
-	DenyReserveTransferToRelayChain, DenyThenTry, DescribeAllTerminal, DescribeFamily,
-	DescribeTerminus, EnsureXcmOrigin, FixedWeightBounds, FrameTransactionalProcessor,
-	FungibleAdapter, HashedDescription, IsConcrete, NativeAsset, NonFungibleAdapter,
-	ParentIsPreset, RelayChainAsNative, SendXcmFeeToAccount, SiblingParachainAsNative,
-	SiblingParachainConvertsVia, SignedAccountId32AsNative, SignedToAccountId32,
-	SovereignSignedViaLocation, TakeWeightCredit, TrailingSetTopicAsId, UsingComponents,
-	WithComputedOrigin, WithUniqueTopic, XcmFeeManagerFromComponents,
+	AccountId32Aliases, AllowExplicitUnpaidExecutionFrom, AllowKnownQueryResponses,
+	AllowSubscriptionsFrom, AllowTopLevelPaidExecutionFrom, DenyReserveTransferToRelayChain,
+	DenyThenTry, DescribeAllTerminal, DescribeFamily, DescribeTerminus, EnsureXcmOrigin,
+	FixedWeightBounds, FrameTransactionalProcessor, FungibleAdapter, HashedDescription, IsConcrete,
+	NativeAsset, NonFungibleAdapter, ParentAsSuperuser, ParentIsPreset, RelayChainAsNative,
+	SendXcmFeeToAccount, SiblingParachainAsNative, SiblingParachainConvertsVia,
+	SignedAccountId32AsNative, SignedToAccountId32, SovereignSignedViaLocation, TakeWeightCredit,
+	TrailingSetTopicAsId, UsingComponents, WithComputedOrigin, WithUniqueTopic,
+	XcmFeeManagerFromComponents,
 };
 use xcm_executor::{traits::ConvertLocation, XcmExecutor};
 
@@ -124,8 +125,7 @@ pub type RegionTransactor = NonFungibleAdapter<
 	(),
 >;
 
-// pub type AssetTransactors = (RegionTransactor, FungiblesAssetTransactor);
-pub type AssetTransactors = (RegionTransactor, FungibleTransactor);
+pub type AssetTransactors = (FungibleTransactor, RegionTransactor);
 
 /// This is the type we use to convert an (incoming) XCM origin into a local `Origin` instance,
 /// ready for dispatching a transaction with Xcm's `Transact`. There is an `OriginKind` which can
@@ -141,6 +141,9 @@ pub type XcmOriginToTransactDispatchOrigin = (
 	// Native converter for sibling Parachains; will convert to a `SiblingPara` origin when
 	// recognized.
 	SiblingParachainAsNative<cumulus_pallet_xcm::Origin, RuntimeOrigin>,
+	// Superuser converter for the Relay-chain (Parent) location. This will allow it to issue a
+	// transaction from the Root origin.
+	ParentAsSuperuser<RuntimeOrigin>,
 	// Native signed account converter; this just converts an `AccountId32` origin into a normal
 	// `RuntimeOrigin::Signed` origin of the same 32-byte value.
 	SignedAccountId32AsNative<RelayNetwork, RuntimeOrigin>,
@@ -155,17 +158,10 @@ parameter_types! {
 	pub const MaxAssetsIntoHolding: u32 = 64;
 }
 
-pub struct ParentOrParentsExecutivePlurality;
-impl Contains<Location> for ParentOrParentsExecutivePlurality {
+pub struct ParentOrParentsPlurality;
+impl Contains<Location> for ParentOrParentsPlurality {
 	fn contains(location: &Location) -> bool {
-		match location {
-			Location { parents: 1, interior: Here } => true,
-			Location { parents: 1, interior: X1(arc) }
-				if arc.len() == 1 &&
-					matches!(arc.as_ref(), [Plurality { id: BodyId::Executive, .. }]) =>
-				true,
-			_ => false,
-		}
+		matches!(location.unpack(), (1, []) | (1, [Plurality { .. }]))
 	}
 }
 
@@ -174,11 +170,17 @@ pub type Barrier = TrailingSetTopicAsId<
 		DenyReserveTransferToRelayChain,
 		(
 			TakeWeightCredit,
+			// Expected responses are OK.
+			AllowKnownQueryResponses<PolkadotXcm>,
 			WithComputedOrigin<
 				(
+					// If the message is one that immediately attemps to pay for execution, then
+					// allow it.
 					AllowTopLevelPaidExecutionFrom<Everything>,
-					AllowExplicitUnpaidExecutionFrom<ParentOrParentsExecutivePlurality>,
-					// ^^^ Parent and its exec plurality get free execution
+					// Parent and its exec plurality get free execution
+					AllowExplicitUnpaidExecutionFrom<ParentOrParentsPlurality>,
+					// Subscriptions for version tracking are OK.
+					AllowSubscriptionsFrom<ParentRelayOrSiblingParachains>,
 				),
 				UniversalLocation,
 				ConstU32<8>,
@@ -214,7 +216,7 @@ impl xcm_executor::Config for XcmConfig {
 	type AssetTransactor = AssetTransactors;
 	type OriginConverter = XcmOriginToTransactDispatchOrigin;
 	type IsReserve = TrustedReserves;
-	type IsTeleporter = ConcreteAssetFromSystem<RelayLocation>;
+	type IsTeleporter = (); // Teleporting is disabled.
 	type UniversalLocation = UniversalLocation;
 	type Barrier = Barrier;
 	type Weigher = FixedWeightBounds<UnitWeightCost, RuntimeCall, MaxInstructions>;
@@ -248,8 +250,9 @@ impl xcm_executor::Config for XcmConfig {
 	type HrmpChannelClosingHandler = ();
 }
 
-/// No local origins on this chain are allowed to dispatch XCM sends/executions.
-pub type LocalOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>;
+/// Converts a local signed origin into an XCM `Location`. Forms the basis for local origins
+/// sending/executing XCMs.
+pub type LocalSignedOriginToLocation = SignedToAccountId32<RuntimeOrigin, AccountId, RelayNetwork>;
 
 /// The means for routing XCM messages which are not for local execution into the right message
 /// queues.
@@ -262,9 +265,9 @@ pub type XcmRouter = WithUniqueTopic<(
 
 impl pallet_xcm::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
-	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
+	type SendXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalSignedOriginToLocation>;
 	type XcmRouter = XcmRouter;
-	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalOriginToLocation>;
+	type ExecuteXcmOrigin = EnsureXcmOrigin<RuntimeOrigin, LocalSignedOriginToLocation>;
 	type XcmExecuteFilter = Nothing;
 	// ^ Disable dispatchable execute on the XCM pallet.
 	// Needs to be `Everything` for local testing.

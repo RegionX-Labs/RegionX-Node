@@ -20,14 +20,14 @@
     - block production
 
         ```
-        npm run test -- ./zombienet_tests/general/block-production.zndsl
+        npm run build && npm run test -- ./zombienet_tests/general/block-production.zndsl
         ```
 
     - fee payment
         - fee payment in relay chain currency
 
             ```
-            npm run test -- ./zombienet_tests/fee-payment/native-fee-payment.zndsl
+            npm run build && npm run test -- ./zombienet_tests/fee-payment/native-fee-payment.zndsl
             ```
  
     - cross-chain transfer
@@ -35,13 +35,13 @@
         - transfer assets
         
             ```
-            npm run test -- ./zombienet_tests/xc-transfer/asset-transfer.zndsl
+            npm run build && npm run test -- ./zombienet_tests/xc-transfer/asset-transfer.zndsl
             ```
 
         - transfer regions
 
             ```
-            npm run test -- ./zombienet_tests/xc-transfer/region-transfer.zndsl
+            npm run build && npm run test -- ./zombienet_tests/xc-transfer/region-transfer.zndsl
             ```
 
     - order tests
@@ -49,5 +49,5 @@
         - processing
         
             ```
-            npm run test -- ./zombienet_tests/order/processing.zndsl
+            npm run build && npm run test -- ./zombienet_tests/order/processing.zndsl
             ```
