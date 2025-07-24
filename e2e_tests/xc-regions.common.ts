@@ -4,6 +4,7 @@ import { getEncodedRegionId, RegionId } from 'coretime-utils';
 import assert from 'node:assert';
 import { sleep, submitExtrinsic, submitUnsigned } from './common';
 import { makeIsmpResponse, queryRequest } from './ismp.common';
+import { encodeAddress } from '@polkadot/util-crypto';
 
 const REGIONX_SOVEREIGN_ACCOUNT = '5Eg2fntJ27qsari4FGrGhrMqKFDRnkNSR6UshkZYBGXmSuC8';
 
@@ -76,7 +77,7 @@ async function transferRegionToRegionX(
   assert.deepStrictEqual(regions[0][0].toHuman(), [regionId]);
 
   let region = regions[0][1].toHuman() as any;
-  assert(region.owner == sender.address);
+  assert(encodeAddress(region.owner, 42) == encodeAddress(sender.address, 42));
   assert(typeof region.record.Pending === 'string');
 
   // Check the data on the Coretime chain:
@@ -92,7 +93,7 @@ async function transferRegionToRegionX(
   // The record should be set after ISMP response:
   regions = await regionXApi.query.regions.regions.entries();
   region = regions[0][1].toHuman() as any;
-  assert(region.owner == sender.address);
+  assert(encodeAddress(region.owner, 42) == encodeAddress(sender.address, 42));
 }
 
 async function transferRegionToCoretimeChain(

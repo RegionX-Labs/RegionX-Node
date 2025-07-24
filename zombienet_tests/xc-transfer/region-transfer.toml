@@ -2,8 +2,8 @@
 timeout = 1000
 
 [relaychain]
-chain = "kusama-local"
-chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "rococo-local"
+# chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 command = "polkadot"
 
   [[relaychain.nodes]]
