@@ -3,7 +3,10 @@
   "id": "regionx-kusama",
   "chainType": "Live",
   "bootNodes": [
-    "TODO"
+    "/ip4/46.166.162.172/tcp/30343/p2p/12D3KooWFEAArRRfWJM9ke3ogpPcHjkH2ZWCLP2CMgEPuTBafKSw",  
+    "/ip4/46.166.162.196/tcp/30343/p2p/12D3KooWPgocVfwn952Jps23v1M8CcWCTpLqvXTE3BvHCRQsuoAg",  
+    "/ip4/212.95.62.114/tcp/30343/p2p/12D3KooWDb15HVger3kSsZwVV4eMDQhTYFjSrWjjT1NnAsHHkPhH",
+    "/ip4/212.95.62.70/tcp/30343/p2p/12D3KooWSu6Uo98d9GPoXwMk7CfkFDN7CgMsNSEiZ3KuVoWnnxFS"  
   ],
   "telemetryEndpoints": null,
   "protocolId": "rgx",
@@ -20,7 +23,7 @@
       "patch": {
         "collatorSelection": {
           "candidacyBond": 1000000000000,
-          "desiredCandidates": 0,
+          "desiredCandidates": 4,
           "invulnerables": [
             "TODO"
           ]
@@ -32,15 +35,7 @@
           "safeXcmVersion": 5
         },
         "session": {
-          "keys": [
-            [
-              "TODO",
-              "TODO",
-              {
-                "aura": "TODO"
-              }
-            ] 
-          ],
+          "keys": [],
           "nonAuthorityKeys": []
         },
         "sudo": {
