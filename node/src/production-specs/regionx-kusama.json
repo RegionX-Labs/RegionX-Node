@@ -25,7 +25,10 @@
           "candidacyBond": 1000000000000,
           "desiredCandidates": 4,
           "invulnerables": [
-            "TODO"
+            "dLScGCat2X1aB6WLihhwPByq79cu11QjMHLMjurk8jFY8SGpp",
+            "dLMYab2x4XfLUd5BxNtVp2Ro11Ac5f9MLPuGu9dBwrxpGDBkm",
+            "dLRALbBHEscyKVMTBfr24BkcWwHqxYmNVqaZkfBqwFRfZZso2",
+            "dLQTBV3pEVUaco9b4nYkonxbcKFFfPRamhd9AYGCknxzova8W"
           ]
         },
         "parachainInfo": {
