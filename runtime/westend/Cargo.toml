@@ -1,0 +1,158 @@
+[package]
+# RegionX Westend runtime
+name = "regionx-westend-runtime"
+version = "0.1.0"
+authors.workspace = true
+edition.workspace = true
+homepage.workspace = true
+repository.workspace = true
+
+[package.metadata.docs.rs]
+targets = ["x86_64-unknown-linux-gnu"]
+
+[build-dependencies]
+substrate-wasm-builder = { workspace = true }
+
+[dependencies]
+anyhow = { workspace = true, default-features = false }
+codec = { workspace = true }
+log = { workspace = true }
+scale-info = { workspace = true, default-features = false }
+smallvec = { workspace = true }
+serde_json = { features = ["alloc"], workspace = true, default-features = false }
+
+# Local
+regionx-runtime-common = { workspace = true, default-features = false }
+pallet-market = { workspace = true, default-features = false }
+pallet-orders = { workspace = true, default-features = false }
+pallet-processor = { workspace = true, default-features = false }
+pallet-regions = { workspace = true, default-features = false }
+order-primitives = { workspace = true, default-features = false }
+
+# Polytope Labs
+ismp = { workspace = true }
+pallet-ismp = { workspace = true, features = ["unsigned"] }
+ismp-parachain = { workspace = true }
+pallet-ismp-runtime-api = { workspace = true }
+ismp-parachain-runtime-api = { workspace = true }
+
+pallet-mmr-tree = { workspace = true }
+pallet-mmr-runtime-api = { workspace = true }
+
+cumulus-pallet-parachain-system = { workspace = true }
+frame-benchmarking = { workspace = true, optional = true }
+
+[dependencies.polkadot-sdk]
+workspace = true
+features = [
+    "frame-support",
+    "frame-system",
+    "frame-executive",
+    "frame-system-benchmarking",
+    "frame-system-rpc-runtime-api",
+    "frame-try-runtime",
+    "pallet-aura",
+    "pallet-authorship",
+    "pallet-balances",
+    "pallet-broker",
+    "pallet-message-queue",
+    "pallet-multisig",
+    "pallet-proxy",
+    "pallet-preimage",
+    "pallet-session",
+    "pallet-sudo",
+    "pallet-scheduler",
+    "pallet-timestamp",
+    "pallet-transaction-payment",
+    "pallet-transaction-payment-rpc-runtime-api",
+    "pallet-utility",
+    "sp-api",
+    "sp-block-builder",
+    "sp-consensus-aura",
+    "sp-genesis-builder",
+    "sp-inherents",
+    "sp-offchain",
+    "sp-io",
+    "sp-core",
+    "sp-keyring",
+    "sp-runtime",
+    "sp-session",
+    "sp-std",
+    "sp-transaction-pool",
+    "sp-version",
+    "sp-mmr-primitives",
+	"pallet-xcm",
+	"polkadot-parachain-primitives",
+	"polkadot-runtime-common",
+	"staging-xcm",
+	"staging-xcm-builder",
+	"staging-xcm-executor",
+	"cumulus-pallet-aura-ext",
+	"cumulus-pallet-dmp-queue",
+	"cumulus-pallet-parachain-system",
+	"cumulus-pallet-session-benchmarking",
+	"cumulus-pallet-xcm",
+	"cumulus-pallet-xcmp-queue",
+	"cumulus-primitives-aura",
+	"cumulus-primitives-core",
+	"cumulus-primitives-utility",
+	"cumulus-primitives-timestamp",
+	"pallet-collator-selection",
+	"staging-parachain-info",
+	"parachains-common",
+]
+
+[features]
+default = ["std"]
+std = [
+	"anyhow/std",
+	"codec/std",
+	"serde_json/std",
+	"scale-info/std",
+	"cumulus-pallet-parachain-system/std",
+	"polkadot-sdk/std",
+	"pallet-ismp/std",
+	"pallet-ismp-runtime-api/std",
+	"pallet-mmr-tree/std",
+	"pallet-mmr-runtime-api/std",
+	"pallet-market/std",
+	"pallet-orders/std",
+	"pallet-processor/std",
+	"pallet-regions/std",
+	"ismp/std",
+	"ismp-parachain/std",
+	"ismp-parachain-runtime-api/std",
+	"regionx-runtime-common/std",
+	"log/std",
+	"order-primitives/std",
+]
+
+runtime-benchmarks = [
+    "frame-benchmarking/runtime-benchmarks",
+    "polkadot-sdk/frame-system-benchmarking",
+    "polkadot-sdk/runtime-benchmarks",
+    "pallet-regions/runtime-benchmarks",
+    "pallet-market/runtime-benchmarks",
+    "pallet-orders/runtime-benchmarks",
+    "pallet-processor/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "pallet-mmr-tree/runtime-benchmarks",
+    "cumulus-pallet-parachain-system/runtime-benchmarks",
+    "pallet-ismp/runtime-benchmarks",
+    "ismp-parachain/runtime-benchmarks",
+]
+
+try-runtime = [
+    "polkadot-sdk/try-runtime",
+    "polkadot-sdk/frame-try-runtime",
+    "pallet-ismp/try-runtime",
+    "cumulus-pallet-parachain-system/try-runtime",
+]
+
+# This must be used when building for a runtime upgrade so metadata hash verification is possible
+metadata-hash = ["substrate-wasm-builder/metadata-hash"]
+
+# Reducing waiting times for governance or other
+fast-runtime = []
+
+# experimental = ["pallet-aura/experimental"]

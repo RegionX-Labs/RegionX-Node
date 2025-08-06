@@ -46,3 +46,25 @@ pub fn regionx_kusama_development_chain_spec() -> ChainSpec {
 	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
 	.build()
 }
+
+pub fn regionx_westend_development_chain_spec() -> ChainSpec {
+	// Give your base currency a unit name and decimal places
+	let mut properties = sc_chain_spec::Properties::new();
+	properties.insert("tokenSymbol".into(), "WND".into());
+	properties.insert("tokenDecimals".into(), 12.into());
+	properties.insert("ss58Format".into(), 42.into());
+
+	ChainSpec::builder(
+		regionx_westend_runtime::WASM_BINARY.expect("WASM binary was not built, please build it!"),
+		Extensions {
+			relay_chain: "westend-local".into(),
+			// You MUST set this to the correct network!
+			para_id: 2000,
+		},
+	)
+	.with_name("RegionX Westend Development")
+	.with_id("regionx-westend-dev")
+	.with_chain_type(ChainType::Development)
+	.with_genesis_config_preset_name(sp_genesis_builder::DEV_RUNTIME_PRESET)
+	.build()
+}
