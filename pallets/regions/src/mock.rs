@@ -13,10 +13,11 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{ismp_mock::MockDispatcher, StateMachineHeightProvider};
+use crate::{ismp_mock::MockDispatcher, ConsensusEngineId, StateMachineHeightProvider};
 use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
 use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
 use ismp::{consensus::StateMachineId, host::StateMachine};
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use polkadot_sdk::*;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
@@ -92,6 +93,7 @@ impl StateMachineHeightProvider for MockStateMachineHeightProvider {
 
 parameter_types! {
 	pub static RelayBlockNumber: u64 = 0;
+	pub const ConsensusId: ConsensusEngineId = PASEO_CONSENSUS_ID;
 }
 
 pub struct RelayBlockNumberProvider;
@@ -112,6 +114,7 @@ impl crate::Config for Test {
 	type UnsignedPriority = RegionsUnsignedPriority;
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
+	type ConsensusId = ConsensusId;
 	type WeightInfo = ();
 }
 

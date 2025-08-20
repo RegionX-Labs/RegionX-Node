@@ -9086,6 +9086,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ismp",
+ "ismp-parachain",
  "ismp-testsuite",
  "log",
  "nonfungible-primitives",
@@ -9471,6 +9472,7 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "ismp",
+ "ismp-parachain",
  "ismp-testsuite",
  "log",
  "nonfungible-primitives",
