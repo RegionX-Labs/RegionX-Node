@@ -7477,6 +7477,21 @@ dependencies = [
 
 [[package]]
 name = "mmr-gadget"
+version = "29.0.1"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "futures",
+ "log",
+ "mmr-primitives",
+ "pallet-ismp",
+ "pallet-mmr-runtime-api",
+ "pallet-mmr-tree",
+ "parity-scale-codec",
+ "polkadot-sdk",
+]
+
+[[package]]
+name = "mmr-gadget"
 version = "43.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "636f8e95fc10aa66439cb73ef97656da0c74b68b346d6d0f7ca83c3cc44a23cd"
@@ -9189,6 +9204,20 @@ dependencies = [
  "sp-io",
  "sp-mmr-primitives",
  "sp-runtime",
+]
+
+[[package]]
+name = "pallet-mmr-rpc"
+version = "0.1.0"
+source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
+dependencies = [
+ "anyhow",
+ "jsonrpsee 0.24.9",
+ "pallet-ismp",
+ "pallet-ismp-rpc",
+ "pallet-mmr-runtime-api",
+ "parity-scale-codec",
+ "polkadot-sdk",
 ]
 
 [[package]]
@@ -11911,7 +11940,7 @@ dependencies = [
  "kvdb",
  "kvdb-rocksdb",
  "log",
- "mmr-gadget",
+ "mmr-gadget 43.0.0",
  "pallet-transaction-payment",
  "pallet-transaction-payment-rpc-runtime-api",
  "parity-db",
@@ -13077,8 +13106,11 @@ dependencies = [
  "ismp-parachain-runtime-api",
  "jsonrpsee 0.24.9",
  "log",
+ "mmr-gadget 29.0.1",
+ "pallet-ismp",
  "pallet-ismp-rpc",
  "pallet-ismp-runtime-api",
+ "pallet-mmr-rpc",
  "pallet-mmr-runtime-api",
  "parity-scale-codec",
  "polkadot-sdk",

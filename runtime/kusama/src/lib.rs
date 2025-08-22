@@ -741,11 +741,11 @@ construct_runtime!(
 		XcmpQueue: cumulus_pallet_xcmp_queue = 70,
 		PolkadotXcm: pallet_xcm = 71,
 		CumulusXcm: cumulus_pallet_xcm = 72,
-		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Ismp: pallet_ismp = 80,
 		Mmr: pallet_mmr_tree = 81,
+		Ismp: pallet_ismp = 80,
+		MessageQueue: pallet_message_queue = 73,
 		IsmpParachain: ismp_parachain = 82,
 
 		// Main stage:

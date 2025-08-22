@@ -49,6 +49,8 @@ pallet-ismp-runtime-api = { git = "https://github.com/polytope-labs/hyperbridge.
 ismp-parachain-runtime-api = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
 pallet-mmr-tree = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
 pallet-mmr-runtime-api = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
+pallet-mmr-rpc = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
+mmr-gadget = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
 ismp-testsuite = { git = "https://github.com/polytope-labs/hyperbridge.git", tag = "hyperbridge-v1.3.0", default-features = false }
 
 # Local

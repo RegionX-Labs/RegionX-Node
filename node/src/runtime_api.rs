@@ -16,7 +16,7 @@
 use cumulus_primitives_core::CollectCollationInfo;
 use pallet_transaction_payment_rpc::TransactionPaymentRuntimeApi;
 use polkadot_sdk::*;
-use regionx_runtime_common::primitives::{AccountId, AuraId, Balance, Block, Nonce};
+use regionx_runtime_common::primitives::{AccountId, AuraId, Balance, Block, BlockNumber, Nonce};
 use sc_offchain::OffchainWorkerApi;
 use sp_api::{ApiExt, Metadata};
 use sp_block_builder::BlockBuilder;
@@ -40,6 +40,12 @@ pub trait BaseHostRuntimeApis:
 	+ ismp_parachain_runtime_api::IsmpParachainApi<Block>
 	+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>
 	+ pallet_ismp_runtime_api::IsmpRuntimeApi<Block, H256>
+	+ pallet_mmr_runtime_api::MmrRuntimeApi<
+		Block,
+		H256,
+		BlockNumber,
+		pallet_ismp::offchain::Leaf,
+	>
 {
 }
 
@@ -57,5 +63,11 @@ impl<Api> BaseHostRuntimeApis for Api where
 		+ ismp_parachain_runtime_api::IsmpParachainApi<Block>
 		+ cumulus_primitives_aura::AuraUnincludedSegmentApi<Block>
 		+ pallet_ismp_runtime_api::IsmpRuntimeApi<Block, H256>
+		+ pallet_mmr_runtime_api::MmrRuntimeApi<
+			Block,
+			H256,
+			BlockNumber,
+			pallet_ismp::offchain::Leaf,
+		>
 {
 }
