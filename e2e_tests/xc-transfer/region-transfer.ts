@@ -11,7 +11,7 @@ const PARA_2000_CHILD = 'F7fq1jMZkfuCuoMTyiEVAP2DMpMt18WopgBqTJznLihLNbZ';
 async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
   const { wsUri: regionXUri } = networkInfo.nodesByName['regionx-collator01'];
   const { wsUri: coretimeUri } = networkInfo.nodesByName['coretime-collator01'];
-  const { wsUri: relayUri } = networkInfo.nodesByName['kusama-validator01'];
+  const { wsUri: relayUri } = networkInfo.nodesByName['westend-validator01'];
 
   const regionXApi = await ApiPromise.create({
     provider: new WsProvider(regionXUri),

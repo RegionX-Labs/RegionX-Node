@@ -140,7 +140,16 @@ where
 		telemetry
 	});
 
-	// TODO: mmr gadget?
+	// Spawn mmr canonicalizing task
+	task_manager.spawn_handle().spawn(
+		"mmr-canonicalizing-gadget",
+		"mmr-gadget",
+		mmr_gadget::MmrGadget::start(
+			client.clone(),
+			backend.clone(),
+			sp_mmr_primitives::INDEXING_PREFIX.to_vec(),
+		),
+	);
 
 	let transaction_pool = Arc::from(
 		sc_transaction_pool::Builder::new(

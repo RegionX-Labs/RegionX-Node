@@ -10,8 +10,11 @@ async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
 }
 
 async function queryRequest(regionxApi: ApiPromise, commitment: string): Promise<IsmpRequest> {
+  console.log('QUERY REQUEST');
   const leafIndex = regionxApi.createType('LeafIndexQuery', { commitment });
+  console.log('leafIndex: ' + leafIndex);
   const requests = await (regionxApi as any).rpc.ismp.queryRequests([leafIndex]);
+  console.log(requests);
   // We only requested a single request so we only get one in the response.
   return requests.toJSON()[0] as IsmpRequest;
 }

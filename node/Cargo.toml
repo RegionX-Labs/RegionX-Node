@@ -27,11 +27,14 @@ regionx-westend-runtime = { workspace = true }
 regionx-runtime-common = { workspace = true }
 
 # Polytope Labs
+pallet-ismp = { workspace = true, default-features = true }
 pallet-ismp-runtime-api = { workspace = true, default-features = true }
 pallet-ismp-rpc = { workspace = true, default-features = true }
 ismp-parachain-inherent = { workspace = true, default-features = true }
 ismp-parachain-runtime-api = { workspace = true, default-features = true }
 pallet-mmr-runtime-api = { workspace = true, default-features = true }
+pallet-mmr-rpc = { workspace = true, default-features = true }
+mmr-gadget = { workspace = true }
 
 [dependencies.polkadot-sdk]
 workspace = true

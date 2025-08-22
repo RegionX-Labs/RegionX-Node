@@ -2,17 +2,17 @@
 timeout = 1000
 
 [relaychain]
-chain = "kusama-local"
-chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
+chain = "westend-local"
+# chain_spec_command = "chain-spec-generator {% raw %} {{chainName}} {% endraw %}"
 command = "polkadot"
 
   [[relaychain.nodes]]
-  name = "kusama-validator01"
+  name = "westend-validator01"
   args = [ "--log=xcm=trace" ]
   validator = true
 
   [[relaychain.nodes]]
-  name = "kusama-validator02"
+  name = "westend-validator02"
   args = [ "--log=xcm=trace" ]
   validator = true
 
@@ -35,4 +35,7 @@ addToGenesis = false
   [parachains.collator]
   name = "regionx-collator01"
   command = "regionx-node"
-  args = [ "--enable-offchain-indexing true --log=xcm=trace,regions=trace" ]
+  args = [ "--enable-offchain-indexing=true", "--log=xcm=trace,ismp=trace,regions=trace" ]
+  # Add ismp logs.
+  # Check hyperbridge repo to see how to add.
+  # Issue: off chain indexing not enabled.
