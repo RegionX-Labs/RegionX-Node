@@ -36,9 +36,6 @@ ismp-parachain = { workspace = true }
 pallet-ismp-runtime-api = { workspace = true }
 ismp-parachain-runtime-api = { workspace = true }
 
-pallet-mmr-tree = { workspace = true }
-pallet-mmr-runtime-api = { workspace = true }
-
 cumulus-pallet-parachain-system = { workspace = true }
 frame-benchmarking = { workspace = true, optional = true }
 
@@ -80,7 +77,6 @@ features = [
     "sp-std",
     "sp-transaction-pool",
     "sp-version",
-    "sp-mmr-primitives",
 	"pallet-xcm",
 	"polkadot-parachain-primitives",
 	"polkadot-runtime-common",
@@ -113,8 +109,6 @@ std = [
 	"polkadot-sdk/std",
 	"pallet-ismp/std",
 	"pallet-ismp-runtime-api/std",
-	"pallet-mmr-tree/std",
-	"pallet-mmr-runtime-api/std",
 	"pallet-market/std",
 	"pallet-orders/std",
 	"pallet-processor/std",
@@ -135,7 +129,6 @@ runtime-benchmarks = [
     "pallet-market/runtime-benchmarks",
     "pallet-orders/runtime-benchmarks",
     "pallet-processor/runtime-benchmarks",
-    "pallet-mmr-tree/runtime-benchmarks",
     "cumulus-pallet-parachain-system/runtime-benchmarks",
     "pallet-ismp/runtime-benchmarks",
     "ismp-parachain/runtime-benchmarks",

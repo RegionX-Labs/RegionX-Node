@@ -31,9 +31,6 @@ pallet-ismp-runtime-api = { workspace = true, default-features = true }
 pallet-ismp-rpc = { workspace = true, default-features = true }
 ismp-parachain-inherent = { workspace = true, default-features = true }
 ismp-parachain-runtime-api = { workspace = true, default-features = true }
-pallet-mmr-runtime-api = { workspace = true, default-features = true }
-pallet-mmr-rpc = { workspace = true, default-features = true }
-mmr-gadget = { workspace = true }
 
 [dependencies.polkadot-sdk]
 workspace = true
@@ -74,7 +71,6 @@ features = [
     "sp-transaction-pool",
     "substrate-frame-rpc-system",
     "substrate-prometheus-endpoint",
-    "sp-mmr-primitives",
     "frame-metadata-hash-extension",
     "polkadot-cli",
     "polkadot-primitives",

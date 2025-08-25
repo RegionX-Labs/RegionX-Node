@@ -14,7 +14,7 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{
-	weights::ismp_parachain, AccountId, Balance, Balances, Ismp, IsmpParachain, Mmr, ParachainInfo,
+	weights::ismp_parachain, AccountId, Balance, Balances, Ismp, IsmpParachain, ParachainInfo,
 	Runtime, RuntimeEvent, Timestamp,
 };
 use ::ismp_parachain::ParachainConsensusClient;
@@ -33,9 +33,11 @@ impl Get<StateMachine> for HostStateMachine {
 	}
 }
 
-parameter_types! {
-	// The hyperbridge parachain on Polkadot
-	pub const Coprocessor: Option<StateMachine> = None;
+pub struct Coprocessor;
+impl Get<Option<StateMachine>> for Coprocessor {
+	fn get() -> Option<StateMachine> {
+		Some(HostStateMachine::get())
+	}
 }
 
 impl ::ismp_parachain::Config for Runtime {
@@ -54,7 +56,7 @@ impl pallet_ismp::Config for Runtime {
 	type Currency = Balances;
 	type Coprocessor = Coprocessor;
 	type ConsensusClients = (ParachainConsensusClient<Runtime, IsmpParachain>,);
-	type OffchainDB = Mmr;
+	type OffchainDB = ();
 	type FeeHandler = pallet_ismp::fee_handler::WeightFeeHandler<()>;
 }
 
