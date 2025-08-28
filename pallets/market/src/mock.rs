@@ -22,13 +22,14 @@ use ismp::{
 	host::StateMachine,
 	router::PostResponse,
 };
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use ismp_testsuite::mocks::Host;
 use pallet_regions::primitives::StateMachineHeightProvider;
 use polkadot_sdk::*;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
-	BuildStorage,
+	BuildStorage, ConsensusEngineId,
 };
 use std::sync::Arc;
 
@@ -125,6 +126,7 @@ impl<T: crate::Config> IsmpDispatcher for MockDispatcher<T> {
 parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(1005); // coretime-kusama
 	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::max_value();
+	pub const ConsensusId: ConsensusEngineId = PASEO_CONSENSUS_ID;
 }
 
 impl pallet_regions::Config for Test {
@@ -137,6 +139,7 @@ impl pallet_regions::Config for Test {
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
 	type UnsignedPriority = RegionsUnsignedPriority;
+	type ConsensusId = ConsensusId;
 	type WeightInfo = ();
 }
 

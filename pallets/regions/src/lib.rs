@@ -26,7 +26,6 @@ use ismp::{
 	module::IsmpModule,
 	router::{PostRequest, Request, Response, StorageValue, Timeout},
 };
-use ismp_parachain::PASEO_CONSENSUS_ID;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
 use pallet_ismp::{weights::IsmpModuleWeight, ModuleId};
@@ -37,7 +36,7 @@ use scale_info::prelude::{format, vec, vec::Vec};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlockNumberProvider, Zero},
-	SaturatedConversion,
+	ConsensusEngineId, SaturatedConversion,
 };
 
 #[cfg(test)]
@@ -136,6 +135,9 @@ pub mod pallet {
 		/// The priority of unsigned transactions.
 		#[pallet::constant]
 		type UnsignedPriority: Get<TransactionPriority>;
+
+		#[pallet::constant]
+		type ConsensusId: Get<ConsensusEngineId>;
 
 		/// Weight Info
 		type WeightInfo: WeightInfo;
@@ -345,7 +347,7 @@ pub mod pallet {
 			let coretime_chain_height =
 				T::StateMachineHeightProvider::latest_state_machine_height(StateMachineId {
 					state_id: T::CoretimeChain::get(),
-					consensus_state_id: PASEO_CONSENSUS_ID, // Is this used on Kusama?
+					consensus_state_id: T::ConsensusId::get(),
 				})
 				.ok_or(Error::<T>::LatestHeightInaccessible)?;
 

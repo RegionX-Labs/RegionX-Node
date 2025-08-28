@@ -93,11 +93,12 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use sp_core::H256;
 use sp_mmr_primitives::INDEXING_PREFIX;
-pub use sp_runtime::{MultiAddress, Perbill, Permill};
+pub use sp_runtime::{ConsensusEngineId, MultiAddress, Perbill, Permill};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
@@ -541,6 +542,7 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 parameter_types! {
 	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
 	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
+	pub const ConsensusId: ConsensusEngineId = PASEO_CONSENSUS_ID;
 }
 
 impl pallet_regions::Config for Runtime {
@@ -553,6 +555,7 @@ impl pallet_regions::Config for Runtime {
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
 	type UnsignedPriority = RegionsUnsignedPriority;
+	type ConsensusId = ConsensusId;
 	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
 }
 

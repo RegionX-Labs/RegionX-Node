@@ -31,6 +31,7 @@ use ismp::{
 	host::StateMachine,
 	router::PostResponse,
 };
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use ismp_testsuite::mocks::Host;
 use order_primitives::{OrderId, ParaId};
 use pallet_broker::RegionId;
@@ -41,7 +42,7 @@ use smallvec::smallvec;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
-	BuildStorage, DispatchResult, Perbill,
+	BuildStorage, ConsensusEngineId, DispatchResult, Perbill,
 };
 use staging_xcm as xcm;
 use std::sync::Arc;
@@ -165,6 +166,7 @@ parameter_types! {
 
 parameter_types! {
 	pub static RelayBlockNumber: u64 = 0;
+	pub const ConsensusId: ConsensusEngineId = PASEO_CONSENSUS_ID;
 }
 
 pub struct RelayBlockNumberProvider;
@@ -185,6 +187,7 @@ impl pallet_regions::Config for Test {
 	type UnsignedPriority = RegionsUnsignedPriority;
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
+	type ConsensusId = ConsensusId;
 	type WeightInfo = ();
 }
 

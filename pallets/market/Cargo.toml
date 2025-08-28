@@ -37,6 +37,7 @@ polkadot-sdk = { workspace = true, features = [
     "pallet-balances",
 ], default-features = true }
 ismp = { workspace = true, default-features = false }
+ismp-parachain = { workspace = true, default-features = false }
 ismp-testsuite = { workspace = true }
 
 [features]
@@ -50,6 +51,7 @@ std = [
 	"scale-info/std",
 	"pallet-regions/std",
 	"ismp/std",
+	"ismp-parachain/std",
 	"polkadot-sdk/std",
 ]
 try-runtime = [ "polkadot-sdk/try-runtime" ]
