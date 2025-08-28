@@ -93,10 +93,8 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
-use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use sp_core::H256;
-use sp_mmr_primitives::INDEXING_PREFIX;
 pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
 
@@ -114,7 +112,6 @@ use xcm::latest::prelude::BodyId;
 use regionx_runtime_common::primitives::{
 	AccountId, Address, AuraId, Balance, BlockNumber, Hash, Header, Nonce, Signature,
 };
-use sp_mmr_primitives::LeafIndex;
 
 pub type Block = generic::Block<Header, UncheckedExtrinsic>;
 /// A Block signed with a Justification
@@ -697,13 +694,6 @@ impl pallet_processor::Config for Runtime {
 	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
 }
 
-impl pallet_mmr_tree::Config for Runtime {
-	const INDEXING_PREFIX: &'static [u8] = INDEXING_PREFIX;
-	type Hashing = BlakeTwo256; // Should we use keccak256?
-	type Leaf = Leaf;
-	type ForkIdentifierProvider = Ismp;
-}
-
 // Create the runtime by composing the FRAME pallets that were previously configured.
 construct_runtime!(
 	pub enum Runtime
@@ -741,11 +731,10 @@ construct_runtime!(
 		XcmpQueue: cumulus_pallet_xcmp_queue = 70,
 		PolkadotXcm: pallet_xcm = 71,
 		CumulusXcm: cumulus_pallet_xcm = 72,
-		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
 		Ismp: pallet_ismp = 80,
-		Mmr: pallet_mmr_tree = 81,
+		MessageQueue: pallet_message_queue = 73,
 		IsmpParachain: ismp_parachain = 82,
 
 		// Main stage:
@@ -943,34 +932,6 @@ impl_runtime_apis! {
 
 		fn preset_names() -> Vec<sp_genesis_builder::PresetId> {
 			genesis_config::preset_names()
-		}
-	}
-
-	impl pallet_mmr_runtime_api::MmrRuntimeApi<Block, <Block as BlockT>::Hash, BlockNumber, Leaf> for Runtime {
-		/// Return Block number where pallet-mmr was added to the runtime
-		fn pallet_genesis() -> Result<Option<BlockNumber>, sp_mmr_primitives::Error> {
-			Ok(Mmr::initial_height())
-		}
-
-		/// Return the number of MMR leaves.
-		fn mmr_leaf_count() -> Result<LeafIndex, sp_mmr_primitives::Error> {
-			Ok(Mmr::leaf_count())
-		}
-
-		/// Return the on-chain MMR root hash.
-		fn mmr_root() -> Result<Hash, sp_mmr_primitives::Error> {
-			Ok(Mmr::mmr_root_hash())
-		}
-
-		fn fork_identifier() -> Result<Hash, sp_mmr_primitives::Error> {
-			Ok(Ismp::child_trie_root())
-		}
-
-		/// Generate a proof for the provided leaf indices
-		fn generate_proof(
-			keys: ProofKeys
-		) -> Result<(Vec<Leaf>, Proof<<Block as BlockT>::Hash>), sp_mmr_primitives::Error> {
-			Mmr::generate_proof(keys)
 		}
 	}
 

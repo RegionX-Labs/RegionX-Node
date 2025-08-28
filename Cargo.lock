@@ -1886,15 +1886,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "ckb-merkle-mountain-range"
-version = "0.5.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "56ccb671c5921be8a84686e6212ca184cb1d7c51cadcdbfcbd1cc3f042f5dfb8"
-dependencies = [
- "cfg-if",
-]
-
-[[package]]
 name = "clang-sys"
 version = "1.8.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -7496,20 +7487,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mmr-primitives"
-version = "1.15.2"
-source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
-dependencies = [
- "ckb-merkle-mountain-range",
- "ismp",
- "pallet-ismp",
- "parity-scale-codec",
- "polkadot-sdk",
- "scale-info",
- "serde",
-]
-
-[[package]]
 name = "mmr-rpc"
 version = "39.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -9189,32 +9166,6 @@ dependencies = [
  "sp-io",
  "sp-mmr-primitives",
  "sp-runtime",
-]
-
-[[package]]
-name = "pallet-mmr-runtime-api"
-version = "0.1.1"
-source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
-dependencies = [
- "pallet-ismp",
- "parity-scale-codec",
- "polkadot-sdk",
- "serde",
-]
-
-[[package]]
-name = "pallet-mmr-tree"
-version = "0.1.1"
-source = "git+https://github.com/polytope-labs/hyperbridge.git?tag=hyperbridge-v1.3.0#01c142e767b6856ea35bd36bbbe4ac5705a7ebae"
-dependencies = [
- "ckb-merkle-mountain-range",
- "log",
- "mmr-primitives",
- "pallet-ismp",
- "parity-scale-codec",
- "polkadot-sdk",
- "scale-info",
- "serde",
 ]
 
 [[package]]
@@ -13052,8 +13003,6 @@ dependencies = [
  "pallet-ismp",
  "pallet-ismp-runtime-api",
  "pallet-market",
- "pallet-mmr-runtime-api",
- "pallet-mmr-tree",
  "pallet-orders",
  "pallet-processor",
  "pallet-regions",
@@ -13077,9 +13026,9 @@ dependencies = [
  "ismp-parachain-runtime-api",
  "jsonrpsee 0.24.9",
  "log",
+ "pallet-ismp",
  "pallet-ismp-rpc",
  "pallet-ismp-runtime-api",
- "pallet-mmr-runtime-api",
  "parity-scale-codec",
  "polkadot-sdk",
  "regionx-kusama-runtime",

@@ -133,8 +133,6 @@ where
 		telemetry
 	});
 
-	// TODO: mmr gadget?
-
 	let transaction_pool = Arc::from(
 		sc_transaction_pool::Builder::new(
 			task_manager.spawn_essential_handle(),

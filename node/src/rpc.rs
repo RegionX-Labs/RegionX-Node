@@ -25,7 +25,6 @@ use std::sync::Arc;
 
 use regionx_runtime_common::primitives::{opaque::Block, AccountId, Balance, Nonce};
 
-use pallet_ismp_rpc::{IsmpApiServer, IsmpRpcHandler};
 use sc_client_api::{AuxStore, BlockBackend, ProofProvider};
 use sc_transaction_pool_api::TransactionPool;
 use sp_api::ProvideRuntimeApi;
@@ -68,6 +67,7 @@ where
 	B: sc_client_api::Backend<Block> + Send + Sync + 'static,
 	B::State: sc_client_api::StateBackend<sp_runtime::traits::HashingFor<Block>>,
 {
+	use pallet_ismp_rpc::{IsmpApiServer, IsmpRpcHandler};
 	use pallet_transaction_payment_rpc::{TransactionPayment, TransactionPaymentApiServer};
 	use substrate_frame_rpc_system::{System, SystemApiServer};
 

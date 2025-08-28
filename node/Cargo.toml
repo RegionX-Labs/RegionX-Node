@@ -26,11 +26,11 @@ regionx-kusama-runtime = { workspace = true }
 regionx-runtime-common = { workspace = true }
 
 # Polytope Labs
+pallet-ismp = { workspace = true, default-features = true }
 pallet-ismp-runtime-api = { workspace = true, default-features = true }
 pallet-ismp-rpc = { workspace = true, default-features = true }
 ismp-parachain-inherent = { workspace = true, default-features = true }
 ismp-parachain-runtime-api = { workspace = true, default-features = true }
-pallet-mmr-runtime-api = { workspace = true, default-features = true }
 
 [dependencies.polkadot-sdk]
 workspace = true
@@ -71,7 +71,6 @@ features = [
     "sp-transaction-pool",
     "substrate-frame-rpc-system",
     "substrate-prometheus-endpoint",
-    "sp-mmr-primitives",
     "frame-metadata-hash-extension",
     "polkadot-cli",
     "polkadot-primitives",
