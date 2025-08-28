@@ -2,6 +2,9 @@ import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
 import { submitExtrinsic, submitUnsigned } from './common';
 import { Get, IsmpRequest } from './types';
+import { hexToU8a } from '@polkadot/util';
+import { SubmittableExtrinsic } from '@polkadot/api/types';
+import { IGetRequest, SubstrateChain } from './hyperbridge-sdk';
 
 async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
   const addParaCall = regionXApi.tx.ismpParachain.addParachain([{ id: 1005, slotDuration: 6000 }]);
@@ -9,57 +12,46 @@ async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
   return submitExtrinsic(signer, sudoCall, {});
 }
 
-async function queryRequest(regionxApi: ApiPromise, commitment: string): Promise<IsmpRequest> {
+async function queryRequest(regionxApi: ApiPromise, commitment: string): Promise<IGetRequest> {
   const leafIndex = regionxApi.createType('LeafIndexQuery', { commitment });
   const requests = await (regionxApi as any).rpc.ismp.queryRequests([leafIndex]);
   // We only requested a single request so we only get one in the response.
-  return requests.toJSON()[0] as IsmpRequest;
+  console.log(requests.toJSON());
+  return requests.toJSON()[0].get as IGetRequest;
 }
 
 async function makeIsmpResponse(
-  regionXApi: ApiPromise,
+  regionxWs: string,
   coretimeApi: ApiPromise,
-  request: IsmpRequest,
+  request: IGetRequest,
   responderAddress: string
 ): Promise<void> {
-  if (isGetRequest(request)) {
-    const hashAt = (
-      await coretimeApi.query.system.blockHash(Number(request.get.height))
-    ).toString();
-    const proofData = await coretimeApi.rpc.state.getReadProof([request.get.keys[0]], hashAt);
+  const hashAt = (
+    await coretimeApi.query.system.blockHash(Number(request.height))
+  ).toString();
+  const proofData = await coretimeApi.rpc.state.getReadProof([request.keys[0]], hashAt);
 
-    const stateMachineProof = regionXApi.createType('StateMachineProof', {
-      hasher: 'Blake2',
-      storage_proof: proofData.proof,
-    });
+  const regionx = new SubstrateChain({
+    ws: regionxWs,
+    hasher: 'Blake2',
+  });
 
-    const substrateStateProof = regionXApi.createType('SubstrateStateProof', {
-      StateProof: stateMachineProof,
-    });
-    const response = regionXApi.tx.ismp.handleUnsigned([
-      {
-        Response: {
-          datagram: {
-            Request: [request],
-          },
-          proof: {
-            height: {
-              id: {
-                stateId: 1005,
-                consensusStateId: 'PAS0',
-              },
-              height: request.get.height.toString(),
-            },
-            proof: substrateStateProof.toHex(),
-          },
-          signer: responderAddress,
-        },
-      },
-    ]);
-    await submitUnsigned(response);
-  } else {
-    new Error('Expected a Get request');
-  }
+  const tx = regionx.encode({
+    kind: 'GetResponse',
+    proof: {
+      consensusStateId: 'PAS0',
+      height: request.height,
+      proof: proofData.toHex(),
+      stateMachine: 'KUSAMA-1005'
+    },
+    responses: [{get: request, values: [{key: request.keys[0], value: '0x0'}] }],
+    signer: responderAddress as any
+  });
+
+  const call = regionx.api?.tx.ismp.handleUnsigned(hexToU8a(tx).slice(2)) as SubmittableExtrinsic<'promise'> | undefined;
+  if(!call) return;
+
+  await submitUnsigned(call);
 }
 
 const isGetRequest = (request: IsmpRequest): request is { get: Get } => {

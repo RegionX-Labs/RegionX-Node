@@ -1,8 +1,8 @@
 export type StateMachine = { Polkadot: number } | { Kusama: number };
 
 export interface Get {
-  source: StateMachine;
-  dest: StateMachine;
+  source: string;
+  dest: string;
   nonce: bigint;
   from: string;
   keys: Array<string>;
@@ -42,21 +42,30 @@ export const REGIONX_API_TYPES = {
   LeafIndexQuery: {
     commitment: 'H256',
   },
+  ConsensusStateId: '[u8; 4]',
+  Relay: {
+    relay: 'ConsensusStateId',
+    para_id: 'u32'
+  },
   StateMachine: {
     _enum: {
-      Ethereum: 'Vec<u8>',
+      Evm: 'u32',
       Polkadot: 'u32',
       Kusama: 'u32',
-    },
+      Substrate: 'ConsensusStateId',
+      Tendermint: 'ConsensusStateId',
+      Relay: 'Relay'
+    }
   },
   Post: {},
   Get: {
-    source: 'StateMachine',
-    dest: 'StateMachine',
+    source: 'Text',
+    dest: 'Text',
     nonce: 'u64',
     from: 'Vec<u8>',
     keys: 'Vec<Vec<u8>>',
     height: 'u64',
+    context: 'Vec<u8>',
     timeout_timestamp: 'u64',
   },
   Request: {
