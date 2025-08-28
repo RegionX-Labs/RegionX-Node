@@ -31,6 +31,7 @@ use ismp::{
 	host::StateMachine,
 	router::PostResponse,
 };
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use ismp_testsuite::mocks::Host;
 use order_primitives::{OrderId, ParaId};
 use pallet_broker::RegionId;
@@ -41,9 +42,8 @@ use smallvec::smallvec;
 use sp_core::{ConstU64, H256};
 use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, Convert, IdentityLookup},
-	BuildStorage, DispatchResult, Perbill, ConsensusEngineId,
+	BuildStorage, ConsensusEngineId, DispatchResult, Perbill,
 };
-use ismp_parachain::PASEO_CONSENSUS_ID;
 use staging_xcm as xcm;
 use std::sync::Arc;
 use xcm::opaque::latest::prelude::*;
@@ -188,9 +188,6 @@ impl pallet_regions::Config for Test {
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
 	type ConsensusId = ConsensusId;
-	// The fuck? https://github.com/polytope-labs/hyperbridge/blob/0057366a2f55ca01f4ed0aac13ee0fe443200e39/modules/ismp/clients/parachain/client/src/lib.rs#L347
-	// This is a mistake
-	// Notify Seun.
 	type WeightInfo = ();
 }
 

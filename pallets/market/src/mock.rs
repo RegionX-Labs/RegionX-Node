@@ -22,6 +22,7 @@ use ismp::{
 	host::StateMachine,
 	router::PostResponse,
 };
+use ismp_parachain::PASEO_CONSENSUS_ID;
 use ismp_testsuite::mocks::Host;
 use pallet_regions::primitives::StateMachineHeightProvider;
 use polkadot_sdk::*;
@@ -30,7 +31,6 @@ use sp_runtime::{
 	traits::{BlakeTwo256, BlockNumberProvider, IdentityLookup},
 	BuildStorage, ConsensusEngineId,
 };
-use ismp_parachain::PASEO_CONSENSUS_ID;
 use std::sync::Arc;
 
 type Block = frame_system::mocking::MockBlock<Test>;

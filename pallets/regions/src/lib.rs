@@ -36,9 +36,8 @@ use scale_info::prelude::{format, vec, vec::Vec};
 use sp_core::H256;
 use sp_runtime::{
 	traits::{BlockNumberProvider, Zero},
-	SaturatedConversion,
+	ConsensusEngineId, SaturatedConversion,
 };
-use sp_runtime::ConsensusEngineId;
 
 #[cfg(test)]
 mod mock;
