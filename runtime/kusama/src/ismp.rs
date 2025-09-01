@@ -64,6 +64,7 @@ impl pallet_ismp::Config for Runtime {
 pub struct Router;
 impl IsmpRouter for Router {
 	fn module_for_id(&self, id: Vec<u8>) -> Result<Box<dyn IsmpModule>, anyhow::Error> {
+		info!(target: "regionx::ismp", "Module_for_id: {:?}", id);
 		let module = match ModuleId::from_bytes(&id) {
 			Ok(pallet_regions::PALLET_ID) =>
 				Box::<pallet_regions::IsmpModuleCallback<Runtime>>::default(),

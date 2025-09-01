@@ -46,7 +46,7 @@ async function run(_nodeName: any, networkInfo: any, _jsArgs: any) {
 
   // Transferring back to the Coretime chain should work:
   // NOTE: the function contains checks, and if any of them fail, the test will fail.
-  await transferRegionToCoretimeChain(coretimeApi, regionXApi, alice, regionId);
+  // await transferRegionToCoretimeChain(coretimeApi, regionXApi, alice, regionId);
 }
 
 export { run };

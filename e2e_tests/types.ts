@@ -1,3 +1,5 @@
+import { Enum, Struct, u32, u64, u8, Vector, Option } from "scale-ts";
+
 export type StateMachine = { Polkadot: number } | { Kusama: number };
 
 export interface Get {
@@ -7,6 +9,7 @@ export interface Get {
   from: string;
   keys: Array<string>;
   height: bigint;
+  context: string;
   timeout_timestamp: bigint;
 }
 
