@@ -1,7 +1,9 @@
 import { ApiPromise } from '@polkadot/api';
 import { KeyringPair } from '@polkadot/keyring/types';
-import { submitExtrinsic, submitUnsigned } from './common';
+import { sleep, submitExtrinsic, submitUnsigned } from './common';
 import { Get, IsmpRequest } from './types';
+import { encodePacked, keccak256, toHex } from 'viem';
+import { keccakAsHex } from '@polkadot/util-crypto';
 
 async function ismpAddParachain(signer: KeyringPair, regionXApi: ApiPromise) {
   const addParaCall = regionXApi.tx.ismpParachain.addParachain([{ id: 1005, slotDuration: 6000 }]);
@@ -44,8 +46,6 @@ async function makeIsmpResponse(
     StateProof: stateMachineProof,
   });
 
-  // The issue is that requests are empty. That is why it is passing as well...
-  // At least we know handleUnsigned is handled successfully with zero requests.
   const response = [{
     Response: {
       datagram: {
@@ -60,27 +60,73 @@ async function makeIsmpResponse(
             context: request.get.context,
             timeoutTimestamp: request.get.timeout_timestamp,
           }
-        }],
+        }]
       },
       proof: {
         height: {
           id: {
-            stateId: {
-              Kusama: 1005,
-            },
+            stateId: { Kusama: 1005 },
             consensusStateId: 'PAS0',
           },
-          height: request.get.height.toString(),
+          height: request.get.height,
         },
         proof: substrateStateProof.toHex(),
       },
       signer: responderAddress,
     },
   }];
-  
-  console.log(response);
+
+  // console.log(getRequestCommitment({
+  //   source: 'KUSAMA-2000',
+  //   dest: 'KUSAMA-1005',
+  //   nonce: request.get.nonce,
+  //   from: request.get.from,
+  //   keys: request.get.keys,
+  //   height: request.get.height,
+  //   context: request.get.context,
+  //   timeoutTimestamp: request.get.timeout_timestamp,
+  // }));
+
+  console.log(JSON.stringify(response));
 
   await submitUnsigned(regionXApi.tx.ismp.handleUnsigned(response));
+  await sleep(360 * 1000);
+}
+
+export function getRequestCommitment(regionXApi: ApiPromise, get: any): string {
+	// const keysEncoding = "0x".concat(get.keys.map((key: string) => key.slice(2)).join(""))
+	// return keccak256(
+	// 	encodePacked(
+	// 		["bytes", "bytes", "uint64", "uint64", "uint64", "bytes", "bytes", "bytes"],
+	// 		[
+	// 			toHex(get.source),
+	// 			toHex(get.dest),
+	// 			get.nonce,
+	// 			get.height,
+	// 			get.timeoutTimestamp,
+	// 			get.from,
+	// 			keysEncoding as any,
+	// 			get.context,
+	// 		],
+	// 	),
+	// )
+  const reqEnum = regionXApi.createType('Request', {
+    Get: {
+      source: get.source,                     // e.g. { Kusama: 1005 }
+      dest: get.dest,                         // e.g. { Kusama: 2000 }
+      nonce: get.nonce,             // u64
+      from: get.from,                  // Bytes
+      keys: get.keys,              // Vec<Vec<u8>>
+      height: get.height,           // u64
+      timeout_timestamp: get.timeoutTimestamp, // u64
+    }
+  });
+
+  const bytes = reqEnum.toU8a();
+
+  // ISMP uses keccak256 for request/response commitments
+  const commitment = keccakAsHex(bytes);
+  return commitment;
 }
 
 const isGetRequest = (request: IsmpRequest): request is { get: Get } => {

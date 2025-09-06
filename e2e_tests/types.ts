@@ -62,8 +62,8 @@ export const REGIONX_API_TYPES = {
   },
   Post: {},
   Get: {
-    source: 'Text',
-    dest: 'Text',
+    source: 'StateMachine',
+    dest: 'StateMachine',
     nonce: 'u64',
     from: 'Vec<u8>',
     keys: 'Vec<Vec<u8>>',

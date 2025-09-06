@@ -87,10 +87,11 @@ async function transferRegionToRegionX(
   assert.equal((regions[0][1].toHuman() as any).owner, REGIONX_SOVEREIGN_ACCOUNT);
 
   // Respond to the ISMP get request:
+  console.log(region.record.Pending);
   const request = await queryRequest(regionXApi, region.record.Pending);
   await makeIsmpResponse(regionXApi, coretimeApi, request, encodeAddress(sender.address, 74));
 
-  await sleep(360 * 1000);
+  // await sleep(360 * 1000);
 
   /*
   // The record should be set after ISMP response:
