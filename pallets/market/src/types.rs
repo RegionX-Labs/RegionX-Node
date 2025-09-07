@@ -21,11 +21,11 @@ pub type RegionRecordOf<T> =
 
 /// The information we store about a region that got listed on sale.
 #[derive(Encode, Decode, Debug, Clone, PartialEq, Eq, TypeInfo, MaxEncodedLen)]
-pub struct Listing<AccountId, Balance> {
+pub struct Listing<AccountId, PriceData> {
 	/// The `AccountId` selling the region.
 	pub seller: AccountId,
-	/// The price per a single timeslice.
-	pub timeslice_price: Balance,
+	/// Price data of the listing.
+	pub price_data: PriceData,
 	/// The `AccountId` receiving the payment from the sale.
 	///
 	/// This will usually be the seller account.

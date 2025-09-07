@@ -13,11 +13,8 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{mock::*, *};
-use frame_support::{
-	assert_noop, assert_ok,
-	traits::{nonfungible::Mutate, Get},
-};
+use crate::{dynamic_pricing::DynamicPricing, mock::*, *};
+use frame_support::{assert_noop, assert_ok, traits::nonfungible::Mutate};
 use pallet_broker::{CoreMask, RegionRecord};
 use sp_runtime::{DispatchError::Token, TokenError};
 
@@ -25,7 +22,7 @@ use sp_runtime::{DispatchError::Token, TokenError};
 fn calculate_region_price_works() {
 	new_test_ext().execute_with(|| {
 		assert_eq!(
-			Market::calculate_region_price(
+			DynamicPricing::<Test>::calculate_region_price(
 				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
 				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
 				10 // timeslice price
@@ -36,7 +33,7 @@ fn calculate_region_price_works() {
 		// Remains same until a timeslice passes:
 		RelayBlockNumber::set(79);
 		assert_eq!(
-			Market::calculate_region_price(
+			DynamicPricing::<Test>::calculate_region_price(
 				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
 				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
 				10 // timeslice price
@@ -48,7 +45,7 @@ fn calculate_region_price_works() {
 
 		// Reduced by one after a timeslice elapses:
 		assert_eq!(
-			Market::calculate_region_price(
+			DynamicPricing::<Test>::calculate_region_price(
 				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
 				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
 				10 // timeslice price
@@ -59,7 +56,7 @@ fn calculate_region_price_works() {
 		RelayBlockNumber::set(8 * 80);
 		// Expired region has no value:
 		assert_eq!(
-			Market::calculate_region_price(
+			DynamicPricing::<Test>::calculate_region_price(
 				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
 				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
 				10 // timeslice price
@@ -80,7 +77,7 @@ fn list_region_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
 		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
 		let price = 1_000_000;
 		let recipient = 1;
 
@@ -114,14 +111,14 @@ fn list_region_works() {
 		// Check storage items
 		assert_eq!(
 			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: recipient })
+			Some(Listing { seller, price_data: price, sale_recipient: recipient })
 		);
 
 		assert!(Regions::regions(region_id).unwrap().locked);
 
 		// Check events
 		System::assert_last_event(
-			Event::Listed { region_id, timeslice_price: price, seller, sale_recipient: recipient }
+			Event::Listed { region_id, price_data: price, seller, sale_recipient: recipient }
 				.into(),
 		);
 	});
@@ -147,7 +144,7 @@ fn unlist_region_works() {
 		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
 		assert_eq!(
 			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: seller })
+			Some(Listing { seller, price_data: price, sale_recipient: seller })
 		);
 
 		// Failure: NotAllowed
@@ -178,7 +175,7 @@ fn unlist_expired_region_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
 		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(seller), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
 		let price = 1_000_000;
 
 		assert_ok!(Regions::set_record(region_id, record.clone()));
@@ -189,7 +186,7 @@ fn unlist_expired_region_works() {
 		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
 		assert_eq!(
 			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: seller })
+			Some(Listing { seller, price_data: price, sale_recipient: seller })
 		);
 
 		RelayBlockNumber::set(9 * timeslice);
@@ -216,7 +213,7 @@ fn update_region_price_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
 		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
 		let price = 1_000_000;
 		let recipient = 1;
 		let new_timeslice_price = 2_000_000;
@@ -251,16 +248,12 @@ fn update_region_price_works() {
 		// Check storage
 		assert_eq!(
 			Market::listings(region_id),
-			Some(Listing {
-				seller,
-				timeslice_price: new_timeslice_price,
-				sale_recipient: recipient
-			})
+			Some(Listing { seller, price_data: new_timeslice_price, sale_recipient: recipient })
 		);
 
 		// Check events
 		System::assert_last_event(
-			Event::<Test>::PriceUpdated { region_id, new_timeslice_price }.into(),
+			Event::<Test>::PriceUpdated { region_id, price_data: new_timeslice_price }.into(),
 		);
 	});
 }
@@ -275,7 +268,7 @@ fn purchase_region_works() {
 		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
 		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
+		let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
 		let timeslice_price = 1_000_000;
 		let recipient = 1;
 
@@ -334,7 +327,10 @@ fn purchase_region_works() {
 
 		RelayBlockNumber::set(4 * timeslice);
 		let price = 4 * timeslice_price;
-		assert_eq!(Market::calculate_region_price(region_id, record, timeslice_price), price);
+		assert_eq!(
+			DynamicPricing::<Test>::calculate_region_price(region_id, record, timeslice_price),
+			price
+		);
 		assert_ok!(Market::purchase_region(
 			RuntimeOrigin::signed(buyer),
 			region_id,

@@ -13,6 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
+use crate::dynamic_pricing::DynamicPricing;
 use anyhow;
 use frame_support::{derive_impl, pallet_prelude::*, parameter_types, traits::Everything};
 use frame_system::{config_preludes::TestDefaultConfig, DefaultConfig};
@@ -161,6 +162,7 @@ impl crate::Config for Test {
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelayBlockNumberProvider;
 	type TimeslicePeriod = ConstU64<80>;
+	type MarketImpl = DynamicPricing<Test>;
 	type WeightInfo = ();
 }
 

@@ -51,7 +51,7 @@ pub type BalanceOf<T> =
 pub type RCBlockNumberOf<T> =
 	<<T as crate::Config>::RCBlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
-pub trait Market<T: crate::Config> {
+pub trait MarketT<T: crate::Config> {
 	type PriceData: Parameter;
 
 	fn list_region(
@@ -61,15 +61,19 @@ pub trait Market<T: crate::Config> {
 		sale_recipient: Option<T::AccountId>,
 	) -> DispatchResult;
 
-	fn unlist_region(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult;
+	fn unlist_region(who: T::AccountId, region_id: RegionId) -> DispatchResult;
 
 	fn update_region_price(
-		origin: OriginFor<T>,
+		who: T::AccountId,
 		region_id: RegionId,
-		new_timeslice_price: BalanceOf<T>,
+		new_timeslice_price: Self::PriceData,
 	) -> DispatchResult;
 
-	fn purchase_region(region_id: RegionId, max_price: BalanceOf<T>) -> DispatchResult;
+	fn purchase_region(
+		who: T::AccountId,
+		region_id: RegionId,
+		max_price: BalanceOf<T>,
+	) -> Result<BalanceOf<T>, DispatchError>;
 }
 
 #[frame_support::pallet]
@@ -92,7 +96,7 @@ pub mod pallet {
 		/// This is because we want to support two different pricing models:
 		/// - Fixed pricing
 		/// - Dynamic pricing: price of an 'active' region decreases over time.
-		type MarketImpl: Market<Self>;
+		type MarketImpl: MarketT<Self>;
 
 		/// Type providing a way of reading, transferring and locking regions.
 		//
@@ -132,7 +136,7 @@ pub mod pallet {
 			/// The region that got listed on sale.
 			region_id: RegionId,
 			/// The price per timeslice of the listed region.
-			price_data: <T::MarketImpl as Market<T>>::PriceData,
+			price_data: <T::MarketImpl as MarketT<T>>::PriceData,
 			/// The seller of the region.
 			seller: T::AccountId,
 			/// The sale revenue recipient.
@@ -154,7 +158,7 @@ pub mod pallet {
 			/// The region for which the sale price was updated.
 			region_id: RegionId,
 			/// New timeslice price
-			new_timeslice_price: BalanceOf<T>,
+			price_data: <T::MarketImpl as MarketT<T>>::PriceData,
 		},
 	}
 
@@ -193,16 +197,16 @@ pub mod pallet {
 		pub fn list_region(
 			origin: OriginFor<T>,
 			region_id: RegionId,
-			price_data: <T::MarketImpl as Market<T>>::PriceData,
+			price_data: <T::MarketImpl as MarketT<T>>::PriceData,
 			sale_recipient: Option<T::AccountId>,
 		) -> DispatchResult {
-	        let who = ensure_signed(origin)?;
+			let who = ensure_signed(origin)?;
 
-			<T::MarketImpl as Market<T>>::list_region(
+			<T::MarketImpl as MarketT<T>>::list_region(
 				who.clone(),
 				region_id,
 				price_data.clone(),
-				sale_recipient.clone()
+				sale_recipient.clone(),
 			)?;
 
 			Self::deposit_event(Event::Listed {
@@ -211,7 +215,6 @@ pub mod pallet {
 				seller: who.clone(),
 				sale_recipient: sale_recipient.unwrap_or(who.clone()),
 			});
-
 			Ok(())
 		}
 
@@ -224,19 +227,9 @@ pub mod pallet {
 		pub fn unlist_region(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
-			let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+			<T::MarketImpl as MarketT<T>>::unlist_region(who.clone(), region_id)?;
 
-			// If the region expired anyone can remove it from the market.
-			let current_timeslice = Self::current_timeslice();
-			if current_timeslice <= record.end {
-				ensure!(who == listing.seller, Error::<T>::NotAllowed);
-			};
-
-			Listings::<T>::remove(region_id);
-			T::Regions::unlock(&region_id.into(), None)?;
 			Self::deposit_event(Event::Unlisted { region_id });
-
 			Ok(())
 		}
 
@@ -250,23 +243,17 @@ pub mod pallet {
 		pub fn update_region_price(
 			origin: OriginFor<T>,
 			region_id: RegionId,
-			new_timeslice_price: BalanceOf<T>,
+			price_data: <T::MarketImpl as MarketT<T>>::PriceData,
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let mut listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
-			let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+			<T::MarketImpl as MarketT<T>>::update_region_price(
+				who.clone(),
+				region_id,
+				price_data.clone(),
+			)?;
 
-			// Only the seller can update the price
-			ensure!(who == listing.seller, Error::<T>::NotAllowed);
-
-			let current_timeslice = Self::current_timeslice();
-			ensure!(current_timeslice < record.end, Error::<T>::RegionExpired);
-
-			listing.timeslice_price = new_timeslice_price;
-			Listings::<T>::insert(region_id, listing);
-
-			Self::deposit_event(Event::PriceUpdated { region_id, new_timeslice_price });
+			Self::deposit_event(Event::PriceUpdated { region_id, price_data });
 			Ok(())
 		}
 
@@ -286,51 +273,11 @@ pub mod pallet {
 		) -> DispatchResult {
 			let who = ensure_signed(origin)?;
 
-			let listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
-			let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
-
-			ensure!(who != listing.seller && who != listing.sale_recipient, Error::<T>::NotAllowed);
-
-			let price = Self::calculate_region_price(region_id, record, listing.timeslice_price);
-			ensure!(price <= max_price, Error::<T>::PriceTooHigh);
-			T::Currency::transfer(&who, &listing.sale_recipient, price, Preservation::Preserve)?;
-
-			// Remove the region from sale:
-			Listings::<T>::remove(region_id);
-			T::Regions::unlock(&region_id.into(), None)?;
-
-			T::Regions::transfer(&region_id.into(), &who)?;
+			let price =
+				<T::MarketImpl as MarketT<T>>::purchase_region(who.clone(), region_id, max_price)?;
 
 			Self::deposit_event(Event::Purchased { region_id, buyer: who, total_price: price });
-
 			Ok(())
-		}
-	}
-
-	impl<T: Config> Pallet<T> {
-		pub(crate) fn calculate_region_price(
-			region_id: RegionId,
-			record: RegionRecordOf<T>,
-			timeslice_price: BalanceOf<T>,
-		) -> BalanceOf<T> {
-			let current_timeslice = Self::current_timeslice();
-			let duration = record.end.saturating_sub(region_id.begin);
-
-			if current_timeslice < region_id.begin {
-				// The region didn't start yet, so there is no value lost.
-				let price = timeslice_price.saturating_mul(duration.into());
-
-				return price;
-			}
-
-			let remaining_timeslices = record.end.saturating_sub(current_timeslice);
-			timeslice_price.saturating_mul(remaining_timeslices.into())
-		}
-
-		pub(crate) fn current_timeslice() -> Timeslice {
-			let latest_rc_block = T::RCBlockNumberProvider::current_block_number();
-			let timeslice_period = T::TimeslicePeriod::get();
-			(latest_rc_block / timeslice_period).saturated_into()
 		}
 	}
 }

@@ -13,13 +13,13 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::*;
-use crate::frame_system::ensure_signed;
+use crate::{frame_system::ensure_signed, *};
+use polkadot_sdk::frame_support::traits::{fungible::Mutate, nonfungible::Transfer};
 
 pub struct DynamicPricing<T: Config>(PhantomData<T>);
 
-impl<T: Config> Market<T> for DynamicPricing<T> {
-    type PriceData = BalanceOf<T>;
+impl<T: Config> MarketT<T> for DynamicPricing<T> {
+	type PriceData = BalanceOf<T>;
 
 	fn list_region(
 		who: T::AccountId,
@@ -44,29 +44,72 @@ impl<T: Config> Market<T> for DynamicPricing<T> {
 			region_id,
 			Listing {
 				seller: who.clone(),
-				timeslice_price,
+				price_data: timeslice_price,
 				sale_recipient: sale_recipient.clone(),
 			},
 		);
 
-        Ok(())
-    }
+		Ok(())
+	}
 
-	fn unlist_region(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult {
-        Ok(())
-    }
+	fn unlist_region(who: T::AccountId, region_id: RegionId) -> DispatchResult {
+		let listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
+		let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+
+		// If the region expired anyone can remove it from the market.
+		let current_timeslice = Self::current_timeslice();
+		if current_timeslice <= record.end {
+			ensure!(who == listing.seller, Error::<T>::NotAllowed);
+		};
+
+		Listings::<T>::remove(region_id);
+		T::Regions::unlock(&region_id.into(), None)?;
+
+		Ok(())
+	}
 
 	fn update_region_price(
-		origin: OriginFor<T>,
+		who: T::AccountId,
 		region_id: RegionId,
-		new_timeslice_price: BalanceOf<T>,
+		new_timeslice_price: Self::PriceData,
 	) -> DispatchResult {
-        Ok(())
-    }
+		let mut listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
+		let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
 
-	fn purchase_region(region_id: RegionId, max_price: BalanceOf<T>) -> DispatchResult {
-        Ok(())
-    }
+		// Only the seller can update the price
+		ensure!(who == listing.seller, Error::<T>::NotAllowed);
+
+		let current_timeslice = Self::current_timeslice();
+		ensure!(current_timeslice < record.end, Error::<T>::RegionExpired);
+
+		listing.price_data = new_timeslice_price;
+		Listings::<T>::insert(region_id, listing);
+
+		Ok(())
+	}
+
+	fn purchase_region(
+		who: T::AccountId,
+		region_id: RegionId,
+		max_price: BalanceOf<T>,
+	) -> Result<BalanceOf<T>, DispatchError> {
+		let listing = Listings::<T>::get(region_id).ok_or(Error::<T>::NotListed)?;
+		let record = T::Regions::record(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+
+		ensure!(who != listing.seller && who != listing.sale_recipient, Error::<T>::NotAllowed);
+
+		let price = Self::calculate_region_price(region_id, record, listing.price_data);
+		ensure!(price <= max_price, Error::<T>::PriceTooHigh);
+		T::Currency::transfer(&who, &listing.sale_recipient, price, Preservation::Preserve)?;
+
+		// Remove the region from sale:
+		Listings::<T>::remove(region_id);
+		T::Regions::unlock(&region_id.into(), None)?;
+
+		T::Regions::transfer(&region_id.into(), &who)?;
+
+		Ok(price)
+	}
 }
 
 impl<T: Config> DynamicPricing<T> {
