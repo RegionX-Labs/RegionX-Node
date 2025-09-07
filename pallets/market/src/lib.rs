@@ -15,7 +15,11 @@
 
 #![cfg_attr(not(feature = "std"), no_std)]
 
-use frame_support::traits::{fungible::Inspect, tokens::Preservation};
+use frame_support::{
+	pallet_prelude::*,
+	traits::{fungible::Inspect, tokens::Preservation},
+};
+use frame_system::pallet_prelude::OriginFor;
 use nonfungible_primitives::LockableNonFungible;
 pub use pallet::*;
 use pallet_broker::{RegionId, Timeslice};
@@ -25,6 +29,8 @@ use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion, Saturating};
 
 mod types;
 pub use crate::types::*;
+
+pub mod dynamic_pricing;
 
 #[cfg(test)]
 mod mock;
@@ -45,13 +51,31 @@ pub type BalanceOf<T> =
 pub type RCBlockNumberOf<T> =
 	<<T as crate::Config>::RCBlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
+pub trait Market<T: crate::Config> {
+	type PriceData: Parameter;
+
+	fn list_region(
+		who: T::AccountId,
+		region_id: RegionId,
+		price_data: Self::PriceData,
+		sale_recipient: Option<T::AccountId>,
+	) -> DispatchResult;
+
+	fn unlist_region(origin: OriginFor<T>, region_id: RegionId) -> DispatchResult;
+
+	fn update_region_price(
+		origin: OriginFor<T>,
+		region_id: RegionId,
+		new_timeslice_price: BalanceOf<T>,
+	) -> DispatchResult;
+
+	fn purchase_region(region_id: RegionId, max_price: BalanceOf<T>) -> DispatchResult;
+}
+
 #[frame_support::pallet]
 pub mod pallet {
 	use super::*;
-	use frame_support::{
-		pallet_prelude::*,
-		traits::{fungible::Mutate, nonfungible::Transfer},
-	};
+	use frame_support::traits::{fungible::Mutate, nonfungible::Transfer};
 	use frame_system::pallet_prelude::*;
 
 	#[pallet::config]
@@ -62,6 +86,13 @@ pub mod pallet {
 
 		/// Currency used for purchasing coretime.
 		type Currency: Mutate<Self::AccountId>;
+
+		/// Implementation of all the marketplace extrinsics.
+		///
+		/// This is because we want to support two different pricing models:
+		/// - Fixed pricing
+		/// - Dynamic pricing: price of an 'active' region decreases over time.
+		type MarketImpl: Market<Self>;
 
 		/// Type providing a way of reading, transferring and locking regions.
 		//
@@ -101,7 +132,7 @@ pub mod pallet {
 			/// The region that got listed on sale.
 			region_id: RegionId,
 			/// The price per timeslice of the listed region.
-			timeslice_price: BalanceOf<T>,
+			price_data: <T::MarketImpl as Market<T>>::PriceData,
 			/// The seller of the region.
 			seller: T::AccountId,
 			/// The sale revenue recipient.
@@ -162,38 +193,23 @@ pub mod pallet {
 		pub fn list_region(
 			origin: OriginFor<T>,
 			region_id: RegionId,
-			timeslice_price: BalanceOf<T>,
+			price_data: <T::MarketImpl as Market<T>>::PriceData,
 			sale_recipient: Option<T::AccountId>,
 		) -> DispatchResult {
-			let who = ensure_signed(origin)?;
+	        let who = ensure_signed(origin)?;
 
-			ensure!(Listings::<T>::get(region_id).is_none(), Error::<T>::AlreadyListed);
-
-			let region = T::Regions::region(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
-			ensure!(!region.locked, Error::<T>::RegionLocked);
-			let record = region.record.get().ok_or(Error::<T>::RecordUnavailable)?;
-
-			// It doesn't make sense to list a region that expired.
-			let current_timeslice = Self::current_timeslice();
-			ensure!(record.end > current_timeslice, Error::<T>::RegionExpired);
-
-			T::Regions::lock(&region_id.into(), Some(who.clone()))?;
-
-			let sale_recipient = sale_recipient.unwrap_or(who.clone());
-			Listings::<T>::insert(
+			<T::MarketImpl as Market<T>>::list_region(
+				who.clone(),
 				region_id,
-				Listing {
-					seller: who.clone(),
-					timeslice_price,
-					sale_recipient: sale_recipient.clone(),
-				},
-			);
+				price_data.clone(),
+				sale_recipient.clone()
+			)?;
 
 			Self::deposit_event(Event::Listed {
 				region_id,
-				timeslice_price,
-				seller: who,
-				sale_recipient,
+				price_data,
+				seller: who.clone(),
+				sale_recipient: sale_recipient.unwrap_or(who.clone()),
 			});
 
 			Ok(())
