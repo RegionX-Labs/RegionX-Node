@@ -31,6 +31,7 @@ mod types;
 pub use crate::types::*;
 
 pub mod dynamic_pricing;
+pub mod fixed_pricing;
 
 #[cfg(test)]
 mod mock;
