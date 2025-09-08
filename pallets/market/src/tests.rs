@@ -14,345 +14,589 @@
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
 use crate::{mock::*, *};
-use frame_support::{
-	assert_noop, assert_ok,
-	traits::{nonfungible::Mutate, Get},
-};
-use pallet_broker::{CoreMask, RegionRecord};
+use frame_support::{assert_noop, assert_ok, traits::nonfungible::Mutate};
+use pallet_broker::CoreMask;
 use sp_runtime::{DispatchError::Token, TokenError};
 
-#[test]
-fn calculate_region_price_works() {
-	new_test_ext().execute_with(|| {
-		assert_eq!(
-			Market::calculate_region_price(
-				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
-				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
-				10 // timeslice price
-			),
-			80 // 8 * 10
-		);
+#[cfg(not(feature = "dynamic-pricing"))]
+mod fixed_pricing_tests {
+	use super::*;
 
-		// Remains same until a timeslice passes:
-		RelayBlockNumber::set(79);
-		assert_eq!(
-			Market::calculate_region_price(
-				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
-				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
-				10 // timeslice price
-			),
-			80 // 8 * 10
-		);
+	#[test]
+	fn list_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
 
-		RelayBlockNumber::set(80);
+			assert!(Regions::regions(&region_id).is_none());
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+			assert!(Regions::regions(&region_id).is_some());
 
-		// Reduced by one after a timeslice elapses:
-		assert_eq!(
-			Market::calculate_region_price(
-				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
-				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
-				10 // timeslice price
-			),
-			70 // 7 * 10
-		);
+			let price = 1_000_000_000;
+			let recipient = 1;
 
-		RelayBlockNumber::set(8 * 80);
-		// Expired region has no value:
-		assert_eq!(
-			Market::calculate_region_price(
-				RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
-				RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
-				10 // timeslice price
-			),
-			0
-		);
-	});
+			// Failure: Unknown region
+
+			let mut fake_region = region_id;
+			fake_region.core = 42;
+
+			assert_noop!(
+				Market::list_region(signer.clone(), fake_region, price, None),
+				Error::<Test>::UnknownRegion
+			);
+
+			// Should be working
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
+
+			// Failure: Already listed
+			assert_noop!(
+				Market::list_region(signer, region_id, price, None),
+				Error::<Test>::AlreadyListed
+			);
+
+			// Check storage items
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: price, sale_recipient: recipient })
+			);
+
+			assert!(Regions::regions(region_id).unwrap().locked);
+
+			// Check events
+			System::assert_last_event(
+				Event::Listed { region_id, price_data: price, seller, sale_recipient: recipient }
+					.into(),
+			);
+		});
+	}
+
+	#[test]
+	fn unlist_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
+
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+
+			let price = 1_000_000_000;
+
+			// Failure: NotListed
+			assert_noop!(
+				Market::unlist_region(signer.clone(), region_id),
+				Error::<Test>::NotListed
+			);
+
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: price, sale_recipient: seller })
+			);
+
+			// Failure: NotAllowed
+			assert_noop!(
+				Market::unlist_region(RuntimeOrigin::signed(3), region_id),
+				Error::<Test>::NotAllowed
+			);
+
+			// Should be working now.
+			assert_ok!(Market::unlist_region(signer, region_id));
+
+			// Check storage items
+			assert!(Market::listings(region_id).is_none());
+			assert!(Regions::regions(region_id).unwrap().locked == false);
+
+			// Check events
+			System::assert_last_event(Event::Unlisted { region_id }.into())
+		});
+	}
+
+	#[test]
+	fn update_region_price_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
+
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+
+			let price = 1_000_000_000;
+			let recipient = 1;
+			let new_price = 2_000_000_000;
+
+			// Failure: NotListed
+			assert_noop!(
+				Market::update_region_price(signer.clone(), region_id, new_price),
+				Error::<Test>::NotListed
+			);
+
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
+
+			// Failure: NotAllowed - only the seller can update the price
+			assert_noop!(
+				Market::update_region_price(RuntimeOrigin::signed(3), region_id, new_price),
+				Error::<Test>::NotAllowed
+			);
+
+			// Should be working now
+			assert_ok!(Market::update_region_price(signer, region_id, new_price));
+
+			// Check storage
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: new_price, sale_recipient: recipient })
+			);
+
+			// Check events
+			System::assert_last_event(
+				Event::<Test>::PriceUpdated { region_id, price_data: new_price }.into(),
+			);
+		});
+	}
+
+	#[test]
+	fn purchase_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let buyer = 420;
+
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+
+			let price = 1_000_000_000;
+			let recipient = 1;
+
+			// Failure: NotListed
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(seller), region_id, price),
+				Error::<Test>::NotListed
+			);
+
+			assert_ok!(Market::list_region(
+				RuntimeOrigin::signed(seller),
+				region_id,
+				price,
+				Some(recipient)
+			));
+
+			// Failure: NotAllowed
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(seller), region_id, price),
+				Error::<Test>::NotAllowed
+			);
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(recipient), region_id, price),
+				Error::<Test>::NotAllowed
+			);
+
+			// Failure: PriceTooHigh
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, price - 1),
+				Error::<Test>::PriceTooHigh
+			);
+
+			// Failure: Insufficient Balance
+			assert_ok!(Balances::force_set_balance(RuntimeOrigin::root(), buyer, price - 100,));
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, price),
+				Token(TokenError::FundsUnavailable)
+			);
+			assert_ok!(Balances::force_set_balance(RuntimeOrigin::root(), buyer, price + 100));
+
+			// Should be working
+			let balance_recipient_old = Balances::free_balance(recipient);
+			let balance_buyer_old = Balances::free_balance(buyer);
+
+			assert_ok!(Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, price));
+
+			// Check storage items
+			assert!(Market::listings(region_id).is_none());
+			assert!(Regions::regions(region_id).unwrap().locked == false);
+
+			// Check events
+			System::assert_last_event(
+				Event::Purchased { region_id, buyer, total_price: price }.into(),
+			);
+
+			// Check account balances
+			let balance_recipient = Balances::free_balance(recipient);
+			assert_eq!(balance_recipient, balance_recipient_old + price);
+
+			let balance_buyer = Balances::free_balance(buyer);
+			assert_eq!(balance_buyer.saturating_add(price), balance_buyer_old);
+		});
+	}
 }
 
-#[test]
-fn list_region_works() {
-	new_test_ext().execute_with(|| {
-		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let seller = 2;
-		let signer = RuntimeOrigin::signed(seller);
+#[cfg(feature = "dynamic-pricing")]
+mod dynamic_pricing_tests {
+	use super::*;
+	use dynamic_pricing::DynamicPricing;
+	use pallet_broker::RegionRecord;
 
-		assert!(Regions::regions(&region_id).is_none());
-		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+	#[test]
+	fn calculate_region_price_works() {
+		new_test_ext().execute_with(|| {
+			assert_eq!(
+				DynamicPricing::<Test>::calculate_region_price(
+					RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
+					RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
+					10 // timeslice price
+				),
+				80 // 8 * 10
+			);
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
-		let price = 1_000_000;
-		let recipient = 1;
+			// Remains same until a timeslice passes:
+			RelayBlockNumber::set(79);
+			assert_eq!(
+				DynamicPricing::<Test>::calculate_region_price(
+					RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
+					RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
+					10 // timeslice price
+				),
+				80 // 8 * 10
+			);
 
-		// Failure: Unknown region
+			RelayBlockNumber::set(80);
 
-		assert_noop!(
-			Market::list_region(signer.clone(), region_id, price, None),
-			Error::<Test>::RecordUnavailable
-		);
+			// Reduced by one after a timeslice elapses:
+			assert_eq!(
+				DynamicPricing::<Test>::calculate_region_price(
+					RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
+					RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
+					10 // timeslice price
+				),
+				70 // 7 * 10
+			);
 
-		assert_ok!(Regions::set_record(region_id, record.clone()));
+			RelayBlockNumber::set(8 * 80);
+			// Expired region has no value:
+			assert_eq!(
+				DynamicPricing::<Test>::calculate_region_price(
+					RegionId { begin: 0, core: 0, mask: CoreMask::complete() },
+					RegionRecordOf::<Test> { end: 8, owner: Some(1), paid: None },
+					10 // timeslice price
+				),
+				0
+			);
+		});
+	}
 
-		// Failure: Region expired
-		RelayBlockNumber::set(10 * timeslice);
+	#[test]
+	fn list_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
 
-		assert_noop!(
-			Market::list_region(signer.clone(), region_id, price, None),
-			Error::<Test>::RegionExpired
-		);
+			assert!(Regions::regions(&region_id).is_none());
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
-		// Should be working
-		RelayBlockNumber::set(1 * timeslice);
-		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
+			let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
+			let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
+			let price = 1_000_000;
+			let recipient = 1;
 
-		// Failure: Already listed
-		assert_noop!(
-			Market::list_region(signer, region_id, price, None),
-			Error::<Test>::AlreadyListed
-		);
+			// Failure: Unknown region
 
-		// Check storage items
-		assert_eq!(
-			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: recipient })
-		);
+			assert_noop!(
+				Market::list_region(signer.clone(), region_id, price, None),
+				Error::<Test>::RecordUnavailable
+			);
 
-		assert!(Regions::regions(region_id).unwrap().locked);
+			assert_ok!(Regions::set_record(region_id, record.clone()));
 
-		// Check events
-		System::assert_last_event(
-			Event::Listed { region_id, timeslice_price: price, seller, sale_recipient: recipient }
-				.into(),
-		);
-	});
-}
+			// Failure: Region expired
+			RelayBlockNumber::set(10 * timeslice);
 
-#[test]
-fn unlist_region_works() {
-	new_test_ext().execute_with(|| {
-		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let seller = 2;
-		let signer = RuntimeOrigin::signed(seller);
+			assert_noop!(
+				Market::list_region(signer.clone(), region_id, price, None),
+				Error::<Test>::RegionExpired
+			);
 
-		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+			// Should be working
+			RelayBlockNumber::set(1 * timeslice);
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(seller), paid: None };
-		let price = 1_000_000;
+			// Failure: Already listed
+			assert_noop!(
+				Market::list_region(signer, region_id, price, None),
+				Error::<Test>::AlreadyListed
+			);
 
-		assert_ok!(Regions::set_record(region_id, record.clone()));
+			// Check storage items
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: price, sale_recipient: recipient })
+			);
 
-		// Failure: NotListed
-		assert_noop!(Market::unlist_region(signer.clone(), region_id), Error::<Test>::NotListed);
+			assert!(Regions::regions(region_id).unwrap().locked);
 
-		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
-		assert_eq!(
-			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: seller })
-		);
+			// Check events
+			System::assert_last_event(
+				Event::Listed { region_id, price_data: price, seller, sale_recipient: recipient }
+					.into(),
+			);
+		});
+	}
 
-		// Failure: NotAllowed
-		assert_noop!(
-			Market::unlist_region(RuntimeOrigin::signed(3), region_id),
-			Error::<Test>::NotAllowed
-		);
+	#[test]
+	fn unlist_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
 
-		// Should be working now.
-		assert_ok!(Market::unlist_region(signer, region_id));
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
-		// Check storage items
-		assert!(Market::listings(region_id).is_none());
-		assert!(Regions::regions(region_id).unwrap().locked == false);
+			let record: RegionRecordOf<Test> =
+				RegionRecord { end: 8, owner: Some(seller), paid: None };
+			let price = 1_000_000;
 
-		// Check events
-		System::assert_last_event(Event::Unlisted { region_id }.into())
-	});
-}
+			assert_ok!(Regions::set_record(region_id, record.clone()));
 
-#[test]
-fn unlist_expired_region_works() {
-	new_test_ext().execute_with(|| {
-		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let seller = 2;
-		let signer = RuntimeOrigin::signed(seller);
+			// Failure: NotListed
+			assert_noop!(
+				Market::unlist_region(signer.clone(), region_id),
+				Error::<Test>::NotListed
+			);
 
-		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: price, sale_recipient: seller })
+			);
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(seller), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
-		let price = 1_000_000;
+			// Failure: NotAllowed
+			assert_noop!(
+				Market::unlist_region(RuntimeOrigin::signed(3), region_id),
+				Error::<Test>::NotAllowed
+			);
 
-		assert_ok!(Regions::set_record(region_id, record.clone()));
+			// Should be working now.
+			assert_ok!(Market::unlist_region(signer, region_id));
 
-		// Failure: NotListed
-		assert_noop!(Market::unlist_region(signer.clone(), region_id), Error::<Test>::NotListed);
+			// Check storage items
+			assert!(Market::listings(region_id).is_none());
+			assert!(Regions::regions(region_id).unwrap().locked == false);
 
-		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
-		assert_eq!(
-			Market::listings(region_id),
-			Some(Listing { seller, timeslice_price: price, sale_recipient: seller })
-		);
+			// Check events
+			System::assert_last_event(Event::Unlisted { region_id }.into())
+		});
+	}
 
-		RelayBlockNumber::set(9 * timeslice);
+	#[test]
+	fn unlist_expired_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
 
-		// Anyone can unlist an expired region.
-		assert_ok!(Market::unlist_region(RuntimeOrigin::signed(3), region_id));
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
-		// Check events
-		System::assert_last_event(Event::Unlisted { region_id }.into());
+			let record: RegionRecordOf<Test> =
+				RegionRecord { end: 8, owner: Some(seller), paid: None };
+			let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
+			let price = 1_000_000;
 
-		// Check storage items
-		assert!(Market::listings(region_id).is_none());
-		assert!(Regions::regions(region_id).unwrap().locked == false);
-	});
-}
+			assert_ok!(Regions::set_record(region_id, record.clone()));
 
-#[test]
-fn update_region_price_works() {
-	new_test_ext().execute_with(|| {
-		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let seller = 2;
-		let signer = RuntimeOrigin::signed(seller);
+			// Failure: NotListed
+			assert_noop!(
+				Market::unlist_region(signer.clone(), region_id),
+				Error::<Test>::NotListed
+			);
 
-		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(seller)));
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing { seller, price_data: price, sale_recipient: seller })
+			);
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
-		let price = 1_000_000;
-		let recipient = 1;
-		let new_timeslice_price = 2_000_000;
+			RelayBlockNumber::set(9 * timeslice);
 
-		assert_ok!(Regions::set_record(region_id, record.clone()));
+			// Anyone can unlist an expired region.
+			assert_ok!(Market::unlist_region(RuntimeOrigin::signed(3), region_id));
 
-		// Failure: NotListed
-		assert_noop!(
-			Market::update_region_price(signer.clone(), region_id, new_timeslice_price),
-			Error::<Test>::NotListed
-		);
+			// Check events
+			System::assert_last_event(Event::Unlisted { region_id }.into());
 
-		assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
+			// Check storage items
+			assert!(Market::listings(region_id).is_none());
+			assert!(Regions::regions(region_id).unwrap().locked == false);
+		});
+	}
 
-		// Failure: NotAllowed - only the seller can update the price
-		assert_noop!(
-			Market::update_region_price(RuntimeOrigin::signed(3), region_id, new_timeslice_price),
-			Error::<Test>::NotAllowed
-		);
+	#[test]
+	fn update_region_price_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let signer = RuntimeOrigin::signed(seller);
 
-		// Failure: RegionExpired
-		RelayBlockNumber::set(10 * timeslice);
-		assert_noop!(
-			Market::update_region_price(signer.clone(), region_id, new_timeslice_price),
-			Error::<Test>::RegionExpired
-		);
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
 
-		// Should be working now
-		RelayBlockNumber::set(2 * timeslice);
-		assert_ok!(Market::update_region_price(signer, region_id, new_timeslice_price));
+			let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
+			let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
+			let price = 1_000_000;
+			let recipient = 1;
+			let new_timeslice_price = 2_000_000;
 
-		// Check storage
-		assert_eq!(
-			Market::listings(region_id),
-			Some(Listing {
+			assert_ok!(Regions::set_record(region_id, record.clone()));
+
+			// Failure: NotListed
+			assert_noop!(
+				Market::update_region_price(signer.clone(), region_id, new_timeslice_price),
+				Error::<Test>::NotListed
+			);
+
+			assert_ok!(Market::list_region(signer.clone(), region_id, price, Some(recipient)));
+
+			// Failure: NotAllowed - only the seller can update the price
+			assert_noop!(
+				Market::update_region_price(
+					RuntimeOrigin::signed(3),
+					region_id,
+					new_timeslice_price
+				),
+				Error::<Test>::NotAllowed
+			);
+
+			// Failure: RegionExpired
+			RelayBlockNumber::set(10 * timeslice);
+			assert_noop!(
+				Market::update_region_price(signer.clone(), region_id, new_timeslice_price),
+				Error::<Test>::RegionExpired
+			);
+
+			// Should be working now
+			RelayBlockNumber::set(2 * timeslice);
+			assert_ok!(Market::update_region_price(signer, region_id, new_timeslice_price));
+
+			// Check storage
+			assert_eq!(
+				Market::listings(region_id),
+				Some(Listing {
+					seller,
+					price_data: new_timeslice_price,
+					sale_recipient: recipient
+				})
+			);
+
+			// Check events
+			System::assert_last_event(
+				Event::<Test>::PriceUpdated { region_id, price_data: new_timeslice_price }.into(),
+			);
+		});
+	}
+
+	#[test]
+	fn purchase_region_works() {
+		new_test_ext().execute_with(|| {
+			let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
+			let seller = 2;
+			let buyer = 3;
+
+			assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+
+			let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
+			let timeslice: u64 = <<Test as Config>::TimeslicePeriod as Get<u64>>::get();
+			let timeslice_price = 1_000_000;
+			let recipient = 1;
+
+			assert_ok!(Regions::set_record(region_id, record.clone()));
+
+			// Failure: NotListed
+			assert_noop!(
+				Market::purchase_region(
+					RuntimeOrigin::signed(seller),
+					region_id,
+					1 * timeslice_price
+				),
+				Error::<Test>::NotListed
+			);
+
+			assert_ok!(Market::list_region(
+				RuntimeOrigin::signed(seller),
+				region_id,
+				timeslice_price,
+				Some(recipient)
+			));
+
+			// Failure: NotAllowed
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(seller), region_id, timeslice_price),
+				Error::<Test>::NotAllowed
+			);
+			assert_noop!(
+				Market::purchase_region(
+					RuntimeOrigin::signed(recipient),
+					region_id,
+					timeslice_price
+				),
+				Error::<Test>::NotAllowed
+			);
+
+			// Failure: PriceTooHigh
+			RelayBlockNumber::set(timeslice);
+			assert_noop!(
+				Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, timeslice_price),
+				Error::<Test>::PriceTooHigh
+			);
+
+			// Failure: Insufficient Balance
+			let balance_buyer_old = Balances::free_balance(buyer);
+			assert_ok!(Balances::transfer_keep_alive(
+				RuntimeOrigin::signed(buyer),
 				seller,
-				timeslice_price: new_timeslice_price,
-				sale_recipient: recipient
-			})
-		);
+				balance_buyer_old.saturating_sub(3 * timeslice_price),
+			));
+			assert_noop!(
+				Market::purchase_region(
+					RuntimeOrigin::signed(buyer),
+					region_id,
+					8 * timeslice_price
+				),
+				Token(TokenError::FundsUnavailable)
+			);
+			assert_ok!(Balances::transfer_keep_alive(
+				RuntimeOrigin::signed(seller),
+				buyer,
+				2 * timeslice_price
+			));
 
-		// Check events
-		System::assert_last_event(
-			Event::<Test>::PriceUpdated { region_id, new_timeslice_price }.into(),
-		);
-	});
-}
+			// Should be working
+			let balance_recipient_old = Balances::free_balance(recipient);
+			let balance_buyer_old = Balances::free_balance(buyer);
 
-#[test]
-fn purchase_region_works() {
-	new_test_ext().execute_with(|| {
-		let region_id = RegionId { begin: 0, core: 0, mask: CoreMask::complete() };
-		let seller = 2;
-		let buyer = 3;
+			RelayBlockNumber::set(4 * timeslice);
+			let price = 4 * timeslice_price;
+			assert_eq!(
+				DynamicPricing::<Test>::calculate_region_price(region_id, record, timeslice_price),
+				price
+			);
+			assert_ok!(Market::purchase_region(
+				RuntimeOrigin::signed(buyer),
+				region_id,
+				5 * timeslice_price
+			));
 
-		assert_ok!(Regions::mint_into(&region_id.into(), &seller));
+			// Check storage items
+			assert!(Market::listings(region_id).is_none());
+			assert!(Regions::regions(region_id).unwrap().locked == false);
 
-		let record: RegionRecordOf<Test> = RegionRecord { end: 8, owner: Some(1), paid: None };
-		let timeslice: u64 = <Test as crate::Config>::TimeslicePeriod::get();
-		let timeslice_price = 1_000_000;
-		let recipient = 1;
+			// Check events
+			System::assert_last_event(
+				Event::Purchased { region_id, buyer, total_price: price }.into(),
+			);
 
-		assert_ok!(Regions::set_record(region_id, record.clone()));
+			// Check account balances
+			let balance_recipient = Balances::free_balance(recipient);
+			assert_eq!(balance_recipient, balance_recipient_old + price);
 
-		// Failure: NotListed
-		assert_noop!(
-			Market::purchase_region(RuntimeOrigin::signed(seller), region_id, 1 * timeslice_price),
-			Error::<Test>::NotListed
-		);
-
-		assert_ok!(Market::list_region(
-			RuntimeOrigin::signed(seller),
-			region_id,
-			timeslice_price,
-			Some(recipient)
-		));
-
-		// Failure: NotAllowed
-		assert_noop!(
-			Market::purchase_region(RuntimeOrigin::signed(seller), region_id, timeslice_price),
-			Error::<Test>::NotAllowed
-		);
-		assert_noop!(
-			Market::purchase_region(RuntimeOrigin::signed(recipient), region_id, timeslice_price),
-			Error::<Test>::NotAllowed
-		);
-
-		// Failure: PriceTooHigh
-		RelayBlockNumber::set(timeslice);
-		assert_noop!(
-			Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, timeslice_price),
-			Error::<Test>::PriceTooHigh
-		);
-
-		// Failure: Insufficient Balance
-		let balance_buyer_old = Balances::free_balance(buyer);
-		assert_ok!(Balances::transfer_keep_alive(
-			RuntimeOrigin::signed(buyer),
-			seller,
-			balance_buyer_old.saturating_sub(3 * timeslice_price),
-		));
-		assert_noop!(
-			Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, 8 * timeslice_price),
-			Token(TokenError::FundsUnavailable)
-		);
-		assert_ok!(Balances::transfer_keep_alive(
-			RuntimeOrigin::signed(seller),
-			buyer,
-			2 * timeslice_price
-		));
-
-		// Should be working
-		let balance_recipient_old = Balances::free_balance(recipient);
-		let balance_buyer_old = Balances::free_balance(buyer);
-
-		RelayBlockNumber::set(4 * timeslice);
-		let price = 4 * timeslice_price;
-		assert_eq!(Market::calculate_region_price(region_id, record, timeslice_price), price);
-		assert_ok!(Market::purchase_region(
-			RuntimeOrigin::signed(buyer),
-			region_id,
-			5 * timeslice_price
-		));
-
-		// Check storage items
-		assert!(Market::listings(region_id).is_none());
-		assert!(Regions::regions(region_id).unwrap().locked == false);
-
-		// Check events
-		System::assert_last_event(Event::Purchased { region_id, buyer, total_price: price }.into());
-
-		// Check account balances
-		let balance_recipient = Balances::free_balance(recipient);
-		assert_eq!(balance_recipient, balance_recipient_old + price);
-
-		let balance_buyer = Balances::free_balance(buyer);
-		assert_eq!(balance_buyer.saturating_add(price), balance_buyer_old);
-	});
+			let balance_buyer = Balances::free_balance(buyer);
+			assert_eq!(balance_buyer.saturating_add(price), balance_buyer_old);
+		});
+	}
 }

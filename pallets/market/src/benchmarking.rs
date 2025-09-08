@@ -43,14 +43,14 @@ mod benchmarks {
 			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
-		let timeslice_price: BalanceOf<T> = 1_000u32.into();
+		let price_data = 1_000u32;
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), region_id, timeslice_price, None);
+		_(RawOrigin::Signed(caller.clone()), region_id, price_data.into(), None);
 
 		assert_last_event::<T>(
 			Event::Listed {
 				region_id,
-				timeslice_price,
+				price_data: price_data.into(),
 				seller: caller.clone(),
 				sale_recipient: caller,
 			}
@@ -69,11 +69,11 @@ mod benchmarks {
 			RegionRecord { end: 8, owner: Some(caller.clone()), paid: None };
 		T::Regions::create_region(region_id, record, caller.clone())?;
 
-		let timeslice_price: BalanceOf<T> = 1_000u32.into();
+		let price_data: <T::MarketImpl as crate::MarketT<T>>::PriceData = 1_000u32.into();
 		crate::Pallet::<T>::list_region(
 			RawOrigin::Signed(caller.clone()).into(),
 			region_id,
-			timeslice_price,
+			price_data,
 			None,
 		)?;
 
@@ -101,11 +101,13 @@ mod benchmarks {
 			None,
 		)?;
 
-		let new_timeslice_price = 2_000u32.into();
+		let new_price_data: <T::MarketImpl as crate::MarketT<T>>::PriceData = 2_000u32.into();
 		#[extrinsic_call]
-		_(RawOrigin::Signed(caller.clone()), region_id, new_timeslice_price);
+		_(RawOrigin::Signed(caller.clone()), region_id, new_price_data.clone());
 
-		assert_last_event::<T>(Event::PriceUpdated { region_id, new_timeslice_price }.into());
+		assert_last_event::<T>(
+			Event::PriceUpdated { region_id, price_data: new_price_data }.into(),
+		);
 
 		Ok(())
 	}
@@ -129,7 +131,10 @@ mod benchmarks {
 		)?;
 
 		<T as crate::Config>::Currency::set_balance(&caller.clone(), u32::MAX.into());
+		#[cfg(feature = "dynamic-pricing")]
 		let max_price = 8000u32.into();
+		#[cfg(not(feature = "dynamic-pricing"))]
+		let max_price = 1000u32.into();
 
 		#[extrinsic_call]
 		_(RawOrigin::Signed(caller.clone()), region_id, max_price);
