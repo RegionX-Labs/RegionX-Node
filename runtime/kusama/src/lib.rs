@@ -186,7 +186,7 @@ pub const VERSION: RuntimeVersion = RuntimeVersion {
 	spec_name: Cow::Borrowed("regionx-kusama-parachain"),
 	impl_name: Cow::Borrowed("regionx-kusama-parachain"),
 	authoring_version: 1,
-	spec_version: 1_000_000,
+	spec_version: 1_001_000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
