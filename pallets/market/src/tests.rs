@@ -135,11 +135,7 @@ mod fixed_pricing_tests {
 
 			// Failure: NotAllowed - only the seller can update the price
 			assert_noop!(
-				Market::update_region_price(
-					RuntimeOrigin::signed(3),
-					region_id,
-					new_price
-				),
+				Market::update_region_price(RuntimeOrigin::signed(3), region_id, new_price),
 				Error::<Test>::NotAllowed
 			);
 
@@ -149,11 +145,7 @@ mod fixed_pricing_tests {
 			// Check storage
 			assert_eq!(
 				Market::listings(region_id),
-				Some(Listing {
-					seller,
-					price_data: new_price,
-					sale_recipient: recipient
-				})
+				Some(Listing { seller, price_data: new_price, sale_recipient: recipient })
 			);
 
 			// Check events
@@ -177,11 +169,7 @@ mod fixed_pricing_tests {
 
 			// Failure: NotListed
 			assert_noop!(
-				Market::purchase_region(
-					RuntimeOrigin::signed(seller),
-					region_id,
-					price
-				),
+				Market::purchase_region(RuntimeOrigin::signed(seller), region_id, price),
 				Error::<Test>::NotListed
 			);
 
@@ -198,11 +186,7 @@ mod fixed_pricing_tests {
 				Error::<Test>::NotAllowed
 			);
 			assert_noop!(
-				Market::purchase_region(
-					RuntimeOrigin::signed(recipient),
-					region_id,
-					price
-				),
+				Market::purchase_region(RuntimeOrigin::signed(recipient), region_id, price),
 				Error::<Test>::NotAllowed
 			);
 
@@ -213,36 +197,18 @@ mod fixed_pricing_tests {
 			);
 
 			// Failure: Insufficient Balance
-			let balance_buyer_old = Balances::free_balance(buyer);
-			println!("{:?}", balance_buyer_old);
-			assert_ok!(Balances::force_set_balance(
-				RuntimeOrigin::root(),
-				buyer,
-				price - 100,
-			));
+			assert_ok!(Balances::force_set_balance(RuntimeOrigin::root(), buyer, price - 100,));
 			assert_noop!(
-				Market::purchase_region(
-					RuntimeOrigin::signed(buyer),
-					region_id,
-					price
-				),
+				Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, price),
 				Token(TokenError::FundsUnavailable)
 			);
-			assert_ok!(Balances::transfer_keep_alive(
-				RuntimeOrigin::signed(seller),
-				buyer,
-				100
-			));
+			assert_ok!(Balances::force_set_balance(RuntimeOrigin::root(), buyer, price + 100));
 
 			// Should be working
 			let balance_recipient_old = Balances::free_balance(recipient);
 			let balance_buyer_old = Balances::free_balance(buyer);
 
-			assert_ok!(Market::purchase_region(
-				RuntimeOrigin::signed(buyer),
-				region_id,
-				price
-			));
+			assert_ok!(Market::purchase_region(RuntimeOrigin::signed(buyer), region_id, price));
 
 			// Check storage items
 			assert!(Market::listings(region_id).is_none());
