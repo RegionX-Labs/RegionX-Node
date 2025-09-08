@@ -22,15 +22,17 @@ use frame_support::{
 use frame_system::pallet_prelude::OriginFor;
 use nonfungible_primitives::LockableNonFungible;
 pub use pallet::*;
-use pallet_broker::{RegionId, Timeslice};
+use pallet_broker::RegionId;
 use polkadot_sdk::*;
 use region_primitives::{RegionFactory, RegionInspect};
-use sp_runtime::{traits::BlockNumberProvider, SaturatedConversion, Saturating};
+use sp_runtime::traits::BlockNumberProvider;
 
 mod types;
 pub use crate::types::*;
 
+#[cfg(feature = "dynamic-pricing")]
 pub mod dynamic_pricing;
+#[cfg(not(feature = "dynamic-pricing"))]
 pub mod fixed_pricing;
 
 #[cfg(test)]

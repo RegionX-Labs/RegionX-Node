@@ -648,12 +648,15 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
+use pallet_market::fixed_pricing::FixedPricing;
+
 impl pallet_market::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
+	type MarketImpl = FixedPricing<Self>;
 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
 }
 
