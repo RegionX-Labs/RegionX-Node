@@ -55,3 +55,4 @@ std = [
 	"polkadot-sdk/std",
 ]
 try-runtime = [ "polkadot-sdk/try-runtime" ]
+dynamic-pricing = []

@@ -13,7 +13,7 @@
 // You should have received a copy of the GNU General Public License
 // along with RegionX.  If not, see <https://www.gnu.org/licenses/>.
 
-use crate::{frame_system::ensure_signed, *};
+use crate::*;
 use polkadot_sdk::frame_support::traits::{fungible::Mutate, nonfungible::Transfer};
 
 pub struct FixedPricing<T: Config>(PhantomData<T>);
@@ -29,7 +29,7 @@ impl<T: Config> MarketT<T> for FixedPricing<T> {
 	) -> DispatchResult {
 		ensure!(Listings::<T>::get(region_id).is_none(), Error::<T>::AlreadyListed);
 
-		let region = T::Regions::region(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
+		let _region = T::Regions::region(&region_id.into()).ok_or(Error::<T>::UnknownRegion)?;
 
 		T::Regions::lock(&region_id.into(), Some(who.clone()))?;
 
