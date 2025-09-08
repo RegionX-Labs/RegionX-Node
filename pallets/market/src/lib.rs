@@ -53,7 +53,7 @@ pub type RCBlockNumberOf<T> =
 	<<T as crate::Config>::RCBlockNumberProvider as BlockNumberProvider>::BlockNumber;
 
 pub trait MarketT<T: crate::Config> {
-	type PriceData: Parameter;
+	type PriceData: Parameter + From<u32>;
 
 	fn list_region(
 		who: T::AccountId,
