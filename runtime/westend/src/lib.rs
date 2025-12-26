@@ -93,12 +93,11 @@ use frame_system::{
 	limits::{BlockLength, BlockWeights},
 	EnsureRoot,
 };
-use ismp_parachain::PASEO_CONSENSUS_ID;
 use pallet_ismp::offchain::{Leaf, Proof, ProofKeys};
 use pallet_xcm::{EnsureXcm, IsVoiceOfBody};
 use sp_core::H256;
 use sp_mmr_primitives::INDEXING_PREFIX;
-pub use sp_runtime::{ConsensusEngineId, MultiAddress, Perbill, Permill};
+pub use sp_runtime::{MultiAddress, Perbill, Permill};
 use xcm_config::XcmOriginToTransactDispatchOrigin;
 
 #[cfg(any(feature = "std", test))]
@@ -164,7 +163,7 @@ pub struct WeightToFee;
 impl WeightToFeePolynomial for WeightToFee {
 	type Balance = Balance;
 	fn polynomial() -> WeightToFeeCoefficients<Self::Balance> {
-		let p = MILLI_KSM / 10;
+		let p = MILLI_WND / 10;
 		let q = 100 * Balance::from(ExtrinsicBaseWeight::get().ref_time());
 		smallvec![WeightToFeeCoefficient {
 			degree: 1,
@@ -183,10 +182,10 @@ impl_opaque_keys! {
 
 #[sp_version::runtime_version]
 pub const VERSION: RuntimeVersion = RuntimeVersion {
-	spec_name: Cow::Borrowed("regionx-kusama-parachain"),
-	impl_name: Cow::Borrowed("regionx-kusama-parachain"),
+	spec_name: Cow::Borrowed("regionx-westend-parachain"),
+	impl_name: Cow::Borrowed("regionx-westend-parachain"),
 	authoring_version: 1,
-	spec_version: 1_001_000,
+	spec_version: 1_000_000,
 	impl_version: 0,
 	apis: RUNTIME_API_VERSIONS,
 	transaction_version: 1,
@@ -210,12 +209,12 @@ pub const MINUTES: BlockNumber = 60_000 / (MILLISECS_PER_BLOCK as BlockNumber);
 pub const HOURS: BlockNumber = MINUTES * 60;
 pub const DAYS: BlockNumber = HOURS * 24;
 
-pub const KSM: Balance = 1_000_000_000_000;
-pub const MILLI_KSM: Balance = 1_000_000_000;
-pub const MICRO_KSM: Balance = 1_000_000;
+pub const WND: Balance = 1_000_000_000_000;
+pub const MILLI_WND: Balance = 1_000_000_000;
+pub const MICRO_WND: Balance = 1_000_000;
 
 pub const fn deposit(items: u32, bytes: u32) -> Balance {
-	items as Balance * MILLI_KSM + (bytes as Balance) * 10 * MICRO_KSM
+	items as Balance * MILLI_WND + (bytes as Balance) * 10 * MICRO_WND
 }
 
 /// Maximum number of blocks simultaneously accepted by the Runtime, not yet included
@@ -227,7 +226,7 @@ const BLOCK_PROCESSING_VELOCITY: u32 = 1;
 /// Relay chain slot duration, in milliseconds.
 const RELAY_CHAIN_SLOT_DURATION_MILLIS: u32 = 6000;
 
-pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_KSM;
+pub const EXISTENTIAL_DEPOSIT: Balance = 10 * MILLI_WND;
 
 /// We assume that ~5% of the block weight is consumed by `on_initialize` handlers. This is
 /// used to limit the maximal weight of a single extrinsic.
@@ -278,7 +277,7 @@ parameter_types! {
 		})
 		.avg_block_initialization(AVERAGE_ON_INITIALIZE_RATIO)
 		.build_or_panic();
-	pub const SS58Prefix: u16 = 74;
+	pub const SS58Prefix: u16 = 42;
 }
 
 // Configure FRAME pallets to include in runtime.
@@ -373,7 +372,7 @@ impl pallet_balances::Config for Runtime {
 }
 
 parameter_types! {
-	pub const TransactionByteFee: Balance = MICRO_KSM * 10;
+	pub const TransactionByteFee: Balance = MICRO_WND * 10;
 }
 
 impl pallet_transaction_payment::Config for Runtime {
@@ -540,9 +539,8 @@ impl StateMachineHeightProviderT for StateMachineHeightProvider {
 }
 
 parameter_types! {
-	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-kusama
+	pub const CoretimeChain: StateMachine = StateMachine::Kusama(CORETIME_CHAIN_PARA_ID); // coretime-westend
 	pub const RegionsUnsignedPriority: TransactionPriority = TransactionPriority::MAX;
-	pub const ConsensusId: ConsensusEngineId = PASEO_CONSENSUS_ID;
 }
 
 impl pallet_regions::Config for Runtime {
@@ -555,7 +553,6 @@ impl pallet_regions::Config for Runtime {
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
 	type UnsignedPriority = RegionsUnsignedPriority;
-	type ConsensusId = ConsensusId;
 	type WeightInfo = weights::pallet_regions::WeightInfo<Runtime>;
 }
 
@@ -648,21 +645,18 @@ impl pallet_scheduler::Config for Runtime {
 	type Preimages = Preimage;
 }
 
-use pallet_market::fixed_pricing::FixedPricing;
-
 impl pallet_market::Config for Runtime {
 	type RuntimeEvent = RuntimeEvent;
 	type Currency = Balances;
 	type Regions = Regions;
 	type RCBlockNumberProvider = RelaychainDataProvider<Self>;
 	type TimeslicePeriod = ConstU32<80>;
-	type MarketImpl = FixedPricing<Self>;
 	type WeightInfo = weights::pallet_market::WeightInfo<Runtime>;
 }
 
 parameter_types! {
-	pub const OrderCreationCost: Balance = 100 * MILLI_KSM;
-	pub const MinimumContribution: Balance = 50 * MILLI_KSM;
+	pub const OrderCreationCost: Balance = 100 * MILLI_WND;
+	pub const MinimumContribution: Balance = 50 * MILLI_WND;
 }
 
 pub struct OrderToAccountId;
@@ -685,7 +679,7 @@ impl pallet_orders::Config for Runtime {
 }
 
 parameter_types! {
-	pub const FeeBuffer: Balance = MILLI_KSM / 10;
+	pub const FeeBuffer: Balance = MILLI_WND / 10;
 	pub OwnParaId: u32 = ParachainInfo::parachain_id().into();
 }
 
@@ -699,7 +693,7 @@ impl pallet_processor::Config for Runtime {
 	type AssignmentCallEncoder = AssignmentCallEncoder;
 	type RegionAssigner = XcmRegionAssigner<Self, LocationToAccountId, OwnParaId, FeeBuffer>;
 	type CoretimeChain = CoretimeChainLocation;
-	type WeightToFee = WeightToFee; // TODO: Kusama WeightToFee
+	type WeightToFee = WeightToFee; // TODO: Westend WeightToFee
 	type WeightInfo = weights::pallet_processor::WeightInfo<Runtime>;
 }
 
@@ -747,12 +741,12 @@ construct_runtime!(
 		XcmpQueue: cumulus_pallet_xcmp_queue = 70,
 		PolkadotXcm: pallet_xcm = 71,
 		CumulusXcm: cumulus_pallet_xcm = 72,
+		MessageQueue: pallet_message_queue = 73,
 
 		// ISMP
-		Mmr: pallet_mmr_tree = 80,
-		Ismp: pallet_ismp = 81,
-		MessageQueue: pallet_message_queue = 82,
-		IsmpParachain: ismp_parachain = 83,
+		Ismp: pallet_ismp = 80,
+		Mmr: pallet_mmr_tree = 81,
+		IsmpParachain: ismp_parachain = 82,
 
 		// Main stage:
 		Regions: pallet_regions = 90,
